@@ -1,0 +1,380 @@
+// src/assets/styles/main.scss
+@import 'variables';
+@import 'mixins';
+@import 'animations';
+
+// Global Styles
+body {
+  font-family: $font-family-base;
+  line-height: $line-height-base;
+  color: $dark-color;
+  overflow-x: hidden;
+}
+
+// Background utilities
+.bg-primary {
+  background-color: $primary-color;
+}
+
+.bg-secondary {
+  background-color: $secondary-color;
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, $primary-color, $tertiary-color);
+}
+
+// Blurry background classes
+.bg-blur {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: -1;
+  }
+}
+
+.bg-blur-light {
+  @extend .bg-blur;
+  
+  &::before {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+.bg-blur-heavy {
+  @extend .bg-blur;
+  
+  &::before {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+// Background image classes - we now handle these in their respective component files
+// using the @/ webpack alias for better asset handling
+.bg-login {
+  position: relative;
+}
+
+.bg-dashboard {
+  position: relative;
+}
+
+.bg-artist {
+  --ion-background-color: transparent;
+  position: relative;
+  
+  &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6) url('@/assets/music-artist-bg.jpg') no-repeat center center / cover;
+      background-blend-mode: darken;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: -1;
+  }
+}
+
+.bg-playlist {
+  position: relative;
+}
+.bg-blur {
+  &-light {
+    background-color: rgba(255, 255, 255, 0.6);
+    @include bg-blur(10px);
+  }
+  
+  &-dark {
+    background-color: rgba(0, 0, 0, 0.4);
+    @include bg-blur(10px);
+  }
+}
+
+// Page backgrounds
+.bg-pattern {
+  background-color: #f0f2f5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+// Spacing utilities
+.p {
+  &-xs { padding: $spacing-xs; }
+  &-sm { padding: $spacing-sm; }
+  &-md { padding: $spacing-md; }
+  &-lg { padding: $spacing-lg; }
+  &-xl { padding: $spacing-xl; }
+}
+
+.m {
+  &-xs { margin: $spacing-xs; }
+  &-sm { margin: $spacing-sm; }
+  &-md { margin: $spacing-md; }
+  &-lg { margin: $spacing-lg; }
+  &-xl { margin: $spacing-xl; }
+}
+
+// Container styles
+.page-container {
+  padding: $spacing-md;
+  min-height: 100%;
+  position: relative;
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+// Card containers
+.card-container {
+  margin-bottom: $spacing-md;
+}
+
+// Form styles
+.form-field {
+  margin-bottom: $spacing-md;
+}
+
+.error-text {
+  color: $danger-color;
+  font-size: 0.8rem;
+  margin-top: $spacing-xs;
+}
+
+// Layout helpers
+.center-content {
+  @include flex-center;
+  @include flex-column;
+  min-height: 100%;
+}
+
+.flex-row {
+  @include flex-row;
+  align-items: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Custom blurred containers
+.blur-container {
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    z-index: -1;
+  }
+  
+  &.dark::before {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Common background images with class naming
+.bg-blue-purple {
+  background-image: url('#{$assets-path}/blurred-blue-purple-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.bg-blue-red-purple {
+  background-image: url('#{$assets-path}/blurred-blue-red-purple-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.bg-blue-light-purple {
+  background-image: url('#{$assets-path}/blurred-blue-light-purple-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.bg-login {
+  background-image: url('#{$assets-path}/bg-login.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.bg-cassette {
+  background-image: url('#{$assets-path}/vertical-hires-cassette-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+// Overwrite Ionic specific variables
+:root {
+  --ion-color-primary: #{$primary-color};
+  --ion-color-secondary: #{$secondary-color};
+  --ion-color-tertiary: #{$tertiary-color};
+  --ion-background-color: #{$light-color};
+}
+
+// Page transitions
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.3s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+// Card styling enhancements
+.card-hover {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Glassmorphism 
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25); /* Increased opacity for better readability */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Slightly more visible border */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+}
+
+// Global transition styles for page transitions
+ion-router-outlet {
+  > div {
+    @include page-transition;
+  }
+}
+
+// Enhanced button styles
+ion-button {
+  --border-radius: $border-radius-md;
+  --box-shadow: $shadow-sm;
+  overflow: hidden;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: width 0.5s, height 0.5s, opacity 0.5s;
+    pointer-events: none;
+  }
+  
+  &:active::after {
+    width: 300px;
+    height: 300px;
+    opacity: 1;
+    transition: width 0.5s, height 0.5s, opacity 0.1s;
+  }
+  
+  &.button-solid {
+    --background: linear-gradient(45deg, var(--ion-color-primary), var(--ion-color-secondary));
+    --background-activated: linear-gradient(45deg, var(--ion-color-primary-shade), var(--ion-color-secondary-shade));
+  }
+}
+
+// Enhanced input styles
+ion-input, ion-textarea, ion-select {
+  --border-radius: $border-radius-md;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --background: rgba(255, 255, 255, 0.08);
+  --color: white;
+  --placeholder-color: rgba(255, 255, 255, 0.6);
+  
+  &.item-interactive {
+    --highlight-height: 2px;
+    --highlight-color-focused: $primary-color;
+    --highlight-color-valid: $success-color;
+    --highlight-color-invalid: $danger-color;
+  }
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
