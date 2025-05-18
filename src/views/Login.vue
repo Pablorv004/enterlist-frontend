@@ -375,28 +375,31 @@ export default defineComponent({
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     padding: 16px;
     text-align: center;
+    overflow-y: auto;
+    padding-top: 32px;
 }
 
 .logo-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     margin-bottom: 24px;
     text-align: center;
+    gap: 16px;
 }
 
 .logo {
-    width: 120px;
-    height: 120px;
-    margin-bottom: 16px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0;
 }
 
 .title {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 800;
     letter-spacing: 2px;
     margin: 0;
@@ -409,6 +412,7 @@ export default defineComponent({
     border-radius: 16px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.95);
+    margin-bottom: 32px;
 }
 
 .card-title {
@@ -513,6 +517,11 @@ ion-card-subtitle {
 
 /* Media Queries */
 @media (max-width: 576px) {
+    .logo-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
     .logo {
         width: 90px;
         height: 90px;
@@ -524,6 +533,10 @@ ion-card-subtitle {
 
     .card-title {
         font-size: 20px;
+    }
+    
+    .login-container {
+        padding-top: 16px;
     }
 }
 </style>
