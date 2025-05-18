@@ -1,22 +1,31 @@
 <template>
     <ion-app>
+        <app-header 
+            :title="pageTitle" 
+            :back-button="showBackButton"
+            :back-url="backUrl"
+            :show-platform-selector="showPlatformSelector" />
         <ion-router-outlet />
     </ion-app>
 </template>
 
 <script lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { useAuthStore } from '@/store';
+import { useRouter } from 'vue-router';
+import AppHeader from '@/components/AppHeader.vue';
 
 export default defineComponent({
     name: 'App',
     components: {
         IonApp,
-        IonRouterOutlet
+        IonRouterOutlet,
+        AppHeader
     },
     setup() {
         const authStore = useAuthStore();
+        const router = useRouter();
 
         // Initialize auth from local storage
         authStore.initializeFromStorage();
@@ -24,7 +33,33 @@ export default defineComponent({
         // Check authentication status
         authStore.checkAuth();
 
-        return {};
+        // Reactive references for header configuration
+        const pageTitle = ref('EnterList');
+        const showBackButton = ref(false);
+        const backUrl = ref('/');
+        const showPlatformSelector = ref(true);
+
+        // Watch for route changes to update header
+        watch(() => router.currentRoute.value, (route) => {
+            // Get the title from the route meta
+            pageTitle.value = route.meta.title as string || route.name as string || 'EnterList';
+            
+            // Determine if back button should be shown
+            showBackButton.value = !!route.meta.showBackButton;
+            
+            // Set back URL if specified
+            backUrl.value = route.meta.backUrl as string || '/';
+            
+            // Check if platform selector should be shown
+            showPlatformSelector.value = route.meta.showPlatformSelector !== false;
+        }, { immediate: true });
+
+        return {
+            pageTitle,
+            showBackButton,
+            backUrl,
+            showPlatformSelector
+        };
     }
 });
 </script>
@@ -118,20 +153,5 @@ ion-button {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
-}
-
-/* Added centering for common elements */
-h1, h2, h3, h4, h5, h6, ion-title {
-    text-align: center;
-}
-
-@media (min-width: 768px) {
-    /* On larger screens, left-align some elements for better design */
-    .dashboard-container h1, 
-    .dashboard-container h2,
-    .section-header h2,
-    .card-header h2 {
-        text-align: left;
-    }
 }
 </style>

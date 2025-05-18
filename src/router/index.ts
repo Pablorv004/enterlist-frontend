@@ -1,128 +1,272 @@
-// router/index.ts
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import { useAuthStore } from '../store/auth';
+import { useAuthStore } from '@/store';
 
-// Views
-import LoginView from '../views/LoginView.vue';
+// Lazy load views for better performance
+const Home = () => import('@/views/Home.vue');
+const Login = () => import('@/views/Login.vue');
+// const Register = () => import('@/views/Register.vue'); // Commented out missing component
+const Dashboard = () => import('@/views/Dashboard.vue');
+const ArtistDashboard = () => import('@/views/artist/Dashboard.vue');
+const PlaylistMakerDashboard = () => import('@/views/playlist-maker/Dashboard.vue');
+// const AdminDashboard = () => import('@/views/admin/Dashboard.vue'); // Commented out missing component
+const NotFound = () => import('@/views/NotFound.vue');
 
-const routes: Array<RouteRecordRaw> = [
-    {
+// Artist routes
+const ArtistSongs = () => import('@/views/artist/Songs.vue');
+const ArtistSubmissions = () => import('@/views/artist/Submissions.vue');
+const ArtistSubmissionDetail = () => import('@/views/artist/SubmissionDetail.vue');
+const ArtistNewSubmission = () => import('@/views/artist/NewSubmission.vue');
+const ArtistProfile = () => import('@/views/artist/Profile.vue');
+const ArtistPaymentMethods = () => import('@/views/artist/PaymentMethods.vue');
+const ArtistLinkedAccounts = () => import('@/views/artist/LinkedAccounts.vue');
+
+// Playlist maker routes
+const PlaylistMakerPlaylists = () => import('@/views/playlist-maker/Playlists.vue');
+const PlaylistMakerSubmissions = () => import('@/views/playlist-maker/Submissions.vue');
+const PlaylistMakerSubmissionDetail = () => import('@/views/playlist-maker/SubmissionDetail.vue');
+const PlaylistMakerProfile = () => import('@/views/playlist-maker/Profile.vue');
+const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedAccounts.vue');
+
+//Admin routes
+// const AdminUsers = () => import('@/views/admin/Users.vue');
+// const AdminPlaylists = () => import('@/views/admin/Playlists.vue');
+// const AdminSongs = () => import('@/views/admin/Songs.vue');
+// const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
+// const AdminTransactions = () => import('@/views/admin/Transactions.vue');
+// const AdminActions = () => import('@/views/admin/Actions.vue');
+
+// OAuth callback routes
+const OAuthCallback = () => import('@/views/OAuthCallback.vue');
+
+const routes: Array<RouteRecordRaw> = [    {
         path: '/',
-        redirect: '/login'
+        name: 'Home',
+        component: Home,
+        meta: { requiresAuth: false }
     },
     {
         path: '/login',
         name: 'Login',
-        component: LoginView,
-        meta: { requiresAuth: false }
-    }, {
+        component: Login,
+        meta: { requiresAuth: false, guestOnly: true }
+    },
+    /* Commented out missing route
+    {
         path: '/register',
         name: 'Register',
-        component: () => import('../views/RegisterView.vue'),
-        meta: { requiresAuth: false }
+        component: Register,
+        meta: { requiresAuth: false, guestOnly: true }
+    },
+    */
+    {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: { requiresAuth: true },
+        // This will redirect based on user role
+    },
+    // Artist routes
+    {
+        path: '/artist/dashboard',
+        name: 'ArtistDashboard',
+        component: ArtistDashboard,
+        meta: { requiresAuth: true, role: 'artist' }
     },
     {
-        path: '/tabs/',
-        component: () => import('../views/TabsLayout.vue'),
-        meta: { requiresAuth: true },
-        children: [
-            {
-                path: '',
-                redirect: '/tabs/dashboard'
-            },
-            // Artist routes
-            {
-                path: 'dashboard',
-                name: 'Dashboard',
-                component: () => import('../views/DashboardView.vue')
-            },
-            {
-                path: 'songs',
-                name: 'Songs',
-                component: () => import('../views/artist/SongsView.vue')
-            },
-            {
-                path: 'songs/new',
-                name: 'NewSong',
-                component: () => import('../views/artist/SongFormView.vue')
-            },
-            {
-                path: 'songs/:id',
-                name: 'EditSong',
-                component: () => import('../views/artist/SongFormView.vue')
-            },
-            // Playlist manager routes
-            {
-                path: 'playlists',
-                name: 'Playlists',
-                component: () => import('../views/playlist-manager/PlaylistsView.vue')
-            },
-            {
-                path: 'playlists/new',
-                name: 'NewPlaylist',
-                component: () => import('../views/playlist-manager/PlaylistFormView.vue')
-            },
-            {
-                path: 'playlists/:id',
-                name: 'EditPlaylist',
-                component: () => import('../views/playlist-manager/PlaylistFormView.vue')
-            },
-            // Submissions
-            {
-                path: 'submissions',
-                name: 'Submissions',
-                component: () => import('../views/submissions/SubmissionsView.vue')
-            },
-            {
-                path: 'submissions/:id',
-                name: 'SubmissionDetails',
-                component: () => import('../views/submissions/SubmissionDetailView.vue')
-            },
-            // Profile
-            {
-                path: 'profile',
-                name: 'Profile',
-                component: () => import('../views/ProfileView.vue')
-            },
-            // Admin routes
-            {
-                path: 'admin',
-                name: 'Admin',
-                component: () => import('../views/admin/AdminDashboardView.vue'),
-                meta: { requiresAdmin: true },
-            },
-            {
-                path: 'admin/users',
-                name: 'AdminUsers',
-                component: () => import('../views/admin/UsersView.vue'),
-                meta: { requiresAdmin: true },
-            }
-        ]
+        path: '/artist/songs',
+        name: 'ArtistSongs',
+        component: ArtistSongs,
+        meta: { requiresAuth: true, role: 'artist' }
     },
+    {
+        path: '/artist/submissions',
+        name: 'ArtistSubmissions',
+        component: ArtistSubmissions,
+        meta: { requiresAuth: true, role: 'artist' }
+    }, {
+        path: '/artist/submissions/:id',
+        name: 'ArtistSubmissionDetail',
+        component: ArtistSubmissionDetail,
+        meta: { requiresAuth: true, role: 'artist' }
+    },
+    {
+        path: '/artist/submissions/new',
+        name: 'ArtistNewSubmission',
+        component: ArtistNewSubmission,
+        meta: { requiresAuth: true, role: 'artist' }
+    },
+    {
+        path: '/artist/profile',
+        name: 'ArtistProfile',
+        component: ArtistProfile,
+        meta: { requiresAuth: true, role: 'artist' }
+    },
+    {
+        path: '/artist/payment-methods',
+        name: 'ArtistPaymentMethods',
+        component: ArtistPaymentMethods,
+        meta: { requiresAuth: true, role: 'artist' }
+    },
+    {
+        path: '/artist/linked-accounts',
+        name: 'ArtistLinkedAccounts',
+        component: ArtistLinkedAccounts,
+        meta: { requiresAuth: true, role: 'artist' }
+    },
+    // Playlist maker routes
+    {
+        path: '/playlist-maker/dashboard',
+        name: 'PlaylistMakerDashboard',
+        component: PlaylistMakerDashboard,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/playlists',
+        name: 'PlaylistMakerPlaylists',
+        component: PlaylistMakerPlaylists,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/submissions',
+        name: 'PlaylistMakerSubmissions',
+        component: PlaylistMakerSubmissions,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/submissions/:id',
+        name: 'PlaylistMakerSubmissionDetail',
+        component: PlaylistMakerSubmissionDetail,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/profile',
+        name: 'PlaylistMakerProfile',
+        component: PlaylistMakerProfile,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/linked-accounts',
+        name: 'PlaylistMakerLinkedAccounts',
+        component: PlaylistMakerLinkedAccounts,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },    // Admin routes
+    /*
+    {
+        path: '/admin/dashboard',
+        name: 'AdminDashboard',
+        component: AdminDashboard,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/users',
+        name: 'AdminUsers',
+        component: AdminUsers,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/playlists',
+        name: 'AdminPlaylists',
+        component: AdminPlaylists,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/songs',
+        name: 'AdminSongs',
+        component: AdminSongs,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/submissions',
+        name: 'AdminSubmissions',
+        component: AdminSubmissions,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/transactions',
+        name: 'AdminTransactions',
+        component: AdminTransactions,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/actions',
+        name: 'AdminActions',
+        component: AdminActions,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    */
+    // OAuth callback routes
+    {
+        path: '/oauth/callback',
+        name: 'OAuthCallback',
+        component: OAuthCallback,
+        meta: { requiresAuth: false }
+    },
+    // 404 Not Found route
     {
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
-        component: () => import('../views/NotFoundView.vue')
+        component: NotFound,
+        meta: { requiresAuth: false }
     }
 ];
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
+    history: createWebHistory(import.meta.env.BASE_URL || ''),
     routes
 });
 
 // Navigation guards
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
+    authStore.initializeFromStorage();
 
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        // Redirect to login if not authenticated
-        next('/login');
-    } else if (to.meta.requiresAdmin && authStore.userRole !== 'admin') {
-        // Redirect to dashboard if not an admin
-        next('/tabs/dashboard');
+    // Check if route requires authentication
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+    const guestOnly = to.matched.some(record => record.meta.guestOnly);
+    const requiredRole = to.matched.find(record => record.meta.role)?.meta.role;
+
+    if (requiresAuth && !authStore.isAuthenticated) {
+        // Redirect to login if user is not authenticated
+        next({ name: 'Login', query: { redirect: to.fullPath } });
+    } else if (guestOnly && authStore.isAuthenticated) {
+        // Redirect to dashboard if user is authenticated and tries to access guest-only pages
+        next({ name: 'Dashboard' });
+    } else if (requiredRole && authStore.isAuthenticated) {
+        // Check user role for role-specific routes
+        const userRole = authStore.user?.role.toLowerCase();        // If user has the correct role, proceed
+        if (userRole === requiredRole) {
+            next();
+        } else {
+            // Redirect to appropriate dashboard based on user role
+            if (userRole === 'artist') {
+                next({ name: 'ArtistDashboard' });
+            } else if (userRole === 'playlist_maker') {
+                next({ name: 'PlaylistMakerDashboard' });
+            } else if (userRole === 'admin') {
+                // Temporarily redirect to Home until admin views are implemented
+                next({ name: 'Home' });
+            } else {
+                // Fallback to home if role is unknown
+                next({ name: 'Home' });
+            }
+        }    } else if (to.path === '/dashboard' && authStore.isAuthenticated) {
+        // Redirect to appropriate dashboard based on user role
+        const userRole = authStore.user?.role.toLowerCase();
+
+        if (userRole === 'artist') {
+            next({ name: 'ArtistDashboard' });
+        } else if (userRole === 'playlist_maker') {
+            next({ name: 'PlaylistMakerDashboard' });
+        } else if (userRole === 'admin') {
+            // Temporarily redirect to Home until admin views are implemented
+            next({ name: 'Home' });
+        } else {
+            // Fallback to home if role is unknown
+            next({ name: 'Home' });
+        }
     } else {
+        // Allow navigation
         next();
     }
 });
