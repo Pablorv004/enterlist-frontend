@@ -8,11 +8,8 @@
                 <div class="profile-header">
                     <div class="profile-avatar">
                         <ion-avatar>
-                            <img :src="profileImage || '/assets/default-avatar.png'" alt="Profile Avatar" />
+                            <ion-icon :icon="personCircleOutline" class="avatar-icon"></ion-icon>
                         </ion-avatar>
-                        <ion-button fill="clear" class="edit-avatar-btn" @click="uploadProfileImage">
-                            <ion-icon :icon="cameraIcon"></ion-icon>
-                        </ion-button>
                     </div>
                     <div class="profile-info">
                         <h2>{{ user?.username }}</h2>
@@ -255,7 +252,7 @@ import {
     IonButton, IonNote, IonAvatar, IonIcon, IonBadge, IonToggle, IonSpinner,
     alertController, toastController
 } from '@ionic/vue';
-import { camera } from 'ionicons/icons';
+import { camera, personCircleOutline } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import { UserService } from '@/services/UserService';
 import { useAuthStore } from '@/store';
@@ -575,7 +572,8 @@ export default defineComponent({
             uploadProfileImage,
             resetForm,
             showDeactivateAlert,
-            cameraIcon: camera
+            cameraIcon: camera,
+            personCircleOutline
         };
     }
 });
@@ -613,6 +611,11 @@ export default defineComponent({
     margin-bottom: 1rem;
 }
 
+.avatar-icon {
+    width: 100%;
+    height: 100%;
+}
+
 @media (min-width: 576px) {
     .profile-avatar {
         margin-right: 1.5rem;
@@ -624,20 +627,6 @@ export default defineComponent({
     width: 100px;
     height: 100px;
     border: 3px solid var(--ion-color-primary);
-}
-
-.edit-avatar-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    --padding-start: 6px;
-    --padding-end: 6px;
-    --padding-top: 6px;
-    --padding-bottom: 6px;
-    --border-radius: 50%;
-    margin: 0;
-    background: var(--ion-color-primary);
-    color: white;
 }
 
 .profile-info h2 {

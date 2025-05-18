@@ -8,11 +8,8 @@
                 <div class="profile-header">
                     <div class="profile-avatar">
                         <ion-avatar>
-                            <img :src="profileImage || '/assets/default-avatar.png'" alt="Profile Avatar" />
+                            <ion-icon :icon="personCircleOutline" class="avatar-icon"></ion-icon>
                         </ion-avatar>
-                        <ion-button fill="clear" class="edit-avatar-btn" @click="uploadProfileImage">
-                            <ion-icon :icon="cameraIcon"></ion-icon>
-                        </ion-button>
                     </div>
                     <div class="profile-info">
                         <h2>{{ user?.username }}</h2>
@@ -188,7 +185,7 @@ import {
     IonButton, IonNote, IonAvatar, IonIcon, IonBadge, IonToggle, IonSpinner,
     alertController, toastController
 } from '@ionic/vue';
-import { camera } from 'ionicons/icons';
+import { camera, personCircleOutline } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import { UserService } from '@/services/UserService';
 import { useAuthStore } from '@/store';
@@ -440,6 +437,7 @@ export default defineComponent({
             errors,
             updateLoading,
             cameraIcon: camera,
+            personCircleOutline,
             updateProfile,
             updatePassword,
             uploadProfileImage,
@@ -476,6 +474,11 @@ export default defineComponent({
     }
 }
 
+.avatar-icon {
+    width: 100%;
+    height: 100%;
+}
+
 .profile-avatar {
     position: relative;
     margin-bottom: 1rem;
@@ -492,20 +495,6 @@ export default defineComponent({
     width: 100px;
     height: 100px;
     margin: 0 auto;
-}
-
-.edit-avatar-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    margin: 0;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --padding-top: 8px;
-    --padding-bottom: 8px;
-    --border-radius: 50%;
-    background: var(--ion-color-primary);
-    color: white;
 }
 
 .profile-info {

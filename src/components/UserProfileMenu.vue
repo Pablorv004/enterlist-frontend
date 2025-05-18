@@ -3,7 +3,7 @@
         <div class="profile-button-content">
             <span class="username">{{ user?.username }}</span>
             <ion-avatar>
-                <img :src="userAvatar" alt="Profile" />
+                <ion-icon :icon="personCircleOutline" class="avatar-icon"></ion-icon>
             </ion-avatar>
         </div>
     </ion-button>
@@ -44,7 +44,7 @@ import {
     IonIcon,
     IonLabel
 } from '@ionic/vue';
-import { person, settings, logOut } from 'ionicons/icons';
+import { person, settings, logOut, personCircleOutline } from 'ionicons/icons';
 
 export default defineComponent({
     name: 'UserProfileMenu',
@@ -64,12 +64,6 @@ export default defineComponent({
         const isOpen = ref(false);
         const event = ref();
         const user = computed(() => authStore.user);
-
-        // Default avatar or user's avatar if available
-        const userAvatar = computed(() => {
-            //TODO: Replace with actual logic to get user avatar
-            return '/assets/default-avatar.png';
-        });
 
         // Determine profile link based on user role
         const profileLink = computed(() => {
@@ -110,14 +104,14 @@ export default defineComponent({
             isOpen,
             event,
             user,
-            userAvatar,
             profileLink,
             settingsLink,
             presentPopover,
             logout,
             personIcon: person,
             settingsIcon: settings,
-            logOutIcon: logOut
+            logOutIcon: logOut,
+            personCircleOutline
         };
     }
 });
@@ -134,6 +128,11 @@ export default defineComponent({
     display: inline-block;
     color: white;
     font-weight: 500;
+}
+
+.avatar-icon {
+    width: 100%;
+    height: 100%;
 }
 
 ion-avatar {
