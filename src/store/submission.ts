@@ -47,7 +47,7 @@ export const useSubmissionStore = defineStore('submission', () => {
     try {
       const response = await SubmissionService.getSubmissionsByCreator(creatorId, skip, take, status);
       submissions.value = response.data;
-      totalCount.value = response.total;
+      totalCount.value = response.data.length;
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch submissions';
       throw err;

@@ -463,18 +463,25 @@ export default defineComponent({
 .welcome-header {
     margin-bottom: 1.5rem;
     text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .welcome-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0 0 0.5rem;
+    text-align: center;
 }
 
 .welcome-header p {
     font-size: 1.1rem;
     color: var(--ion-color-medium);
     margin: 0;
+    text-align: center;
 }
 
 /* Stats Cards */
