@@ -1,21 +1,21 @@
 import apiClient from './api';
 import { Platform, LinkedAccount } from '@/types';
 
-export const PlatformService = {
-  getPlatforms: async (): Promise<Platform[]> => {
+export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> => {
     const response = await apiClient.get('/platforms');
-    return response.data;
+    // Handle nested data structure if present
+    return response.data && response.data.data ? response.data.data : response.data;
   },
 
   getPlatform: async (id: number): Promise<Platform> => {
     const response = await apiClient.get(`/platforms/${id}`);
     return response.data;
   },
-
   // Linked accounts methods
   getLinkedAccounts: async (userId: string): Promise<LinkedAccount[]> => {
     const response = await apiClient.get(`/linked-accounts/user/${userId}`);
-    return response.data;
+    // Handle nested data structure if present
+    return response.data && response.data.data ? response.data.data : response.data;
   },
 
   getLinkedAccount: async (id: string): Promise<LinkedAccount> => {
@@ -38,9 +38,12 @@ export const PlatformService = {
   unlinkAccount: async (id: string): Promise<void> => {
     await apiClient.delete(`/linked-accounts/${id}`);
   },
-
   // OAuth endpoints for specific platforms
+  // Note: Spotify and YouTube now use direct login endpoints instead of getting auth URLs
+  // These methods are kept for backward compatibility and for platforms that still use this approach
+  
   getSpotifyAuthUrl: async (): Promise<{ url: string }> => {
+    // Deprecated: Use direct redirect to /platforms/spotify/login instead
     const response = await apiClient.get('/platforms/spotify/auth-url');
     return response.data;
   },
@@ -51,6 +54,7 @@ export const PlatformService = {
   },
 
   getYoutubeAuthUrl: async (): Promise<{ url: string }> => {
+    // Deprecated: Use direct redirect to /platforms/youtube/login instead
     const response = await apiClient.get('/platforms/youtube/auth-url');
     return response.data;
   },

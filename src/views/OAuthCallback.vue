@@ -36,6 +36,8 @@ import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { alertCircle, checkmarkCircle } from 'ionicons/icons';
 import { useRoute, useRouter } from 'vue-router';
 import { PlatformService } from '@/services/PlatformService';
+import { SpotifyService } from '@/services/SpotifyService';
+import { YouTubeService } from '@/services/YouTubeService';
 import { useAuthStore } from '@/store';
 
 export default defineComponent({

@@ -430,6 +430,8 @@ import {
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
+import { modalController } from '@ionic/vue';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import { PlatformService } from '@/services/PlatformService';
@@ -799,12 +801,21 @@ export default defineComponent({
 
         const getEarnings = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.earnings || 0;
-        };
+        };        const importPlaylistsModal = async () => {
+            const modal = await modalController.create({
+                component: ImportPlaylistsModal,
+                componentProps: {
+                    userId: userId.value
+                }
+            });
 
-        const importPlaylistsModal = () => {
-            isImportModalOpen.value = true;
-            selectedPlatform.value = null;
-            availablePlaylists.value = [];
+            await modal.present();
+
+            // Refresh playlists list if data was imported
+            const { data } = await modal.onDidDismiss();
+            if (data && data.dataRefreshed) {
+                fetchPlaylists();
+            }
         };
 
         const closeImportModal = () => {

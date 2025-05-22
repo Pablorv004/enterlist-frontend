@@ -224,40 +224,58 @@ export default defineComponent({
                     fetchLinkedAccounts()
                 ]);
             }
-        });
-
-        const fetchPlatforms = async () => {
+        });        const fetchPlatforms = async () => {
             try {
-                platforms.value = await PlatformService.getPlatforms();
+                const response = await PlatformService.getPlatforms();
+                // Ensure we're dealing with an array
+                platforms.value = Array.isArray(response) ? response : [];
             } catch (error) {
                 showToast('Failed to load platforms', 'danger');
+                platforms.value = []; // Initialize as empty array on error
             }
-        };
-
-        const fetchLinkedAccounts = async () => {
+        };        const fetchLinkedAccounts = async () => {
             try {
                 loading.value = true;
-                linkedAccounts.value = await PlatformService.getLinkedAccounts(userId.value);
+                const response = await PlatformService.getLinkedAccounts(userId.value);
+                // Ensure we're dealing with an array
+                linkedAccounts.value = Array.isArray(response) ? response : [];
             } catch (error) {
+                console.error('Failed to load linked accounts:', error);
                 showToast('Failed to load linked accounts', 'danger');
+                linkedAccounts.value = []; // Initialize as empty array on error
             } finally {
                 loading.value = false;
             }
-        };
+        };const getLinkedAccount = (platformName: string): LinkedAccount | undefined => {
+            // Safeguard against platforms.value not being an array
+            if (!Array.isArray(platforms.value)) {
+                console.error('Platforms is not an array:', platforms.value);
+                return undefined;
+            }
 
-        const getLinkedAccount = (platformName: string): LinkedAccount | undefined => {
             const platform = platforms.value.find(p =>
                 p.name.toLowerCase().includes(platformName.toLowerCase())
             );
 
             if (!platform) return undefined;
 
+            // Safeguard against linkedAccounts.value not being an array
+            if (!Array.isArray(linkedAccounts.value)) {
+                console.error('LinkedAccounts is not an array:', linkedAccounts.value);
+                return undefined;
+            }
+
             return linkedAccounts.value.find(account =>
                 account.platform_id === platform.platform_id
             );
-        };
+        };        const connectPlatform = async (platformName: string) => {
+            // Safeguard against platforms.value not being an array
+            if (!Array.isArray(platforms.value)) {
+                console.error('Platforms is not an array:', platforms.value);
+                showToast('Platform data not loaded correctly', 'danger');
+                return;
+            }
 
-        const connectPlatform = async (platformName: string) => {
             const platform = platforms.value.find(p =>
                 p.name.toLowerCase().includes(platformName.toLowerCase())
             );
@@ -268,56 +286,40 @@ export default defineComponent({
             }
 
             try {
-                // In a real implementation, this would redirect to OAuth flow
-                // For this demo, we'll simulate the flow
+                let redirectUrl;
+                
+                // Redirect directly to the backend login endpoint based on the platform
+                if (platformName.toLowerCase() === 'spotify') {
+                    redirectUrl = `${import.meta.env.VITE_API_URL || ''}/platforms/spotify/login`;
+                } else if (platformName.toLowerCase() === 'youtube') {
+                    redirectUrl = `${import.meta.env.VITE_API_URL || ''}/platforms/youtube/login`;
+                } else if (platformName.toLowerCase() === 'soundcloud') {
+                    // Keep using the auth URL endpoint for SoundCloud if it's still implemented that way
+                    const authUrl = await PlatformService.getSoundcloudAuthUrl();
+                    redirectUrl = authUrl?.url;
+                } else {
+                    showToast('Platform not supported for OAuth', 'warning');
+                    return;
+                }
 
-                // TODO Get auth URL
-                // const authUrl = await PlatformService.getAuthUrl(platform.platform_id);
-
-                // In a real implementation, we would redirect to this URL
-                // window.location.href = authUrl;
-
-                // For demo purposes, we'll simulate a successful connection
-                await simulateOAuthFlow(platform);
-
-                // Refresh linked accounts
-                await fetchLinkedAccounts();
-
-                showToast(`Successfully connected to ${platformName}`, 'success');
+                // Redirect to the authentication endpoint
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                } else {
+                    throw new Error('Failed to get authentication URL');
+                }
             } catch (error) {
+                console.error('OAuth error:', error);
                 showToast(`Failed to connect to ${platformName}`, 'danger');
             }
-        };
+        };const confirmDisconnect = async (platformName: string) => {
+            // Safeguard against platforms.value not being an array
+            if (!Array.isArray(platforms.value)) {
+                console.error('Platforms is not an array:', platforms.value);
+                showToast('Platform data not loaded correctly', 'danger');
+                return;
+            }
 
-        const simulateOAuthFlow = async (platform: Platform) => {
-            // Simulate delay for OAuth flow
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Create a mock linked account
-            const mockLinkedAccount: LinkedAccount = {
-                linked_account_id: `mock_${Date.now()}`,
-                user_id: userId.value,
-                platform_id: platform.platform_id,
-                external_user_id: `user_${Math.floor(Math.random() * 10000)}`,
-                access_token: `mock_token_${Date.now()}`,
-                refresh_token: `mock_refresh_${Date.now()}`,
-                token_expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-                created_at: new Date().toISOString(),
-                platform
-            };
-
-            // Add to linked accounts
-            linkedAccounts.value.push(mockLinkedAccount);
-
-            // Add to recent activity
-            recentActivity.value.unshift({
-                action: 'connect',
-                description: `Connected ${platform.name} account`,
-                timestamp: new Date()
-            });
-        };
-
-        const confirmDisconnect = async (platformName: string) => {
             const platform = platforms.value.find(p =>
                 p.name.toLowerCase().includes(platformName.toLowerCase())
             );
@@ -343,9 +345,14 @@ export default defineComponent({
             });
 
             await alert.present();
-        };
+        }; const disconnectPlatform = async (platform: Platform) => {
+            // Safeguard against linkedAccounts.value not being an array
+            if (!Array.isArray(linkedAccounts.value)) {
+                console.error('LinkedAccounts is not an array:', linkedAccounts.value);
+                showToast('Account data not loaded correctly', 'danger');
+                return;
+            }
 
-        const disconnectPlatform = async (platform: Platform) => {
             const linkedAccount = linkedAccounts.value.find(account =>
                 account.platform_id === platform.platform_id
             );
@@ -353,8 +360,8 @@ export default defineComponent({
             if (!linkedAccount) return;
 
             try {
-                //TODO: Disconnect from the platform
-                // await PlatformService.disconnectPlatform(linkedAccount.linked_account_id);
+                // Call the real API to unlink the account
+                await PlatformService.unlinkAccount(linkedAccount.linked_account_id);
 
                 // Remove from linked accounts
                 linkedAccounts.value = linkedAccounts.value.filter(account =>
@@ -370,6 +377,7 @@ export default defineComponent({
 
                 showToast(`Successfully disconnected from ${platform.name}`, 'success');
             } catch (error) {
+                console.error('Failed to disconnect platform:', error);
                 showToast(`Failed to disconnect from ${platform.name}`, 'danger');
             }
         };

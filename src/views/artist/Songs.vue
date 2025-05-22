@@ -182,6 +182,7 @@ import { Song } from '@/types';
 import { usePagination } from '@/composables';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import ImportSongsModal from '@/components/ImportSongsModal.vue';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -348,11 +349,23 @@ export default defineComponent({
             await toast.present();
         };
 
-        // Open import songs modal
-        const importSongsModal = async () => {
-            // This would open a modal to import songs from connected platforms
-            showToast('Import songs from connected platforms feature coming soon!');
-        };
+    // Open import songs modal
+    const importSongsModal = async () => {
+        const modal = await modalController.create({
+            component: ImportSongsModal,
+            componentProps: {
+                userId: user.value?.user_id
+            }
+        });
+
+        await modal.present();
+
+        // Refresh songs list if data was imported
+        const { data } = await modal.onDidDismiss();
+        if (data && data.dataRefreshed) {
+            loadSongs();
+        }
+    };
 
         // Open add song modal
         const addSongModal = async () => {

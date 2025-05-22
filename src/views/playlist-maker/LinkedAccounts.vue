@@ -310,24 +310,49 @@ export default defineComponent({
             }
 
             return undefined;
-        };
-
-        // Connect to a platform
+        };        // Connect to a platform
         const connectPlatform = async (platformName: string) => {
             try {
-                const platform = platforms.value.find(p => p.name.toLowerCase() === platformName.toLowerCase());
+                if (!userId.value) {
+                    showToast('You need to be logged in to connect an account', 'danger');
+                    return;
+                }
+                
+                const platform = platforms.value.find(p =>
+                    p.name.toLowerCase().includes(platformName.toLowerCase())
+                );
 
-                if (platform && userId.value) {
-                    // Redirect to OAuth
-                    const redirectUri = `${window.location.origin}/oauth/callback`;
-                    //TODO: Use a proper redirect URI
-                    // const authUrl = await PlatformService.getOAuthUrl(platform.platform_id, userId.value, redirectUri);
-
-                    // window.location.href = authUrl;
+                if (!platform) {
+                    showToast('Platform not available', 'warning');
+                    return;
+                }
+                
+                const redirectUri = `${window.location.origin}/oauth/callback?platform=${platformName}`;
+                
+                let authUrl;
+                // Get the appropriate auth URL based on the platform
+                if (platformName.toLowerCase() === 'spotify') {
+                    authUrl = await PlatformService.getSpotifyAuthUrl();
+                } else if (platformName.toLowerCase() === 'youtube') {
+                    authUrl = await PlatformService.getYoutubeAuthUrl();
+                } else if (platformName.toLowerCase() === 'soundcloud') {
+                    // TODO: Implement SoundCloud when available
+                    showToast('SoundCloud integration coming soon', 'warning');
+                    return;
+                } else {
+                    showToast('Unsupported platform', 'danger');
+                    return;
+                }
+                
+                // Redirect to the authentication page
+                if (authUrl && authUrl.url) {
+                    window.location.href = authUrl.url;
+                } else {
+                    throw new Error('Failed to get authentication URL');
                 }
             } catch (err) {
+                console.error('OAuth error:', err);
                 showToast('Failed to connect to platform', 'danger');
-                console.error(err);
             }
         };
 
