@@ -336,9 +336,7 @@ export default defineComponent({
       } finally {
         loading.value = false;
       }
-    };
-
-    // Import selected content
+    };    // Import selected content
     const importSelected = async () => {
       loading.value = true;
       
@@ -372,7 +370,7 @@ export default defineComponent({
         dismiss(true);
       } catch (error) {
         console.error('Error importing playlists:', error);
-        showToast('Failed to import playlists', 'danger');
+        showToast('Failed to import playlists. Please try again.', 'danger');
       } finally {
         loading.value = false;
       }

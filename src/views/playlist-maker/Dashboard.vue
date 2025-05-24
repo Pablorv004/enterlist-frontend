@@ -418,11 +418,9 @@ export default defineComponent({
 
             const platform = platformName.toLowerCase();
             if (platform.includes('spotify')) {
-                return '@/assets/logo.png';
-            } else if (platform.includes('apple')) {
-                return '@/assets/logo.png';
+                return '@/assets/spotify.png';
             } else if (platform.includes('youtube')) {
-                return '@/assets/logo.png';
+                return '@/assets/youtube.png';
             }
 
             return '@/assets/logo.png';
