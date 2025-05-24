@@ -66,29 +66,30 @@ export interface YouTubePlaylist {
   };
 }
 
-export const YouTubeService = {
-  // Get user channels
-  getChannels: async (limit = 50, offset = 0): Promise<any> => {
+export const YouTubeService = {  // Get user channels
+  getChannels: async (limit = 50, offset = 0): Promise<YouTubeChannel[]> => {
     const response = await apiClient.get(`/auth/youtube/channels?limit=${limit}&offset=${offset}`);
-    return response.data;
+    // Handle both direct array and nested object responses
+    return Array.isArray(response.data) ? response.data : (response.data?.items || []);
   },
-
   // Get user playlists
-  getPlaylists: async (limit = 50, offset = 0): Promise<any> => {
+  getPlaylists: async (limit = 50, offset = 0): Promise<YouTubePlaylist[]> => {
     const response = await apiClient.get(`/auth/youtube/playlists?limit=${limit}&offset=${offset}`);
-    return response.data;
+    // Handle both direct array and nested object responses
+    return Array.isArray(response.data) ? response.data : (response.data?.items || []);
   },
-
   // Get user videos
-  getVideos: async (limit = 50, offset = 0, musicOnly = false): Promise<any> => {
+  getVideos: async (limit = 50, offset = 0, musicOnly = false): Promise<YouTubeVideo[]> => {
     const response = await apiClient.get(`/auth/youtube/videos?limit=${limit}&offset=${offset}&musicOnly=${musicOnly}`);
-    return response.data;
+    // Handle both direct array and nested object responses
+    return Array.isArray(response.data) ? response.data : (response.data?.items || []);
   },
 
   // Get user songs (music videos only)
-  getSongs: async (limit = 50, offset = 0): Promise<any> => {
+  getSongs: async (limit = 50, offset = 0): Promise<YouTubeVideo[]> => {
     const response = await apiClient.get(`/auth/youtube/songs?limit=${limit}&offset=${offset}`);
-    return response.data;
+    // Handle both direct array and nested object responses
+    return Array.isArray(response.data) ? response.data : (response.data?.items || []);
   },
 
   // Get YouTube login URL
