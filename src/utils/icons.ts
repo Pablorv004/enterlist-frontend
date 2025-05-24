@@ -1,6 +1,5 @@
 export const logoIcons = {
     spotify: 'logo-spotify',
-    soundcloud: 'logo-soundcloud',
     youtube: 'logo-youtube',
     facebook: 'logo-facebook',
     twitter: 'logo-twitter',

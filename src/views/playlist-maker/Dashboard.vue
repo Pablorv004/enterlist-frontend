@@ -421,8 +421,6 @@ export default defineComponent({
                 return '@/assets/logo.png';
             } else if (platform.includes('apple')) {
                 return '@/assets/logo.png';
-            } else if (platform.includes('soundcloud')) {
-                return '@/assets/logo.png';
             } else if (platform.includes('youtube')) {
                 return '@/assets/logo.png';
             }

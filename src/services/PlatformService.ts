@@ -53,10 +53,6 @@ export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> =>
     // Use register-or-login endpoint which doesn't require authentication
     return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login` };
   },
-  getSoundcloudAuthUrl: async (): Promise<{ url: string }> => {
-    // For future implementation
-    return { url: `${apiClient.defaults.baseURL}/platforms/soundcloud/auth-url` };
-  },
 
   getYoutubeAuthUrl: async (): Promise<{ url: string }> => {
     try {

@@ -108,11 +108,6 @@
                                     <ion-icon :icon="spotifyIcon" slot="start"></ion-icon>
                                     Continue with Spotify
                                 </ion-button>
-                                <ion-button fill="outline" class="oauth-button soundcloud"
-                                    @click="oauthLogin('soundcloud')">
-                                    <ion-icon :icon="soundcloudIcon" slot="start"></ion-icon>
-                                    Continue with SoundCloud
-                                </ion-button>
                                 <ion-button fill="outline" class="oauth-button youtube" @click="oauthLogin('youtube')">
                                     <ion-icon :icon="youtubeIcon" slot="start"></ion-icon>
                                     Continue with YouTube
@@ -150,7 +145,7 @@ import {
     alertController,
     toastController
 } from '@ionic/vue';
-import { eye, eyeOff, playCircleOutline as logoSpotify, logoSoundcloud, logoYoutube } from 'ionicons/icons';
+import { eye, eyeOff, playCircleOutline as logoSpotify, logoYoutube } from 'ionicons/icons';
 import { useAuthStore } from '@/store';
 import { useFormValidation } from '@/composables';
 import { PlatformService } from '@/services/PlatformService';
@@ -225,7 +220,6 @@ export default defineComponent({
 
         // Icons
         const spotifyIcon = logoSpotify;
-        const soundcloudIcon = logoSoundcloud;
         const youtubeIcon = logoYoutube;
 
         // Toggle login/register mode
@@ -350,7 +344,6 @@ export default defineComponent({
             isDirty,
             validationRules,
             spotifyIcon,
-            soundcloudIcon,
             youtubeIcon,
             toggleMode,
             togglePasswordVisibility,
@@ -499,11 +492,6 @@ ion-card-subtitle {
 .spotify {
     --border-color: #1DB954;
     --color: #1DB954;
-}
-
-.soundcloud {
-    --border-color: #FF5500;
-    --color: #FF5500;
 }
 
 .youtube {

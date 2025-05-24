@@ -72,10 +72,6 @@
                         <span class="platform-name">Spotify</span>
                     </div>
                     <div class="platform-item">
-                        <ion-icon :icon="soundcloudIcon" class="platform-icon soundcloud"></ion-icon>
-                        <span class="platform-name">SoundCloud</span>
-                    </div>
-                    <div class="platform-item">
                         <ion-icon :icon="youtubeIcon" class="platform-icon youtube"></ion-icon>
                         <span class="platform-name">YouTube</span>
                     </div>
@@ -106,7 +102,7 @@ import {
     IonCardContent,
     IonIcon
 } from '@ionic/vue';
-import { person, musicalNotes, playCircleOutline as logoSpotify, logoSoundcloud, logoYoutube } from 'ionicons/icons';
+import { person, musicalNotes, playCircleOutline as logoSpotify, logoYoutube } from 'ionicons/icons';
 import { useAuthStore } from '@/store';
 import AppHeader from '@/components/AppHeader.vue';
 
@@ -131,7 +127,6 @@ export default defineComponent({
         const personIcon = person;
         const musicIcon = musicalNotes;
         const spotifyIcon = logoSpotify;
-        const soundcloudIcon = logoSoundcloud;
         const youtubeIcon = logoYoutube;
 
         return {
@@ -139,7 +134,6 @@ export default defineComponent({
             personIcon,
             musicIcon,
             spotifyIcon,
-            soundcloudIcon,
             youtubeIcon
         };
     }
@@ -298,10 +292,6 @@ ion-card-title {
 
 .spotify {
     color: #1DB954;
-}
-
-.soundcloud {
-    color: #FF5500;
 }
 
 .youtube {

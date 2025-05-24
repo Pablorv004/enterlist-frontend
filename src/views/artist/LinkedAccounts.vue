@@ -171,7 +171,7 @@ export default defineComponent({
             },
             {
                 action: 'disconnect',
-                description: 'Disconnected SoundCloud account',
+                description: 'Disconnected Youtube account',
                 timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
             }
         ]);

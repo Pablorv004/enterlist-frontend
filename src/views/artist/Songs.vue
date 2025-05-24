@@ -170,7 +170,6 @@ import {
     chevronForward as chevronForwardIcon,
     ellipsisVertical as ellipsisVerticalIcon,
     playCircleOutline as logoSpotify,
-    logoSoundcloud,
     logoYoutube,
     pencil as editIcon,
     trash as deleteIcon,
@@ -238,8 +237,6 @@ export default defineComponent({
             switch (platformId) {
                 case 1:
                     return logoSpotify;
-                case 2:
-                    return logoSoundcloud;
                 case 3:
                     return logoYoutube;
                 default:
@@ -252,8 +249,6 @@ export default defineComponent({
             switch (platformId) {
                 case 1:
                     return 'Spotify';
-                case 2:
-                    return 'SoundCloud';
                 case 3:
                     return 'YouTube';
                 default:

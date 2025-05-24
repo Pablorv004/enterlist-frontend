@@ -309,10 +309,6 @@ export default defineComponent({
                     authUrl = await PlatformService.getSpotifyAuthUrl();
                 } else if (platformName.toLowerCase() === 'youtube') {
                     authUrl = await PlatformService.getYoutubeAuthUrl();
-                } else if (platformName.toLowerCase() === 'soundcloud') {
-                    // TODO: Implement SoundCloud when available
-                    showToast('SoundCloud integration coming soon', 'warning');
-                    return;
                 } else {
                     showToast('Unsupported platform', 'danger');
                     return;

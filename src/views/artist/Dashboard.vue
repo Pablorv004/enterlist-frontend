@@ -357,8 +357,6 @@ export default defineComponent({
             switch (platformId) {
                 case 1:
                     return logoIcons.spotify;
-                case 2:
-                    return logoIcons.soundcloud;
                 case 3:
                     return logoIcons.youtube;
                 default:
@@ -371,8 +369,6 @@ export default defineComponent({
             switch (platformId) {
                 case 1:
                     return 'Spotify';
-                case 2:
-                    return 'SoundCloud';
                 case 3:
                     return 'YouTube';
                 default:
