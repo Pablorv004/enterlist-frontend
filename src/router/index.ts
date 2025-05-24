@@ -7,6 +7,7 @@ const Home = () => import('@/views/Home.vue');
 const Login = () => import('@/views/Login.vue');
 // const Register = () => import('@/views/Register.vue'); // Commented out missing component
 const Dashboard = () => import('@/views/Dashboard.vue');
+const RoleSelection = () => import('@/views/RoleSelection.vue');
 const ArtistDashboard = () => import('@/views/artist/Dashboard.vue');
 const PlaylistMakerDashboard = () => import('@/views/playlist-maker/Dashboard.vue');
 // const AdminDashboard = () => import('@/views/admin/Dashboard.vue'); // Commented out missing component
@@ -59,6 +60,12 @@ const routes: Array<RouteRecordRaw> = [    {
         meta: { requiresAuth: false, guestOnly: true }
     },
     */
+    {
+        path: '/role-selection',
+        name: 'RoleSelection',
+        component: RoleSelection,
+        meta: { requiresAuth: true }
+    },
     {
         path: '/dashboard',
         name: 'Dashboard',

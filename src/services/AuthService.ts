@@ -21,6 +21,11 @@ export const AuthService = {  login: async (email: string, password: string): Pr
   getProfile: async (): Promise<User> => {
     const response = await apiClient.get('/auth/profile');
     return response.data;
+  },
+
+  updateUserRole: async (roleData: { role: string }): Promise<User> => {
+    const response = await apiClient.put('/users/role/update', roleData);
+    return response.data;
   },  // OAuth methods
   spotifyAuth: async (code: string): Promise<AuthResponse> => {
     // This endpoint doesn't exist - the server handles the callback directly

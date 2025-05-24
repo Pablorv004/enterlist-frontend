@@ -14,86 +14,66 @@
                 <div v-else>
                     <ion-card class="accounts-card">
                         <ion-card-header>
-                            <ion-card-title>Music Platform Accounts</ion-card-title>
-                            <ion-card-subtitle>Connect your music accounts to import songs</ion-card-subtitle>
+                            <ion-card-title>Linked Music Platforms</ion-card-title>
+                            <ion-card-subtitle>Connect your music platforms to import your content</ion-card-subtitle>
                         </ion-card-header>
-
+                        
                         <ion-card-content>
                             <p class="accounts-intro">
-                                Connect your accounts from music platforms to easily import your songs for submission.
-                                We'll never post anything without your permission.
+                                Link your music platforms to easily import your songs and manage your catalog from a single place.
                             </p>
-
-                            <ion-list class="platforms-list">
+                            
+                            <ion-list>
                                 <!-- Spotify -->
                                 <ion-item class="platform-item">
                                     <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="Spotify">
+                                        <img src="@/assets/spotify.png" alt="Spotify" />
                                     </ion-thumbnail>
-
                                     <ion-label>
-                                        <h3>Spotify</h3>
-                                        <p v-if="getLinkedAccount('spotify')">
-                                            Connected as {{ getLinkedAccount('spotify')?.external_user_id }}
-                                        </p>
-                                        <p v-else>Connect to import your Spotify tracks</p>
+                                        <h2>Spotify</h2>
+                                        <p v-if="getLinkedAccount('spotify')">Connected</p>
+                                        <p v-else>Not connected</p>
                                     </ion-label>
-
-                                    <ion-button v-if="getLinkedAccount('spotify')" fill="outline" color="danger"
-                                        slot="end" @click="confirmDisconnect('spotify')">
+                                    <ion-button 
+                                        v-if="getLinkedAccount('spotify')" 
+                                        color="danger" 
+                                        fill="outline" 
+                                        @click="confirmDisconnect('spotify')"
+                                    >
                                         Disconnect
                                     </ion-button>
-
-                                    <ion-button v-else color="success" slot="end" @click="connectPlatform('spotify')">
+                                    <ion-button 
+                                        v-else 
+                                        color="primary" 
+                                        @click="connectPlatform('spotify')"
+                                    >
                                         Connect
                                     </ion-button>
                                 </ion-item>
-
-                                <!-- SoundCloud -->
+                                
+                                <!-- YouTube (can be added if supported) -->
                                 <ion-item class="platform-item">
                                     <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="SoundCloud">
+                                        <img src="@/assets/youtube.png" alt="YouTube" />
                                     </ion-thumbnail>
-
                                     <ion-label>
-                                        <h3>SoundCloud</h3>
-                                        <p v-if="getLinkedAccount('soundcloud')">
-                                            Connected as {{ getLinkedAccount('soundcloud')?.external_user_id }}
-                                        </p>
-                                        <p v-else>Connect to import your SoundCloud tracks</p>
+                                        <h2>YouTube</h2>
+                                        <p v-if="getLinkedAccount('youtube')">Connected</p>
+                                        <p v-else>Not connected</p>
                                     </ion-label>
-
-                                    <ion-button v-if="getLinkedAccount('soundcloud')" fill="outline" color="danger"
-                                        slot="end" @click="confirmDisconnect('soundcloud')">
+                                    <ion-button 
+                                        v-if="getLinkedAccount('youtube')" 
+                                        color="danger" 
+                                        fill="outline" 
+                                        @click="confirmDisconnect('youtube')"
+                                    >
                                         Disconnect
                                     </ion-button>
-
-                                    <ion-button v-else color="success" slot="end"
-                                        @click="connectPlatform('soundcloud')">
-                                        Connect
-                                    </ion-button>
-                                </ion-item>
-
-                                <!-- YouTube Music -->
-                                <ion-item class="platform-item">
-                                    <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="YouTube Music">
-                                    </ion-thumbnail>
-
-                                    <ion-label>
-                                        <h3>YouTube Music</h3>
-                                        <p v-if="getLinkedAccount('youtube')">
-                                            Connected as {{ getLinkedAccount('youtube')?.external_user_id }}
-                                        </p>
-                                        <p v-else>Connect to import your YouTube Music tracks</p>
-                                    </ion-label>
-
-                                    <ion-button v-if="getLinkedAccount('youtube')" fill="outline" color="danger"
-                                        slot="end" @click="confirmDisconnect('youtube')">
-                                        Disconnect
-                                    </ion-button>
-
-                                    <ion-button v-else color="success" slot="end" @click="connectPlatform('youtube')">
+                                    <ion-button 
+                                        v-else 
+                                        color="primary" 
+                                        @click="connectPlatform('youtube')"
+                                    >
                                         Connect
                                     </ion-button>
                                 </ion-item>
@@ -104,55 +84,34 @@
                     <!-- Permissions Card -->
                     <ion-card class="permissions-card">
                         <ion-card-header>
-                            <ion-card-title>Account Permissions</ion-card-title>
-                            <ion-card-subtitle>Understand what permissions we request</ion-card-subtitle>
+                            <ion-card-title>Data Access & Permissions</ion-card-title>
+                            <ion-card-subtitle>What we access when you connect platforms</ion-card-subtitle>
                         </ion-card-header>
-
+                        
                         <ion-card-content>
                             <div class="permission-item">
                                 <ion-icon :icon="musicIcon" class="permission-icon"></ion-icon>
                                 <div class="permission-content">
-                                    <h3>Read Your Music</h3>
-                                    <p>We access your tracks and albums to help you import them for submission</p>
+                                    <h3>Music Content</h3>
+                                    <p>We access your songs, albums, and playlists for importing into your Enterlist catalog.</p>
                                 </div>
                             </div>
-
+                            
                             <div class="permission-item">
                                 <ion-icon :icon="personIcon" class="permission-icon"></ion-icon>
                                 <div class="permission-content">
-                                    <h3>Basic Profile Information</h3>
-                                    <p>We access your username and profile details to identify your account</p>
+                                    <h3>Profile Information</h3>
+                                    <p>We retrieve your profile details to help set up and manage your account.</p>
                                 </div>
                             </div>
-
+                            
                             <div class="permission-item">
                                 <ion-icon :icon="lockClosedIcon" class="permission-icon"></ion-icon>
                                 <div class="permission-content">
-                                    <h3>No Posting Access</h3>
-                                    <p>We will never post or modify anything on your accounts</p>
+                                    <h3>Privacy & Security</h3>
+                                    <p>We never post or share your content without permission. Your passwords are never stored.</p>
                                 </div>
                             </div>
-                        </ion-card-content>
-                    </ion-card>
-
-                    <!-- Activity Card (only show if they have linked accounts) -->
-                    <ion-card v-if="linkedAccounts.length > 0" class="activity-card">
-                        <ion-card-header>
-                            <ion-card-title>Recent Activity</ion-card-title>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                            <ion-list>
-                                <ion-item v-for="(activity, index) in recentActivity" :key="index"
-                                    class="activity-item">
-                                    <ion-icon :icon="getActivityIcon(activity.action)" slot="start"
-                                        class="activity-icon"></ion-icon>
-                                    <ion-label>
-                                        <div class="activity-text">{{ activity.description }}</div>
-                                        <div class="activity-time">{{ formatActivityTime(activity.timestamp) }}</div>
-                                    </ion-label>
-                                </ion-item>
-                            </ion-list>
                         </ion-card-content>
                     </ion-card>
                 </div>

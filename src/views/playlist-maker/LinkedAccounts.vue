@@ -29,7 +29,7 @@
                                 <!-- Spotify -->
                                 <ion-item class="platform-item">
                                     <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="Spotify">
+                                        <img src="@/assets/spotify.png" alt="Spotify">
                                     </ion-thumbnail>
 
                                     <ion-label>
@@ -50,34 +50,10 @@
                                     </ion-button>
                                 </ion-item>
 
-                                <!-- SoundCloud -->
+                                <!-- YouTube -->
                                 <ion-item class="platform-item">
                                     <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="SoundCloud">
-                                    </ion-thumbnail>
-
-                                    <ion-label>
-                                        <h3>SoundCloud</h3>
-                                        <p v-if="getLinkedAccount('soundcloud')">
-                                            Connected as {{ getLinkedAccount('soundcloud')?.external_user_id }}
-                                        </p>
-                                        <p v-else>Connect to import your SoundCloud playlists</p>
-                                    </ion-label>
-
-                                    <ion-button v-if="getLinkedAccount('soundcloud')" fill="outline" color="danger"
-                                        slot="end" @click="confirmDisconnect('soundcloud')">
-                                        Disconnect
-                                    </ion-button>
-
-                                    <ion-button v-else color="success" slot="end"
-                                        @click="connectPlatform('soundcloud')">
-                                        Connect
-                                    </ion-button>
-                                </ion-item>
-                                <!-- YouTube Music -->
-                                <ion-item class="platform-item">
-                                    <ion-thumbnail slot="start" class="platform-icon">
-                                        <img src="@/assets/logo.png" alt="YouTube Music">
+                                        <img src="@/assets/youtube.png" alt="YouTube">
                                     </ion-thumbnail>
 
                                     <ion-label>
