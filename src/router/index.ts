@@ -222,9 +222,31 @@ const router = createRouter({
 });
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
-    authStore.initializeFromStorage();    // Check if route requires authentication
+    
+    // Always initialize from storage (including cookies) before checking auth
+    authStore.initializeFromStorage();
+    
+    // Special handling for OAuth redirect URLs with provider and status params
+    // These indicate the user is coming back from OAuth flow
+    const isOAuthRedirect = to.query.provider && to.query.status === 'success';
+    
+    if (isOAuthRedirect) {
+        // For OAuth redirects, check if we have a token (from cookies)
+        // and allow navigation to role-selection or dashboard
+        if (authStore.isAuthenticated) {
+            // Let the OAuth redirect proceed
+            next();
+            return;
+        } else {
+            // If no token found, something went wrong, redirect to login
+            next({ name: 'Login', query: { error: 'OAuth authentication failed' } });
+            return;
+        }
+    }
+    
+    // Check if route requires authentication
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRole = to.matched.find(record => record.meta.role)?.meta.role;
@@ -238,7 +260,9 @@ router.beforeEach((to, from, next) => {
         next({ name: 'Dashboard' });
     } else if (requiredRole && authStore.isAuthenticated) {
         // Check user role for role-specific routes
-        const userRole = authStore.user?.role?.toLowerCase();// If user has the correct role, proceed
+        const userRole = authStore.user?.role?.toLowerCase();
+
+        // If user has the correct role, proceed
         if (userRole === requiredRole) {
             next();
         } else {
@@ -254,10 +278,12 @@ router.beforeEach((to, from, next) => {
                 // Fallback to home if role is unknown
                 next({ name: 'Home' });
             }
-        }    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection') {
+        }
+    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection') {
         // If authenticated but no role, and not already on role selection page
         next({ name: 'RoleSelection' });
-    } else if (to.path === '/dashboard' && authStore.isAuthenticated) {// Redirect to appropriate dashboard based on user role
+    } else if (to.path === '/dashboard' && authStore.isAuthenticated) {
+        // Redirect to appropriate dashboard based on user role
         const userRole = authStore.user?.role?.toLowerCase();
 
         if (userRole === 'artist') {
