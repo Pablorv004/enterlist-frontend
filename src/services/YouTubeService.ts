@@ -69,37 +69,37 @@ export interface YouTubePlaylist {
 export const YouTubeService = {
   // Get user channels
   getChannels: async (): Promise<YouTubeChannel[]> => {
-    const response = await apiClient.get('/api/auth/youtube/channels');
+    const response = await apiClient.get('/auth/youtube/channels');
     return response.data;
   },
 
   // Get user playlists
   getPlaylists: async (): Promise<YouTubePlaylist[]> => {
-    const response = await apiClient.get('/api/auth/youtube/playlists');
+    const response = await apiClient.get('/auth/youtube/playlists');
     return response.data;
   },
 
   // Get user videos
   getVideos: async (): Promise<YouTubeVideo[]> => {
-    const response = await apiClient.get('/api/auth/youtube/videos');
+    const response = await apiClient.get('/auth/youtube/videos');
     return response.data;
   },
 
   // Get videos from a specific playlist
   getPlaylistVideos: async (playlistId: string): Promise<YouTubeVideo[]> => {
-    const response = await apiClient.get(`/api/auth/youtube/playlists/${playlistId}/videos`);
+    const response = await apiClient.get(`/auth/youtube/playlists/${playlistId}/videos`);
     return response.data;
   },
 
   // Import playlists to the platform
   importPlaylists: async (playlistIds: string[]): Promise<any> => {
-    const response = await apiClient.post('/api/auth/youtube/import/playlists', { playlistIds });
+    const response = await apiClient.post('/auth/youtube/import/playlists', { playlistIds });
     return response.data;
   },
 
   // Import videos to the platform
   importVideos: async (videoIds: string[]): Promise<any> => {
-    const response = await apiClient.post('/api/auth/youtube/import/videos', { videoIds });
+    const response = await apiClient.post('/auth/youtube/import/videos', { videoIds });
     return response.data;
   }
 };

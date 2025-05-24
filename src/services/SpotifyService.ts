@@ -86,37 +86,37 @@ export interface SpotifyProfile {
 export const SpotifyService = {
   // Get user profile
   getProfile: async (): Promise<SpotifyProfile> => {
-    const response = await apiClient.get('/api/auth/spotify/profile');
+    const response = await apiClient.get('/auth/spotify/profile');
     return response.data;
   },
 
   // Get user playlists
   getPlaylists: async (): Promise<SpotifyPlaylist[]> => {
-    const response = await apiClient.get('/api/auth/spotify/playlists');
+    const response = await apiClient.get('/auth/spotify/playlists');
     return response.data;
   },
 
   // Get user saved tracks
   getTracks: async (): Promise<SpotifyTrack[]> => {
-    const response = await apiClient.get('/api/auth/spotify/tracks');
+    const response = await apiClient.get('/auth/spotify/tracks');
     return response.data;
   },
 
   // Get user albums
   getAlbums: async (): Promise<SpotifyAlbum[]> => {
-    const response = await apiClient.get('/api/auth/spotify/albums');
+    const response = await apiClient.get('/auth/spotify/albums');
     return response.data;
   },
 
   // Import playlists to the platform
   importPlaylists: async (playlistIds: string[]): Promise<any> => {
-    const response = await apiClient.post('/api/auth/spotify/import/playlists', { playlistIds });
+    const response = await apiClient.post('/auth/spotify/import/playlists', { playlistIds });
     return response.data;
   },
 
   // Import tracks to the platform
   importTracks: async (trackIds: string[]): Promise<any> => {
-    const response = await apiClient.post('/api/auth/spotify/import/tracks', { trackIds });
+    const response = await apiClient.post('/auth/spotify/import/tracks', { trackIds });
     return response.data;
   }
 };
