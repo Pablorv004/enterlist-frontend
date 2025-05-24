@@ -100,6 +100,37 @@ export interface Song {
   platform?: Platform;
 }
 
+// Track interface for playlist tracks from external APIs
+export interface Track {
+  track_id: string;
+  title: string;
+  artist: string;
+  album?: string;
+  duration_ms?: number;
+  thumbnail_url?: string;
+  url?: string;
+  platform_specific_id: string;
+  added_at?: string;
+  preview_url?: string;
+  popularity?: number;
+  explicit?: boolean;
+  description?: string;
+  position?: number;
+  type: 'spotify' | 'youtube';
+}
+
+// Track response interface for paginated track results
+export interface TrackResponse {
+  tracks: Track[];
+  total: number;
+  limit?: number;
+  offset?: number;
+  next?: string;
+  previous?: string;
+  nextPageToken?: string;
+  prevPageToken?: string;
+}
+
 // Submission interface
 export interface Submission {
   submission_id: string;

@@ -68,26 +68,32 @@ export interface YouTubePlaylist {
 
 export const YouTubeService = {
   // Get user channels
-  getChannels: async (): Promise<YouTubeChannel[]> => {
-    const response = await apiClient.get('/auth/youtube/channels');
+  getChannels: async (limit = 50, offset = 0): Promise<any> => {
+    const response = await apiClient.get(`/auth/youtube/channels?limit=${limit}&offset=${offset}`);
     return response.data;
   },
 
   // Get user playlists
-  getPlaylists: async (): Promise<YouTubePlaylist[]> => {
-    const response = await apiClient.get('/auth/youtube/playlists');
+  getPlaylists: async (limit = 50, offset = 0): Promise<any> => {
+    const response = await apiClient.get(`/auth/youtube/playlists?limit=${limit}&offset=${offset}`);
     return response.data;
   },
 
   // Get user videos
-  getVideos: async (): Promise<YouTubeVideo[]> => {
-    const response = await apiClient.get('/auth/youtube/videos');
+  getVideos: async (limit = 50, offset = 0, musicOnly = false): Promise<any> => {
+    const response = await apiClient.get(`/auth/youtube/videos?limit=${limit}&offset=${offset}&musicOnly=${musicOnly}`);
     return response.data;
   },
 
-  // Get videos from a specific playlist
-  getPlaylistVideos: async (playlistId: string): Promise<YouTubeVideo[]> => {
-    const response = await apiClient.get(`/auth/youtube/playlists/${playlistId}/videos`);
+  // Get user songs (music videos only)
+  getSongs: async (limit = 50, offset = 0): Promise<any> => {
+    const response = await apiClient.get(`/auth/youtube/songs?limit=${limit}&offset=${offset}`);
+    return response.data;
+  },
+
+  // Get YouTube login URL
+  getLoginUrl: async (): Promise<{ url: string }> => {
+    const response = await apiClient.get('/auth/youtube/login-url');
     return response.data;
   },
 

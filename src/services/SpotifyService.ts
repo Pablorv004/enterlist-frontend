@@ -84,27 +84,21 @@ export interface SpotifyProfile {
 }
 
 export const SpotifyService = {
-  // Get user profile
-  getProfile: async (): Promise<SpotifyProfile> => {
-    const response = await apiClient.get('/auth/spotify/profile');
+  // Get user playlists with tracks
+  getPlaylists: async (limit = 50, offset = 0): Promise<any> => {
+    const response = await apiClient.get(`/auth/spotify/playlists?limit=${limit}&offset=${offset}`);
     return response.data;
   },
 
-  // Get user playlists
-  getPlaylists: async (): Promise<SpotifyPlaylist[]> => {
-    const response = await apiClient.get('/auth/spotify/playlists');
+  // Get user tracks (for artists - includes album tracks and saved tracks)
+  getTracks: async (limit = 50, offset = 0): Promise<any> => {
+    const response = await apiClient.get(`/auth/spotify/tracks?limit=${limit}&offset=${offset}`);
     return response.data;
   },
 
-  // Get user saved tracks
-  getTracks: async (): Promise<SpotifyTrack[]> => {
-    const response = await apiClient.get('/auth/spotify/tracks');
-    return response.data;
-  },
-
-  // Get user albums
-  getAlbums: async (): Promise<SpotifyAlbum[]> => {
-    const response = await apiClient.get('/auth/spotify/albums');
+  // Get Spotify login URL
+  getLoginUrl: async (): Promise<{ url: string }> => {
+    const response = await apiClient.get('/auth/spotify/login-url');
     return response.data;
   },
 

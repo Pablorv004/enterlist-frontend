@@ -235,6 +235,95 @@
                                 </ion-button>
                             </div>
                         </ion-card-content>
+                    </ion-card>                    <!-- Playlist Tracks Section -->
+                    <ion-card>
+                        <ion-card-header>
+                            <ion-card-title>Playlist Tracks ({{ getTrackCount() }})</ion-card-title>
+                        </ion-card-header>                        <ion-card-content>
+                            <!-- Loading State -->
+                            <div v-if="tracksLoading" class="tracks-loading">
+                                <ion-spinner name="crescent"></ion-spinner>
+                                <p>Loading tracks...</p>
+                            </div>
+
+                            <!-- Error State -->
+                            <div v-else-if="tracksError" class="tracks-error">
+                                <ion-icon :icon="musicalNotesIcon" size="large"></ion-icon>
+                                <div class="tracks-error-content">
+                                    <h4>Failed to Load Tracks</h4>
+                                    <p>{{ tracksError }}</p>
+                                    <ion-button 
+                                        fill="outline" 
+                                        size="small"
+                                        @click="fetchPlaylistTracks(selectedPlaylist.playlist_id)"
+                                    >
+                                        Try Again
+                                    </ion-button>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div v-else-if="!hasTrackData()" class="tracks-empty">
+                                <ion-icon :icon="musicalNotesIcon" size="large"></ion-icon>
+                                <div class="tracks-empty-content">
+                                    <h4>No Tracks Found</h4>
+                                    <p>
+                                        This playlist appears to be empty or tracks could not be loaded.
+                                        You can view the playlist directly on {{ selectedPlaylist.platform?.name }}.
+                                    </p>
+                                    <ion-button 
+                                        fill="outline" 
+                                        size="small"
+                                        :href="selectedPlaylist.url" 
+                                        target="_blank"
+                                    >
+                                        <ion-icon :icon="openIcon" slot="start"></ion-icon>
+                                        View on {{ selectedPlaylist.platform?.name }}
+                                    </ion-button>
+                                </div>
+                            </div>
+
+                            <!-- Tracks List -->
+                            <div v-else class="tracks-list">
+                                <div 
+                                    v-for="(track, index) in playlistTracks" 
+                                    :key="track.track_id || index"
+                                    class="track-item"
+                                >
+                                    <div class="track-thumbnail">
+                                        <img 
+                                            v-if="track.thumbnail_url" 
+                                            :src="track.thumbnail_url" 
+                                            :alt="track.title"
+                                            @error="onImageError"
+                                        />
+                                        <ion-icon v-else :icon="musicalNotesIcon" class="track-placeholder"></ion-icon>
+                                    </div>
+                                    
+                                    <div class="track-info">
+                                        <div class="track-title">{{ track.title }}</div>
+                                        <div class="track-artist">{{ track.artist }}</div>
+                                        <div v-if="track.album" class="track-album">{{ track.album }}</div>
+                                    </div>
+                                    
+                                    <div class="track-actions">
+                                        <div v-if="track.duration_ms" class="track-duration">
+                                            {{ formatDuration(track.duration_ms) }}
+                                        </div>
+                                        
+                                        <ion-button 
+                                            v-if="track.url" 
+                                            fill="clear" 
+                                            size="small"
+                                            :href="track.url" 
+                                            target="_blank"
+                                        >
+                                            <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ion-card-content>
                     </ion-card>
 
                     <ion-card>
@@ -437,7 +526,7 @@ import { SubmissionService } from '@/services/SubmissionService';
 import { PlatformService } from '@/services/PlatformService';
 import { usePagination } from '@/composables';
 import { useAuthStore, usePlaylistStore } from '@/store';
-import { Playlist, LinkedAccount, SubmissionStatus } from '@/types';
+import { Playlist, LinkedAccount, SubmissionStatus, Track } from '@/types';
 
 interface PlaylistStats {
     submissions: number;
@@ -480,11 +569,14 @@ export default defineComponent({
             currentPage, totalPages,
             itemsPerPage, changePage, prevPage, nextPage
         } = usePagination();
-        const totalItems = ref(0);
-
-        // Modal
+        const totalItems = ref(0);        // Modal
         const isModalOpen = ref(false);
         const selectedPlaylist = ref<Playlist | null>(null);
+
+        // Tracks
+        const playlistTracks = ref<Track[]>([]);
+        const tracksLoading = ref(false);
+        const tracksError = ref<string | null>(null);
 
         // Import Modal
         const isImportModalOpen = ref(false);
@@ -705,14 +797,53 @@ export default defineComponent({
             return '@/assets/logo.png';
         };
 
-        const showPlaylistDetails = (playlist: Playlist) => {
-            selectedPlaylist.value = { ...playlist };
-            isModalOpen.value = true;
+        const onImageError = (event: Event) => {
+            const img = event.target as HTMLImageElement;
+            img.style.display = 'none';
+        };        const formatDuration = (duration?: number): string => {
+            if (!duration) return '';
+            
+            // Handle both milliseconds and seconds
+            const totalSeconds = duration > 10000 ? Math.floor(duration / 1000) : duration;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        };        const getTrackCount = (): number => {
+            return playlistTracks.value.length;
         };
 
-        const closeModal = () => {
+        const hasTrackData = (): boolean => {
+            return playlistTracks.value.length > 0;
+        };
+
+        const fetchPlaylistTracks = async (playlistId: string) => {
+            try {
+                tracksLoading.value = true;
+                tracksError.value = null;
+                playlistTracks.value = [];
+
+                const response = await PlaylistService.getPlaylistTracks(playlistId);
+                playlistTracks.value = response.tracks;
+            } catch (error) {
+                console.error('Failed to fetch playlist tracks:', error);
+                tracksError.value = 'Failed to load tracks. Please try again.';
+            } finally {
+                tracksLoading.value = false;
+            }
+        };        const showPlaylistDetails = async (playlist: Playlist) => {
+            selectedPlaylist.value = { ...playlist };
+            isModalOpen.value = true;
+            
+            // Fetch tracks for the selected playlist
+            if (playlist.playlist_id) {
+                await fetchPlaylistTracks(playlist.playlist_id);
+            }
+        };        const closeModal = () => {
             isModalOpen.value = false;
             selectedPlaylist.value = null;
+            playlistTracks.value = [];
+            tracksError.value = null;
         };
 
         const toggleVisibility = async (playlist: Playlist) => {
@@ -889,8 +1020,14 @@ export default defineComponent({
             handleFilterChange,
             formatFollowers,
             formatDate,
-            formatCurrency,
-            getPlatformIcon,
+            formatCurrency,            getPlatformIcon,
+            onImageError,            formatDuration,
+            getTrackCount,
+            hasTrackData,
+            playlistTracks,
+            tracksLoading,
+            tracksError,
+            fetchPlaylistTracks,
             showPlaylistDetails,
             closeModal,
             toggleVisibility,
@@ -1353,5 +1490,288 @@ ion-note {
     font-size: 0.8rem;
     color: var(--ion-color-medium);
     margin-top: -0.5rem;
+}
+
+/* Playlist Tracks Styles */
+/* Tracks Section */
+.tracks-loading, .tracks-error, .tracks-empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    border: 1px solid var(--ion-color-light-shade);
+    text-align: left;
+}
+
+.tracks-error-content, .tracks-empty-content {
+    flex: 1;
+}
+
+.tracks-loading {
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tracks-loading p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+}
+
+.tracks-error-content h4, .tracks-empty-content h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+}
+
+.tracks-error-content p, .tracks-empty-content p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
+}
+
+.tracks-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--ion-color-light);
+    border-radius: 8px;
+    background: white;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--ion-color-light);
+    transition: background-color 0.2s;
+    gap: 0.75rem;
+}
+
+.track-item:last-child {
+    border-bottom: none;
+}
+
+.track-item:hover {
+    background-color: var(--ion-color-light);
+}
+
+.track-thumbnail {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--ion-color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.track-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.track-placeholder {
+    font-size: 1.5rem;
+    color: var(--ion-color-medium);
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ion-color-dark);
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-artist {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-album {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium-shade);
+    margin-top: 0.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.track-duration {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    font-weight: 500;
+    min-width: 35px;
+    text-align: right;
+}
+
+.tracks-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--ion-color-light);
+    border-radius: 8px;
+    background: white;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--ion-color-light);
+    transition: background-color 0.2s;
+}
+
+.track-item:last-child {
+    border-bottom: none;
+}
+
+.track-item:hover {
+    background-color: var(--ion-color-light);
+}
+
+.track-number {
+    width: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.track-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    margin: 0 0.75rem;
+    flex-shrink: 0;
+    background: var(--ion-color-light);
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+    margin-right: 0.75rem;
+}
+
+.track-title {
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 0 0.25rem 0;
+}
+
+.track-artist {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.track-duration {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.track-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.track-link {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 6px;
+    --padding-bottom: 6px;
+    margin: 0;
+    --border-radius: 6px;
+}
+
+.no-tracks {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ion-color-medium);
+}
+
+.no-tracks-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-tracks p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments for tracks */
+@media (max-width: 768px) {
+    .track-item {
+        padding: 0.5rem;
+    }
+    
+    .track-number {
+        width: 25px;
+        font-size: 0.8rem;
+    }
+    
+    .track-thumbnail {
+        width: 35px;
+        height: 35px;
+        margin: 0 0.5rem;
+    }
+    
+    .track-title {
+        font-size: 0.85rem;
+    }
+    
+    .track-artist, .track-duration {
+        font-size: 0.75rem;
+    }
+    
+    .track-duration {
+        margin-right: 0.5rem;
+    }
+    
+    .track-info {
+        margin-right: 0.5rem;
+    }
 }
 </style>

@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { Playlist, PaginatedResponse } from '@/types';
+import { Playlist, PaginatedResponse, TrackResponse } from '@/types';
 import { handleNotFoundPaginated } from '@/utils/apiHelpers';
 
 export const PlaylistService = {
@@ -95,5 +95,10 @@ export const PlaylistService = {
     } catch (error: unknown) {
       return handleNotFoundPaginated<Playlist>(error);
     }
+  },
+  // Method to get tracks for a specific playlist
+  getPlaylistTracks: async (playlistId: string): Promise<TrackResponse> => {
+    const response = await apiClient.get(`/playlists/${playlistId}/tracks`);
+    return response.data;
   }
 };
