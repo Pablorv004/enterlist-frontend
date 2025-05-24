@@ -10,7 +10,7 @@
     "test": "vitest",
     "lint": "eslint .",
     "type-check": "vue-tsc",
-    "start": "vite preview --host"
+    "start": "vite preview --host --port 8080"
   },
   "dependencies": {
     "@capacitor/app": "^5.0.0",
