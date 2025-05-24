@@ -283,27 +283,28 @@ export default defineComponent({
             if (!platform) {
                 showToast('Platform not available', 'warning');
                 return;
-            }
-
-            try {
+            }            try {
                 let redirectUrl;
                 
-                // Redirect directly to the backend login endpoint based on the platform
+                // Get the auth URL from our own API instead of directly constructing URLs
                 if (platformName.toLowerCase() === 'spotify') {
-                    redirectUrl = `${import.meta.env.VITE_API_URL || ''}/platforms/spotify/login`;
+                    const response = await PlatformService.getSpotifyAuthUrl();
+                    redirectUrl = response.url;
+                    console.log('Spotify auth URL:', redirectUrl);
                 } else if (platformName.toLowerCase() === 'youtube') {
-                    redirectUrl = `${import.meta.env.VITE_API_URL || ''}/platforms/youtube/login`;
-                } else if (platformName.toLowerCase() === 'soundcloud') {
-                    // Keep using the auth URL endpoint for SoundCloud if it's still implemented that way
-                    const authUrl = await PlatformService.getSoundcloudAuthUrl();
-                    redirectUrl = authUrl?.url;
+                    const response = await PlatformService.getYoutubeAuthUrl();
+                    redirectUrl = response.url;
+                    console.log('YouTube auth URL:', redirectUrl);
                 } else {
                     showToast('Platform not supported for OAuth', 'warning');
                     return;
-                }
-
-                // Redirect to the authentication endpoint
+                }                // Redirect to the authentication endpoint
                 if (redirectUrl) {
+                    // Store current state in localStorage to help with navigation after auth
+                    localStorage.setItem('preAuthPath', window.location.pathname);
+                    
+                    // Use window.location.href to navigate directly to the auth URL
+                    // This avoids CORS issues with form submissions
                     window.location.href = redirectUrl;
                 } else {
                     throw new Error('Failed to get authentication URL');

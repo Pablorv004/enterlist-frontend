@@ -310,7 +310,7 @@ export default defineComponent({
             }
 
             return undefined;
-        };        // Connect to a platform
+        };
         const connectPlatform = async (platformName: string) => {
             try {
                 if (!userId.value) {
@@ -326,8 +326,6 @@ export default defineComponent({
                     showToast('Platform not available', 'warning');
                     return;
                 }
-                
-                const redirectUri = `${window.location.origin}/oauth/callback?platform=${platformName}`;
                 
                 let authUrl;
                 // Get the appropriate auth URL based on the platform

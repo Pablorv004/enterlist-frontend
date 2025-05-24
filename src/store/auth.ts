@@ -97,8 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
       logout();
     } finally {
       loading.value = false;
-    }
-  };
+    }  };
 
   // OAuth login methods
   const spotifyAuth = async (code: string): Promise<void> => {
@@ -119,26 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false;
     }
   };
-
-  const soundcloudAuth = async (code: string): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const response = await AuthService.soundcloudAuth(code);
-      user.value = response.user;
-      token.value = response.access_token;
-
-      localStorage.setItem('enterlist_user', JSON.stringify(response.user));
-      localStorage.setItem('enterlist_token', response.access_token);
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to authenticate with SoundCloud';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
+  
   const youtubeAuth = async (code: string): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -157,7 +137,6 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false;
     }
   };
-
   return {
     user,
     token,
@@ -169,12 +148,10 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     initializeFromStorage,
     login,
-    register,
-    logout,
+    register,    logout,
     updateProfile,
     checkAuth,
     spotifyAuth,
-    soundcloudAuth,
     youtubeAuth
   };
 });

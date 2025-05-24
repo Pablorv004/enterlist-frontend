@@ -194,8 +194,7 @@ const routes: Array<RouteRecordRaw> = [    {
         component: AdminActions,
         meta: { requiresAuth: true, role: 'admin' }
     },
-    */
-    // OAuth callback routes
+    */    // OAuth callback routes
     {
         path: '/oauth/callback',
         name: 'OAuthCallback',

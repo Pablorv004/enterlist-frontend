@@ -34,29 +34,43 @@ export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> =>
     const response = await apiClient.post('/linked-accounts', linkData);
     return response.data;
   },
-
   unlinkAccount: async (id: string): Promise<void> => {
     await apiClient.delete(`/linked-accounts/${id}`);
   },
-  // OAuth endpoints for specific platforms
-  // Note: Spotify and YouTube now use direct login endpoints instead of getting auth URLs
-  // These methods are kept for backward compatibility and for platforms that still use this approach
   
+  // OAuth endpoints for specific platforms
   getSpotifyAuthUrl: async (): Promise<{ url: string }> => {
-    // Deprecated: Use direct redirect to /platforms/spotify/login instead
-    const response = await apiClient.get('/platforms/spotify/auth-url');
-    return response.data;
+    try {
+      // First try to get the URL from the API
+      const response = await apiClient.get('/auth/spotify/login-url');
+      if (response.data && response.data.url) {
+        return { url: response.data.url };
+      }
+    } catch (error) {
+      console.warn('Failed to get Spotify auth URL from API, using direct URL fallback', error);
+    }
+    
+    // Use register-or-login endpoint which doesn't require authentication
+    return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login` };
   },
-
   getSoundcloudAuthUrl: async (): Promise<{ url: string }> => {
-    const response = await apiClient.get('/platforms/soundcloud/auth-url');
-    return response.data;
+    // For future implementation
+    return { url: `${apiClient.defaults.baseURL}/platforms/soundcloud/auth-url` };
   },
 
   getYoutubeAuthUrl: async (): Promise<{ url: string }> => {
-    // Deprecated: Use direct redirect to /platforms/youtube/login instead
-    const response = await apiClient.get('/platforms/youtube/auth-url');
-    return response.data;
+    try {
+      // First try to get the URL from the API
+      const response = await apiClient.get('/auth/youtube/login-url');
+      if (response.data && response.data.url) {
+        return { url: response.data.url };
+      }
+    } catch (error) {
+      console.warn('Failed to get YouTube auth URL from API, using direct URL fallback', error);
+    }
+      
+    // Use register-or-login endpoint which doesn't require authentication
+    return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login` };
   },
 
   handleOAuthCallback: async (code: string, state: string, platform: string): Promise<LinkedAccount> => {

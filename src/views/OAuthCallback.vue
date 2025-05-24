@@ -36,8 +36,6 @@ import { IonPage, IonContent, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
 import { alertCircle, checkmarkCircle } from 'ionicons/icons';
 import { useRoute, useRouter } from 'vue-router';
 import { PlatformService } from '@/services/PlatformService';
-import { SpotifyService } from '@/services/SpotifyService';
-import { YouTubeService } from '@/services/YouTubeService';
 import { useAuthStore } from '@/store';
 
 export default defineComponent({
@@ -56,13 +54,13 @@ export default defineComponent({
 
         const loading = ref(true);
         const error = ref(false);
-        const errorMessage = ref('');
-
-        onMounted(async () => {
+        const errorMessage = ref('');        onMounted(async () => {
             // Get parameters from URL
             const code = route.query.code as string;
             const state = route.query.state as string;
-            const platform = route.query.platform as string;
+            const platform = route.params.platform as string || route.query.platform as string;
+            
+            console.log('OAuth callback parameters:', { code, state, platform });
 
             // Error handling
             const errorParam = route.query.error as string;
@@ -74,17 +72,18 @@ export default defineComponent({
                 return;
             }
 
-            if (!code || !state || !platform) {
+            if (!code) {
                 loading.value = false;
                 error.value = true;
-                errorMessage.value = 'Missing required parameters';
+                errorMessage.value = 'Missing authorization code';
                 return;
             }
-
+            
             try {
-                // Verify the state parameter to prevent CSRF attacks
-                // In a real implementation, this would compare against a stored value                // Exchange the authorization code for an access token
-                await PlatformService.handleOAuthCallback(code, state, platform);
+                // The backend has already processed the OAuth callback and created/updated the user
+                // We just need to fetch the updated user info
+                await authStore.checkAuth();
+                console.log('Auth check completed successfully');
 
                 // Success - wait a bit to show success message
                 setTimeout(() => {
@@ -93,15 +92,23 @@ export default defineComponent({
 
                 // Redirect after a delay
                 setTimeout(() => {
-                    // Redirect based on user role
-                    if (authStore.user?.role === 'artist') {
-                        router.push('/artist/linked-accounts');
-                    } else if (authStore.user?.role === 'playlist_maker') {
-                        router.push('/playlist-maker/linked-accounts');
+                    // Check if we have a stored path from before auth
+                    const preAuthPath = localStorage.getItem('preAuthPath');
+                    
+                    if (preAuthPath) {
+                        localStorage.removeItem('preAuthPath');
+                        router.push(preAuthPath);
                     } else {
-                        router.push('/dashboard');
+                        // Default redirect based on user role
+                        if (authStore.user?.role === 'artist') {
+                            router.push('/artist/linked-accounts');
+                        } else if (authStore.user?.role === 'playlist_maker') {
+                            router.push('/playlist-maker/linked-accounts');
+                        } else {
+                            router.push('/dashboard');
+                        }
                     }
-                }, 3000);
+                }, 2000);
             } catch (err) {
                 loading.value = false;
                 error.value = true;

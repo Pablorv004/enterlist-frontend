@@ -319,10 +319,6 @@ export default defineComponent({
                         const spotifyResponse = await PlatformService.getSpotifyAuthUrl();
                         authUrl = spotifyResponse.url;
                         break;
-                    case 'soundcloud':
-                        const soundcloudResponse = await PlatformService.getSoundcloudAuthUrl();
-                        authUrl = soundcloudResponse.url;
-                        break;
                     case 'youtube':
                         const youtubeResponse = await PlatformService.getYoutubeAuthUrl();
                         authUrl = youtubeResponse.url;
