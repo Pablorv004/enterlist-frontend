@@ -37,35 +37,40 @@ export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> =>
   unlinkAccount: async (id: string): Promise<void> => {
     await apiClient.delete(`/linked-accounts/${id}`);
   },
-  
-  // OAuth endpoints for specific platforms
+    // OAuth endpoints for specific platforms
   getSpotifyAuthUrl: async (): Promise<{ url: string }> => {
     try {
-      // First try to get the URL from the API
+      // First try to get the URL from the authenticated API endpoint
       const response = await apiClient.get('/auth/spotify/login-url');
       if (response.data && response.data.url) {
         return { url: response.data.url };
       }
     } catch (error) {
-      console.warn('Failed to get Spotify auth URL from API, using direct URL fallback', error);
+      console.warn('Failed to get Spotify auth URL from authenticated API, user may not be logged in. Using register-or-login endpoint', error);
+      // If the authenticated endpoint fails (user not logged in), 
+      // use register-or-login endpoint which doesn't require authentication
+      return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login` };
     }
     
-    // Use register-or-login endpoint which doesn't require authentication
+    // Use register-or-login endpoint as fallback
     return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login` };
   },
 
   getYoutubeAuthUrl: async (): Promise<{ url: string }> => {
     try {
-      // First try to get the URL from the API
+      // First try to get the URL from the authenticated API endpoint
       const response = await apiClient.get('/auth/youtube/login-url');
       if (response.data && response.data.url) {
         return { url: response.data.url };
       }
     } catch (error) {
-      console.warn('Failed to get YouTube auth URL from API, using direct URL fallback', error);
+      console.warn('Failed to get YouTube auth URL from authenticated API, user may not be logged in. Using register-or-login endpoint', error);
+      // If the authenticated endpoint fails (user not logged in), 
+      // use register-or-login endpoint which doesn't require authentication
+      return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login` };
     }
       
-    // Use register-or-login endpoint which doesn't require authentication
+    // Use register-or-login endpoint as fallback
     return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login` };
   },
 

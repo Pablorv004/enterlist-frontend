@@ -102,7 +102,8 @@ import {
     IonCardContent,
     IonIcon
 } from '@ionic/vue';
-import { person, musicalNotes, playCircleOutline as logoSpotify, logoYoutube } from 'ionicons/icons';
+import { person, musicalNotes, logoYoutube } from 'ionicons/icons';
+import logoSpotify from '@/assets/spotify.png';
 import { useAuthStore } from '@/store';
 import AppHeader from '@/components/AppHeader.vue';
 
