@@ -105,11 +105,10 @@ export default defineComponent({
         const oauthData = ref({
             provider: route.query.provider as string,
             status: route.query.status as string,
-        });
-
-        onMounted(() => {
+        });        onMounted(() => {
             // Check if user is already authenticated and has a role
-            if (authStore.isAuthenticated && (authStore.isArtist || authStore.isPlaylistMaker)) {
+            if (authStore.isAuthenticated && authStore.user?.role && 
+                (authStore.isArtist || authStore.isPlaylistMaker)) {
                 router.push('/dashboard');
             }
         });

@@ -8,9 +8,9 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
-
   // Initialize from local storage
   const initializeFromStorage = () => {
+    // First check localStorage
     const storedUser = localStorage.getItem('enterlist_user');
     const storedToken = localStorage.getItem('enterlist_token');
 
@@ -21,13 +21,40 @@ export const useAuthStore = defineStore('auth', () => {
     if (storedToken) {
       token.value = storedToken;
     }
+
+    // If no data in localStorage, check cookies (for OAuth redirects)
+    if (!user.value || !token.value) {
+      const cookieToken = getCookie('enterlist_token');
+      const cookieUser = getCookie('enterlist_user');
+
+      if (cookieToken) {
+        token.value = cookieToken;
+        localStorage.setItem('enterlist_token', cookieToken);
+        // Clear the cookie after moving to localStorage
+        document.cookie = 'enterlist_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      }
+
+      if (cookieUser) {
+        user.value = JSON.parse(cookieUser);
+        localStorage.setItem('enterlist_user', cookieUser);
+        // Clear the cookie after moving to localStorage
+        document.cookie = 'enterlist_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      }
+    }
   };
 
-  // Computed properties
+  // Helper function to get cookie value
+  const getCookie = (name: string): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  };// Computed properties
   const isAuthenticated = computed(() => !!token.value);
   const isArtist = computed(() => user.value?.role === UserRole.ARTIST);
   const isPlaylistMaker = computed(() => user.value?.role === UserRole.PLAYLIST_MAKER);
   const isAdmin = computed(() => user.value?.role === UserRole.ADMIN);
+  const hasRole = computed(() => !!user.value?.role);
 
   // Actions
   const login = async (email: string, password: string): Promise<void> => {
@@ -136,8 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loading.value = false;
     }
-  };
-  return {
+  };  return {
     user,
     token,
     loading,
@@ -146,9 +172,11 @@ export const useAuthStore = defineStore('auth', () => {
     isArtist,
     isPlaylistMaker,
     isAdmin,
+    hasRole,
     initializeFromStorage,
     login,
-    register,    logout,
+    register,
+    logout,
     updateProfile,
     checkAuth,
     spotifyAuth,

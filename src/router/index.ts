@@ -59,12 +59,11 @@ const routes: Array<RouteRecordRaw> = [    {
         component: Register,
         meta: { requiresAuth: false, guestOnly: true }
     },
-    */
-    {
+    */    {
         path: '/role-selection',
         name: 'RoleSelection',
         component: RoleSelection,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowNoRole: true }
     },
     {
         path: '/dashboard',
@@ -225,12 +224,11 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
-    authStore.initializeFromStorage();
-
-    // Check if route requires authentication
+    authStore.initializeFromStorage();    // Check if route requires authentication
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRole = to.matched.find(record => record.meta.role)?.meta.role;
+    const allowNoRole = to.matched.some(record => record.meta.allowNoRole);
 
     if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if user is not authenticated
@@ -240,7 +238,7 @@ router.beforeEach((to, from, next) => {
         next({ name: 'Dashboard' });
     } else if (requiredRole && authStore.isAuthenticated) {
         // Check user role for role-specific routes
-        const userRole = authStore.user?.role.toLowerCase();        // If user has the correct role, proceed
+        const userRole = authStore.user?.role?.toLowerCase();// If user has the correct role, proceed
         if (userRole === requiredRole) {
             next();
         } else {
@@ -256,9 +254,11 @@ router.beforeEach((to, from, next) => {
                 // Fallback to home if role is unknown
                 next({ name: 'Home' });
             }
-        }    } else if (to.path === '/dashboard' && authStore.isAuthenticated) {
-        // Redirect to appropriate dashboard based on user role
-        const userRole = authStore.user?.role.toLowerCase();
+        }    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection') {
+        // If authenticated but no role, and not already on role selection page
+        next({ name: 'RoleSelection' });
+    } else if (to.path === '/dashboard' && authStore.isAuthenticated) {// Redirect to appropriate dashboard based on user role
+        const userRole = authStore.user?.role?.toLowerCase();
 
         if (userRole === 'artist') {
             next({ name: 'ArtistDashboard' });
@@ -267,6 +267,9 @@ router.beforeEach((to, from, next) => {
         } else if (userRole === 'admin') {
             // Temporarily redirect to Home until admin views are implemented
             next({ name: 'Home' });
+        } else if (!userRole) {
+            // If user has no role, send to role selection
+            next({ name: 'RoleSelection' });
         } else {
             // Fallback to home if role is unknown
             next({ name: 'Home' });
