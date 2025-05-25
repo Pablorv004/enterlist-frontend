@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Song } from '@/types';
 import { SongService } from '@/services/SongService';
+import { cancelRequests } from '@/services/api';
 
 export const useSongStore = defineStore('song', () => {
   const songs = ref<Song[]>([]);
@@ -11,16 +12,20 @@ export const useSongStore = defineStore('song', () => {
 
   // Actions
   const fetchSongs = async (skip = 0, take = 10): Promise<void> => {
+    const cancelKey = 'fetchSongs';
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await SongService.getSongs(skip, take);
+      const response = await SongService.getSongs(skip, take, cancelKey);
       songs.value = response.data;
       totalCount.value = response.total;
       // No error handling needed here since the service now handles 404s by returning empty data
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch songs';
+      // Don't show error for cancelled requests
+      if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+        error.value = err.response?.data?.message || 'Failed to fetch songs';
+      }
       throw err;
     } finally {
       loading.value = false;
@@ -28,16 +33,20 @@ export const useSongStore = defineStore('song', () => {
   };
 
   const fetchSongsByArtist = async (artistId: string, skip = 0, take = 10): Promise<void> => {
+    const cancelKey = 'fetchSongsByArtist';
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await SongService.getSongsByArtist(artistId, skip, take);
+      const response = await SongService.getSongsByArtist(artistId, skip, take, cancelKey);
       songs.value = response.data;
       totalCount.value = response.total;
       // No error handling needed here since the service now handles 404s by returning empty data
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch songs';
+      // Don't show error for cancelled requests
+      if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+        error.value = err.response?.data?.message || 'Failed to fetch songs';
+      }
       throw err;
     } finally {
       loading.value = false;
@@ -145,7 +154,6 @@ export const useSongStore = defineStore('song', () => {
       loading.value = false;
     }
   };
-
   const importSongs = async (platformId: number): Promise<Song[]> => {
     loading.value = true;
     error.value = null;
@@ -167,6 +175,11 @@ export const useSongStore = defineStore('song', () => {
     }
   };
 
+  const cancelAllRequests = () => {
+    cancelRequests('fetchSongs');
+    cancelRequests('fetchSongsByArtist');
+  };
+
   return {
     songs,
     currentSong,
@@ -179,6 +192,7 @@ export const useSongStore = defineStore('song', () => {
     createSong,
     updateSong,
     deleteSong,
-    importSongs
+    importSongs,
+    cancelAllRequests
   };
 });

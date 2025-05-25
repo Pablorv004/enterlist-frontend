@@ -1,22 +1,50 @@
-import apiClient from './api';
+import apiClient, { createCancelableRequest, cleanupRequest } from './api';
 import { Song, PaginatedResponse } from '@/types';
 import { handleNotFoundPaginated } from '@/utils/apiHelpers';
 
 export const SongService = {
-  getSongs: async (skip = 0, take = 10): Promise<PaginatedResponse<Song>> => {
+  getSongs: async (skip = 0, take = 10, cancelKey?: string): Promise<PaginatedResponse<Song>> => {
     try {
-      const response = await apiClient.get(`/songs?skip=${skip}&take=${take}`);
+      const config: any = {};
+      if (cancelKey) {
+        const controller = createCancelableRequest(cancelKey);
+        config.signal = controller.signal;
+      }
+      
+      const response = await apiClient.get(`/songs?skip=${skip}&take=${take}`, config);
+      
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
+      
       return response.data;
     } catch (error: unknown) {
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
       return handleNotFoundPaginated<Song>(error);
     }
   },
 
-  getSongsByArtist: async (artistId: string, skip = 0, take = 10): Promise<PaginatedResponse<Song>> => {
+  getSongsByArtist: async (artistId: string, skip = 0, take = 10, cancelKey?: string): Promise<PaginatedResponse<Song>> => {
     try {
-      const response = await apiClient.get(`/songs/artist/${artistId}?skip=${skip}&take=${take}`);
+      const config: any = {};
+      if (cancelKey) {
+        const controller = createCancelableRequest(cancelKey);
+        config.signal = controller.signal;
+      }
+      
+      const response = await apiClient.get(`/songs/artist/${artistId}?skip=${skip}&take=${take}`, config);
+      
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
+      
       return response.data;
     } catch (error: unknown) {
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
       return handleNotFoundPaginated<Song>(error);
     }
   },

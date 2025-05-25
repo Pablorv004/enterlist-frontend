@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { Submission, SubmissionStatus } from '@/types';
 import { SubmissionService } from '@/services/SubmissionService';
+import { cancelRequests } from '@/services/api';
 
 export const useSubmissionStore = defineStore('submission', () => {
   const submissions = ref<Submission[]>([]);
@@ -12,35 +13,44 @@ export const useSubmissionStore = defineStore('submission', () => {
 
   // Actions
   const fetchSubmissions = async (skip = 0, take = 10): Promise<void> => {
+    const cancelKey = 'fetchSubmissions';
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await SubmissionService.getSubmissions(skip, take);
+      const response = await SubmissionService.getSubmissions(skip, take, cancelKey);
       submissions.value = response.data;
       totalCount.value = response.total;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch submissions';
+      // Don't show error for cancelled requests
+      if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+        error.value = err.response?.data?.message || 'Failed to fetch submissions';
+      }
       throw err;
     } finally {
       loading.value = false;
     }
   };
+  
   const fetchSubmissionsByArtist = async (artistId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<void> => {
+    const cancelKey = 'fetchSubmissionsByArtist';
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await SubmissionService.getSubmissionsByArtist(artistId, skip, take, status);
+      const response = await SubmissionService.getSubmissionsByArtist(artistId, skip, take, status, cancelKey);
       submissions.value = response.data;
       totalCount.value = response.total;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch submissions';
+      // Don't show error for cancelled requests
+      if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+        error.value = err.response?.data?.message || 'Failed to fetch submissions';
+      }
       throw err;
     } finally {
       loading.value = false;
     }
-  };  const fetchSubmissionsByCreator = async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<void> => {
+  };const fetchSubmissionsByCreator = async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<void> => {
     loading.value = true;
     error.value = null;
 
@@ -189,10 +199,15 @@ export const useSubmissionStore = defineStore('submission', () => {
   const approvedSubmissions = computed(() => {
     return submissions.value.filter(s => s.status === SubmissionStatus.APPROVED);
   });
-
   const rejectedSubmissions = computed(() => {
     return submissions.value.filter(s => s.status === SubmissionStatus.REJECTED);
   });
+
+  const cancelAllRequests = () => {
+    cancelRequests('fetchSubmissions');
+    cancelRequests('fetchSubmissionsByArtist');
+  };
+
   return {
     submissions,
     currentSubmission,
@@ -211,6 +226,7 @@ export const useSubmissionStore = defineStore('submission', () => {
     fetchSubmission,
     createSubmission,
     updateSubmissionStatus,
-    deleteSubmission
+    deleteSubmission,
+    cancelAllRequests
   };
 });

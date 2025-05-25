@@ -130,7 +130,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, watch } from 'vue';
+import { defineComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import {
     IonPage,
     IonContent,
@@ -143,9 +143,6 @@ import {
     IonThumbnail,
     IonBadge,
     IonSpinner,
-    IonTabs,
-    IonTabBar,
-    IonTabButton,
     IonLabel
 } from '@ionic/vue';
 import {
@@ -181,9 +178,6 @@ export default defineComponent({
         IonThumbnail,
         IonBadge,
         IonSpinner,
-        IonTabs,
-        IonTabBar,
-        IonTabButton,
         IonLabel
     },
     setup() {
@@ -271,10 +265,13 @@ export default defineComponent({
         // Watch for pagination changes
         watch([currentPage, itemsPerPage], () => {
             loadSubmissions();
+        });        onMounted(() => {
+            loadSubmissions();
         });
 
-        onMounted(() => {
-            loadSubmissions();
+        onUnmounted(() => {
+            // Cancel any pending requests when component is unmounted
+            submissionStore.cancelAllRequests();
         });
 
         return {

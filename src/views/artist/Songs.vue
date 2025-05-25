@@ -141,7 +141,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, watch } from 'vue';
+import { defineComponent, onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import {
     IonPage,
     IonContent,
@@ -467,11 +467,14 @@ export default defineComponent({
         // Watch for pagination changes
         watch([currentPage, itemsPerPage], () => {
             loadSongs();
+        });        onMounted(() => {
+            loadSongs();
         });
 
-        onMounted(() => {
-            loadSongs();
-        });        return {
+        onUnmounted(() => {
+            // Cancel any pending requests when component is unmounted
+            songStore.cancelAllRequests();
+        });return {
             loading,
             searchQuery,
             selectedVisibilityFilter,

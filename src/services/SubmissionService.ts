@@ -1,29 +1,58 @@
-import apiClient from './api';
+import apiClient, { createCancelableRequest, cleanupRequest } from './api';
 import { Submission, PaginatedResponse, SubmissionStatus } from '@/types';
 import { handleNotFoundPaginated } from '@/utils/apiHelpers';
 
 export const SubmissionService = {
-  getSubmissions: async (skip = 0, take = 10): Promise<PaginatedResponse<Submission>> => {
+  getSubmissions: async (skip = 0, take = 10, cancelKey?: string): Promise<PaginatedResponse<Submission>> => {
     try {
-      const response = await apiClient.get(`/submissions?skip=${skip}&take=${take}`);
+      const config: any = {};
+      if (cancelKey) {
+        const controller = createCancelableRequest(cancelKey);
+        config.signal = controller.signal;
+      }
+      
+      const response = await apiClient.get(`/submissions?skip=${skip}&take=${take}`, config);
+      
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
+      
       return response.data;
     } catch (error: unknown) {
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
       return handleNotFoundPaginated<Submission>(error);
     }
   },
   
-  getSubmissionsByArtist: async (artistId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<PaginatedResponse<Submission>> => {
+  getSubmissionsByArtist: async (artistId: string, skip = 0, take = 10, status?: SubmissionStatus, cancelKey?: string): Promise<PaginatedResponse<Submission>> => {
     try {
+      const config: any = {};
+      if (cancelKey) {
+        const controller = createCancelableRequest(cancelKey);
+        config.signal = controller.signal;
+      }
+      
       let url = `/submissions/artist/${artistId}?skip=${skip}&take=${take}`;
       if (status) {
         url += `&status=${status}`;
       }
-      const response = await apiClient.get(url);
+      
+      const response = await apiClient.get(url, config);
+      
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
+      
       return response.data;
     } catch (error: unknown) {
+      if (cancelKey) {
+        cleanupRequest(cancelKey);
+      }
       return handleNotFoundPaginated<Submission>(error);
     }
-  },  
+  },
   
   getSubmissionsByPlaylist: async (playlistId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<PaginatedResponse<Submission>> => {
     try {
