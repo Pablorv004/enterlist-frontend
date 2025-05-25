@@ -414,16 +414,16 @@ export default defineComponent({
                 currency: 'USD'
             }).format(amount);
         };        const getPlatformIcon = (platformName?: string): string => {
-            if (!platformName) return '@/assets/logo.png';
+            if (!platformName) return '/src/assets/logo.png';
 
             const platform = platformName.toLowerCase();
             if (platform.includes('spotify')) {
-                return '@/assets/spotify.png';
+                return '/src/assets/spotify.png';
             } else if (platform.includes('youtube')) {
-                return '@/assets/youtube.png';
+                return '/src/assets/youtube.png';
             }
 
-            return '@/assets/logo.png';
+            return '/src/assets/logo.png';
         };
 
         const getPlaylistSubmissionCount = (playlistId: string): number => {

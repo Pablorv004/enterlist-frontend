@@ -110,13 +110,11 @@
                                                     formatCurrency(getEarnings(playlist.playlist_id)) }}</span>
                                                 <span class="stat-label">Earned</span>
                                             </div>
-                                        </div>
-
-                                        <div class="playlist-actions">
+                                        </div>                                        <div class="playlist-actions">
                                             <ion-button fill="clear" size="small"
                                                 @click.stop="toggleVisibility(playlist)">
                                                 <ion-icon
-                                                    :icon="playlist.is_visible ? 'eye-off-outline' : 'eye-outline'"
+                                                    :icon="playlist.is_visible ? eyeOffOutlineIcon : eyeOutlineIcon"
                                                     slot="icon-only"></ion-icon>
                                             </ion-button>
 
@@ -515,7 +513,7 @@ import {
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil
+    pencil, eyeOutline, eyeOffOutline
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -785,16 +783,16 @@ export default defineComponent({
                 maximumFractionDigits: 0
             }).format(amount);
         };        const getPlatformIcon = (platformName?: string): string => {
-            if (!platformName) return '@/assets/logo.png';
+            if (!platformName) return '/src/assets/logo.png';
 
             const platform = platformName.toLowerCase();
             if (platform.includes('spotify')) {
-                return '@/assets/spotify.png';
+                return '/src/assets/spotify.png';
             } else if (platform.includes('youtube')) {
-                return '@/assets/youtube.png';
+                return '/src/assets/youtube.png';
             }
 
-            return '@/assets/logo.png';
+            return '/src/assets/logo.png';
         };
 
         const onImageError = (event: Event) => {
@@ -1003,8 +1001,7 @@ export default defineComponent({
             importingPlaylists,
             importingSelected,
             isFeeModalOpen,
-            submissionFee,
-            cloudDownloadIcon: cloudDownload,
+            submissionFee,            cloudDownloadIcon: cloudDownload,
             musicalNotesIcon: musicalNotes,
             searchIcon: search,
             peopleIcon: people,
@@ -1015,6 +1012,8 @@ export default defineComponent({
             closeIcon: closeOutline,
             linkIcon: linkOutline,
             pencilIcon: pencil,
+            eyeOutlineIcon: eyeOutline,
+            eyeOffOutlineIcon: eyeOffOutline,
             handleSearch,
             clearSearch,
             handleFilterChange,
