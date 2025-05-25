@@ -229,6 +229,7 @@ import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { TransactionService } from '@/services/TransactionService';
+import apiClient from '@/services/api';
 import { useAuthStore } from '@/store';
 import { PaymentMethod, Transaction, PaymentMethodType, TransactionStatus } from '@/types';
 
@@ -250,9 +251,7 @@ export default defineComponent({
         const loadingTransactions = ref(true);
 
         const isModalOpen = ref(false);
-        const addingPaymentMethod = ref(false);
-
-        const newPaymentMethod = reactive({
+        const addingPaymentMethod = ref(false);        const newPaymentMethod = reactive({
             type: 'card' as PaymentMethodType,
             cardNumber: '',
             expiryDate: '',
@@ -262,6 +261,40 @@ export default defineComponent({
             setAsDefault: false
         });
 
+        // Card formatting functions
+        const formatCardNumber = (value: string): string => {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            const matches = v.match(/\d{4,16}/g);
+            const match = matches && matches[0] || '';
+            const parts = [];
+            for (let i = 0, len = match.length; i < len; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            if (parts.length) {
+                return parts.join(' ');
+            } else {
+                return v;
+            }
+        };
+
+        const formatExpiryDate = (value: string): string => {
+            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            if (v.length >= 2) {
+                return v.substring(0, 2) + '/' + v.substring(2, 4);
+            }
+            return v;
+        };
+
+        const onCardNumberInput = (event: any) => {
+            const formatted = formatCardNumber(event.target.value);
+            newPaymentMethod.cardNumber = formatted;
+        };
+
+        const onExpiryDateInput = (event: any) => {
+            const formatted = formatExpiryDate(event.target.value);
+            newPaymentMethod.expiryDate = formatted;
+        };
+
         onMounted(async () => {
             if (userId.value) {
                 await Promise.all([
@@ -269,13 +302,10 @@ export default defineComponent({
                     fetchTransactions()
                 ]);
             }
-        });
-
-        const fetchPaymentMethods = async () => {
+        });        const fetchPaymentMethods = async () => {
             try {
                 loading.value = true;
-                //TODO: Fetch payment methods based on userId
-                // paymentMethods.value = await PaymentMethodService.getPaymentMethodsByArtist(userId.value);
+                paymentMethods.value = await PaymentMethodService.getPaymentMethods(userId.value);
             } catch (error) {
                 showToast('Failed to load payment methods', 'danger');
             } finally {
@@ -352,14 +382,9 @@ export default defineComponent({
                 paypalEmail: '',
                 setAsDefault: false
             });
-        };
-
-        const addPaymentMethod = async () => {
+        };        const addPaymentMethod = async () => {
             try {
                 addingPaymentMethod.value = true;
-
-                // In a real implementation, we would use a payment processor SDK
-                // Here we're just mocking the data format
 
                 if (newPaymentMethod.type === PaymentMethodType.CARD) {
                     if (!newPaymentMethod.cardNumber || !newPaymentMethod.expiryDate ||
@@ -370,16 +395,27 @@ export default defineComponent({
 
                     // Format expiry date
                     const [expMonth, expYear] = newPaymentMethod.expiryDate.split('/');
-
-                    // Mock token from payment processor
-                    const mockToken = 'card_tok_' + Math.random().toString(36).substring(2, 10);
+                    
+                    // Use secure API endpoint to tokenize the card data
+                    // This prevents storing sensitive card details on the frontend
+                    const cardData = {
+                        cardNumber: newPaymentMethod.cardNumber,
+                        expiryMonth: expMonth,
+                        expiryYear: expYear,
+                        cvv: newPaymentMethod.cvv,
+                        cardholderName: newPaymentMethod.cardholderName
+                    };
+                    
+                    // Tokenize the card securely via backend
+                    const tokenResponse = await apiClient.post('/payment-methods/tokenize-card', cardData);
+                    const providerToken = tokenResponse.data.providerToken;
 
                     await PaymentMethodService.createPaymentMethod({
                         artist_id: userId.value,
                         type: PaymentMethodType.CARD,
-                        provider_token: mockToken,
+                        provider_token: providerToken,
                         details: JSON.stringify({
-                            brand: 'Visa', // Mock
+                            brand: tokenResponse.data.cardBrand || 'Card',
                             last4: newPaymentMethod.cardNumber.slice(-4),
                             exp_month: expMonth,
                             exp_year: expYear
@@ -392,13 +428,17 @@ export default defineComponent({
                         return;
                     }
 
-                    // Mock token from PayPal
-                    const mockToken = 'pp_tok_' + Math.random().toString(36).substring(2, 10);
+                    // Get PayPal token from backend using the provided email
+                    const paypalResponse = await apiClient.post('/payment-methods/create-paypal-token', {
+                        email: newPaymentMethod.paypalEmail
+                    });
+                    
+                    const paypalToken = paypalResponse.data.token;
 
                     await PaymentMethodService.createPaymentMethod({
                         artist_id: userId.value,
                         type: PaymentMethodType.PAYPAL,
-                        provider_token: mockToken,
+                        provider_token: paypalToken,
                         details: JSON.stringify({
                             email: newPaymentMethod.paypalEmail
                         }),
@@ -418,11 +458,9 @@ export default defineComponent({
             } finally {
                 addingPaymentMethod.value = false;
             }
-        };
-
-        const setDefaultPaymentMethod = async (paymentMethodId: string) => {
+        };        const setDefaultPaymentMethod = async (paymentMethodId: string) => {
             try {
-                await PaymentMethodService.setDefaultPaymentMethod(userId.value, paymentMethodId);
+                await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId, userId.value);
 
                 // Update local data
                 paymentMethods.value = paymentMethods.value.map(method => ({
@@ -529,9 +567,7 @@ export default defineComponent({
             });
 
             await toast.present();
-        };
-
-        return {
+        };        return {
             paymentMethods,
             transactions,
             loading,
@@ -557,7 +593,9 @@ export default defineComponent({
             getTransactionStatusIcon,
             formatTransactionTitle,
             formatDate,
-            formatCurrency
+            formatCurrency,
+            onCardNumberInput,
+            onExpiryDateInput
         };
     }
 });

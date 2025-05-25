@@ -5,8 +5,8 @@ import { handleEmptyResponse } from '@/utils/apiHelpers';
 export const PaymentMethodService = {
   getPaymentMethods: async (userId: string): Promise<PaymentMethod[]> => {
     try {
-      const response = await apiClient.get(`/payment-methods/user/${userId}`);
-      return response.data;
+      const response = await apiClient.get(`/payment-methods/artist/${userId}`);
+      return response.data.data || [];
     } catch (error) {
       return handleEmptyResponse(error, []);
     }
