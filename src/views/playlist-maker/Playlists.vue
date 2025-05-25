@@ -78,11 +78,6 @@
                                                 <ion-icon :icon="musicalNotesIcon" class="details-icon"></ion-icon>
                                                 {{playlist.track_count || 'Unknown'}} Tracks
                                             </div>
-                                            
-                                            <div v-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
-                                                <ion-icon :icon="personIcon" class="details-icon"></ion-icon>
-                                                {{ playlist.creator?.username || 'Unknown Creator' }}
-                                            </div>
 
                                             <div v-if="playlist.genre" class="playlist-genre">
                                                 <ion-icon :icon="pricetagIcon" class="details-icon"></ion-icon>
@@ -194,10 +189,7 @@
                         <ion-card-header>
                             <ion-card-title>Playlist Information</ion-card-title>
                         </ion-card-header>                        <ion-card-content>
-                            <div v-if="selectedPlaylist.platform?.name?.toLowerCase() === 'youtube'" class="detail-row">
-                                <div class="detail-label">Channel</div>
-                                <div class="detail-value">{{ selectedPlaylist.creator?.username || 'Unknown Creator' }}</div>
-                            </div>                            <div class="detail-row">
+                                <div class="detail-row">
                                 <div class="detail-label">Genre</div>
                                 <div class="detail-value genre-edit">
                                     <span>{{ selectedPlaylist.genre || 'Not specified' }}</span>
@@ -221,7 +213,7 @@
                             </div>
 
                             <div class="detail-row">
-                                <div class="detail-label">Created</div>
+                                <div class="detail-label">Imported</div>
                                 <div class="detail-value">{{ formatDate(selectedPlaylist.created_at) }}</div>
                             </div>
 

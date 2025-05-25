@@ -133,12 +133,35 @@ export const SubmissionService = {
       console.error('Failed to get submission stats:', error);
       return {};
     }
-  },
-
-  getEarningsStatsByCreator: async (creatorId: string): Promise<Array<{month: string, amount: number}>> => {
+  },  getEarningsStatsByCreator: async (creatorId: string): Promise<Array<{month: string, amount: number}>> => {
     try {
+      console.log(`Getting earnings stats for creator ${creatorId}`);
       const response = await apiClient.get(`/submissions/earnings/creator/${creatorId}`);
-      return response.data;
+      console.log('Earnings API raw response:', response);
+      console.log('Earnings API response data:', response.data);
+      
+      // Validate response data
+      if (!Array.isArray(response.data)) {
+        console.error('Earnings API returned invalid data format:', response.data);
+        return [];
+      }
+      
+      // Validate each item in the array
+      const validData = response.data.every(item => 
+        item && typeof item === 'object' && 'month' in item && 'amount' in item);
+      
+      if (!validData) {
+        console.error('Earnings API returned items with invalid structure:', response.data);
+        return [];
+      }
+      
+      // Make sure amounts are numbers
+      const processedData = response.data.map(item => ({
+        month: item.month,
+        amount: typeof item.amount === 'number' ? item.amount : parseFloat(item.amount)
+      }));
+      
+      return processedData;
     } catch (error: unknown) {
       console.error('Failed to get earnings stats:', error);
       return [];

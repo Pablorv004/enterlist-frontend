@@ -213,30 +213,36 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
-                </div>
-
-                <!-- Earnings Chart (if they have earnings) -->
-                <div v-if="hasEarnings" class="earnings-section">
-                    <div class="section-header">
+                </div>                <!-- Earnings Chart (if they have earnings) -->
+                <div v-if="!loadingEarnings && earningsStats.length > 0" class="earnings-section"><div class="section-header">
                         <h2>Recent Earnings</h2>
                     </div>
-
-                    <ion-card class="earnings-card">                        <ion-card-header>
+                    
+                    <ion-card class="earnings-card">
+                        <ion-card-header>
                             <ion-card-title>Earnings Overview</ion-card-title>
                             <ion-card-subtitle>Last 12 months</ion-card-subtitle>
-                        </ion-card-header><ion-card-content>
+                        </ion-card-header>
+                        <ion-card-content>
                             <div class="total-earnings">
                                 <h3>{{ formatCurrency(totalEarnings) }}</h3>
                                 <p>Total Earned</p>
-                            </div><div class="chart-container">
-                                <Bar
-                                    v-if="chartData && chartData.datasets[0].data.length > 0"
-                                    :data="chartData"
-                                    :options="chartOptions"
-                                />
-                                <div v-else class="no-earnings-message">
+                            </div>
+                            
+                            <div class="chart-container">                                <div v-if="loadingEarnings" class="loading-container">
+                                    <ion-spinner name="crescent"></ion-spinner>
+                                    <p>Loading earnings data...</p>
+                                </div>
+                                <div v-else-if="!chartData" class="no-earnings-message">
                                     <p>No earnings data available for the last 12 months</p>
                                 </div>
+                                <div v-else class="chart-wrapper">
+                                    <Bar 
+                                        :data="chartData" 
+                                        :options="chartOptions" 
+                                    />
+                                </div>
+                                />
                             </div>
                         </ion-card-content>
                     </ion-card>
@@ -250,7 +256,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
+import { defineComponent, ref, onMounted, computed, watch } from 'vue';
 import {
     IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
     IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
@@ -305,13 +311,28 @@ export default defineComponent({
         const hasEarnings = ref(false);
         const totalEarnings = ref(0);
         const earningsStats = ref<Array<{month: string, amount: number}>>([]);
-        const loadingEarnings = ref(true);
-
-        // Chart data and options
+        const loadingEarnings = ref(true);        // Chart data and options
         const chartData = computed(() => {
-            if (!earningsStats.value.length) return null;
+            console.log("Computing chart data with earnings stats:", earningsStats.value);
             
-            return {
+            // Check if earnings stats exist and have length
+            if (!earningsStats.value) {
+                console.log("Earnings stats is undefined/null");
+                return null;
+            }
+            
+            if (!Array.isArray(earningsStats.value)) {
+                console.log("Earnings stats is not an array:", typeof earningsStats.value);
+                return null;
+            }
+            
+            if (earningsStats.value.length === 0) {
+                console.log("Earnings stats array is empty");
+                return null;
+            }
+            
+            // Create chart data structure
+            const data = {
                 labels: earningsStats.value.map(stat => stat.month),
                 datasets: [
                     {
@@ -324,9 +345,10 @@ export default defineComponent({
                     }
                 ]
             };
-        });
-
-        const chartOptions = {
+            
+            console.log("Generated chart data:", data);
+            return data;
+        });const chartOptions = ref({
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -358,7 +380,7 @@ export default defineComponent({
                     }
                 }
             }
-        };
+        });
 
         // Submissions per playlist (for badge counts)
         const playlistSubmissions = ref<Record<string, number>>({});        onMounted(async () => {
@@ -368,6 +390,13 @@ export default defineComponent({
                 fetchPlaylists(),
                 fetchEarningsStats()
             ]);
+
+            // Add a delayed check to debug chart data
+            setTimeout(() => {
+                console.log("DELAYED CHECK - Chart data:", chartData.value);
+                console.log("DELAYED CHECK - Earnings stats:", earningsStats.value);
+                console.log("DELAYED CHECK - Has earnings:", hasEarnings.value);
+            }, 2000);
         });
 
         const fetchStats = async () => {
@@ -429,23 +458,35 @@ export default defineComponent({
             } finally {
                 loadingPlaylists.value = false;
             }
-        };
-
-        const fetchEarningsStats = async () => {
+        };        const fetchEarningsStats = async () => {
             try {
                 loadingEarnings.value = true;
 
                 if (!user.value) return;
 
+                console.log("Fetching earnings stats for user:", user.value.user_id);
                 const response = await SubmissionService.getEarningsStatsByCreator(user.value.user_id);
-                earningsStats.value = response;
+                console.log("Earnings API response:", JSON.stringify(response));
                 
-                // Calculate total earnings
-                totalEarnings.value = response.reduce((sum, stat) => sum + stat.amount, 0);
-                hasEarnings.value = totalEarnings.value > 0;
+                if (Array.isArray(response)) {
+                    earningsStats.value = response;
+                    
+                    // Calculate total earnings
+                    totalEarnings.value = response.reduce((sum, stat) => sum + stat.amount, 0);
+                    console.log("Total earnings calculated:", totalEarnings.value);
+                    hasEarnings.value = totalEarnings.value > 0;
+                } else {
+                    console.error("Response is not an array:", response);
+                    earningsStats.value = [];
+                    hasEarnings.value = false;
+                }
+                
+                console.log("Has earnings:", hasEarnings.value);
+                console.log("Chart data computed:", chartData.value);
             } catch (error) {
                 console.error('Failed to fetch earnings stats:', error);
                 hasEarnings.value = false;
+                earningsStats.value = [];
             } finally {
                 loadingEarnings.value = false;
             }
@@ -502,11 +543,15 @@ export default defineComponent({
             }
 
             return '@/assets/logo.png';
-        };
-
-        const getPlaylistSubmissionCount = (playlistId: string): number => {
+        };        const getPlaylistSubmissionCount = (playlistId: string): number => {
             return playlistSubmissions.value[playlistId] || 0;
         };
+
+        // Add a watcher for earnings stats to debug when it changes
+        watch(earningsStats, (newValue) => {
+            console.log("Earnings stats changed:", newValue);
+            console.log("Chart data is now:", chartData.value);
+        });
 
         return {
             user,
@@ -855,6 +900,12 @@ export default defineComponent({
 .chart-container {
     height: 200px;
     margin-top: 1.5rem;
+}
+
+.chart-wrapper {
+    height: 100%;
+    width: 100%;
+    position: relative;
 }
 
 .no-earnings-message {
