@@ -123,5 +123,15 @@ export const SubmissionService = {
 
   deleteSubmission: async (id: string): Promise<void> => {
     await apiClient.delete(`/submissions/${id}`);
-  }
+  },
+
+  getSubmissionStatsByCreator: async (creatorId: string): Promise<Record<string, any>> => {
+    try {
+      const response = await apiClient.get(`/submissions/stats/creator/${creatorId}`);
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Failed to get submission stats:', error);
+      return {};
+    }
+  },
 };

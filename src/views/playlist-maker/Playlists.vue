@@ -673,29 +673,12 @@ export default defineComponent({
             } finally {
                 loading.value = false;
             }
-        };
-
-        const fetchPlaylistStats = async () => {
+        };        const fetchPlaylistStats = async () => {
             try {
-                // In a real implementation, we would have a dedicated endpoint for playlist stats
-                // For this demo, we'll mock the data
-
-                const mockData: Record<string, PlaylistStats> = {};
-
-                // Wait for playlists to load
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                playlists.value.forEach(playlist => {
-                    mockData[playlist.playlist_id] = {
-                        submissions: Math.floor(Math.random() * 50) + 5,
-                        pending: Math.floor(Math.random() * 10),
-                        approved: Math.floor(Math.random() * 20),
-                        rejected: Math.floor(Math.random() * 15),
-                        earnings: Math.random() * 500
-                    };
-                });
-
-                playlistStats.value = mockData;
+                if (!userId.value) return;
+                
+                const stats = await SubmissionService.getSubmissionStatsByCreator(userId.value);
+                playlistStats.value = stats;
             } catch (error) {
                 console.error('Failed to load playlist stats:', error);
             }
