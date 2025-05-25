@@ -102,13 +102,20 @@
                                         <span>My Songs</span>
                                     </ion-card-content>
                                 </ion-card>
-                            </ion-col>
-
-                            <ion-col size="6" size-md="3">
+                            </ion-col>                            <ion-col size="6" size-md="3">
                                 <ion-card button router-link="/artist/profile" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="personIcon"></ion-icon>
                                         <span>My Profile</span>
+                                    </ion-card-content>
+                                </ion-card>
+                            </ion-col>
+
+                            <ion-col size="6" size-md="3">
+                                <ion-card button router-link="/artist/linked-accounts" class="action-card">
+                                    <ion-card-content>
+                                        <ion-icon :icon="linkIcon"></ion-icon>
+                                        <span>Linked Accounts</span>
                                     </ion-card-content>
                                 </ion-card>
                             </ion-col>
@@ -274,7 +281,8 @@ import {
     closeCircle as closeIcon,
     arrowForward as arrowForwardIcon,
     helpCircle as helpCircleIcon,
-    calendar as calendarIcon
+    calendar as calendarIcon,
+    link as linkIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
 import { SubmissionStatus, Song, Submission } from '@/types';
@@ -427,8 +435,7 @@ export default defineComponent({
             getStatusColor,
             formatStatus,
             getPlatformIcon,
-            getPlatformName,
-            // Icons
+            getPlatformName,            // Icons
             addIcon,
             homeIcon,
             documentTextIcon,
@@ -440,7 +447,8 @@ export default defineComponent({
             closeIcon,
             arrowForwardIcon,
             helpCircleIcon,
-            calendarIcon
+            calendarIcon,
+            linkIcon
         };
     }
 });

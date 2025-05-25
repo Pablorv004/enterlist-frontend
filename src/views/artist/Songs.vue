@@ -182,6 +182,7 @@ import { usePagination } from '@/composables';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import ImportSongsModal from '@/components/ImportSongsModal.vue';
+import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -264,13 +265,22 @@ export default defineComponent({
         // Clear search
         const clearSearch = () => {
             searchQuery.value = '';
-        };
+        };        // Show song details
+        const showSongDetails = async (song: Song) => {
+            const modal = await modalController.create({
+                component: SongDetailsModal,
+                componentProps: {
+                    song: song
+                }
+            });
 
-        // Show song details
-        const showSongDetails = (song: Song) => {
-            // Navigate to song details page
-            // This will be implemented in a separate view
-            console.log('Show song details', song);
+            await modal.present();
+
+            // Refresh songs list if data was updated
+            const { data } = await modal.onDidDismiss();
+            if (data && data.dataRefreshed) {
+                loadSongs();
+            }
         };
 
         // Show options menu for a song

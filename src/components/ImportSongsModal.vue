@@ -345,13 +345,11 @@ export default defineComponent({
       loadingMessage.value = 'Loading your Spotify content...';
 
       try {
-        const [tracks, albums] = await Promise.all([
+        const [tracks] = await Promise.all([
           SpotifyService.getTracks(),
-          SpotifyService.getAlbums()
         ]);
 
         spotifyTracks.value = tracks;
-        spotifyAlbums.value = albums;
 
         // Initialize selection objects
         spotifyTracks.value.forEach(track => {
