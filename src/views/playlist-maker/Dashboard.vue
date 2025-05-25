@@ -221,24 +221,21 @@
                         <h2>Recent Earnings</h2>
                     </div>
 
-                    <ion-card class="earnings-card">
-                        <ion-card-header>
+                    <ion-card class="earnings-card">                        <ion-card-header>
                             <ion-card-title>Earnings Overview</ion-card-title>
-                            <ion-card-subtitle>Last 30 days</ion-card-subtitle>
-                        </ion-card-header>
-
-                        <ion-card-content>
+                            <ion-card-subtitle>Last 12 months</ion-card-subtitle>
+                        </ion-card-header><ion-card-content>
                             <div class="total-earnings">
                                 <h3>{{ formatCurrency(totalEarnings) }}</h3>
                                 <p>Total Earned</p>
-                            </div>
-
-                            <div class="chart-container">
-                                <!-- In a real implementation, this would be a chart component -->
-                                <div class="placeholder-chart">
-                                    <div class="chart-bar" v-for="(value, index) in earningsData" :key="index"
-                                        :style="{ height: `${(value / Math.max(...earningsData)) * 100}%` }">
-                                    </div>
+                            </div><div class="chart-container">
+                                <Bar
+                                    v-if="chartData && chartData.datasets[0].data.length > 0"
+                                    :data="chartData"
+                                    :options="chartOptions"
+                                />
+                                <div v-else class="no-earnings-message">
+                                    <p>No earnings data available for the last 12 months</p>
                                 </div>
                             </div>
                         </ion-card-content>
@@ -263,6 +260,16 @@ import {
     mailUnread, musicalNotes, checkmarkCircle, listOutline, linkOutline,
     personOutline, arrowForward, calendarOutline
 } from 'ionicons/icons';
+import { Bar } from 'vue-chartjs';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
@@ -273,12 +280,15 @@ import { Playlist, Submission, SubmissionStatus } from '@/types';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
 
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
 export default defineComponent({
     name: 'PlaylistMakerDashboard',    components: {
         IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
         IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
         IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner,
-        AppHeader, EmptyStateDisplay, BottomNavigation
+        AppHeader, EmptyStateDisplay, BottomNavigation, Bar
     },
     setup() {
         const authStore = useAuthStore();
@@ -286,26 +296,77 @@ export default defineComponent({
 
         const playlistsCount = ref(0);
         const pendingSubmissionsCount = ref(0);
-        const totalApprovedCount = ref(0);
-
-        const recentSubmissions = ref<Submission[]>([]);
+        const totalApprovedCount = ref(0);        const recentSubmissions = ref<Submission[]>([]);
         const recentPlaylists = ref<Playlist[]>([]);
         const loadingSubmissions = ref(true);
         const loadingPlaylists = ref(true);
 
-        // Mock earnings data for demo purposes
-        const hasEarnings = ref(true);
-        const totalEarnings = ref(243.50);
-        const earningsData = ref([12, 15, 8, 22, 30, 25, 18, 12, 10, 15, 22, 28, 32, 25]);
+        // Earnings data
+        const hasEarnings = ref(false);
+        const totalEarnings = ref(0);
+        const earningsStats = ref<Array<{month: string, amount: number}>>([]);
+        const loadingEarnings = ref(true);
+
+        // Chart data and options
+        const chartData = computed(() => {
+            if (!earningsStats.value.length) return null;
+            
+            return {
+                labels: earningsStats.value.map(stat => stat.month),
+                datasets: [
+                    {
+                        label: 'Earnings ($)',
+                        data: earningsStats.value.map(stat => stat.amount),
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }
+                ]
+            };
+        });
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    callbacks: {
+                        label: (context: any) => `$${context.parsed.y.toFixed(2)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: (value: any) => `$${value}`
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        };
 
         // Submissions per playlist (for badge counts)
-        const playlistSubmissions = ref<Record<string, number>>({});
-
-        onMounted(async () => {
+        const playlistSubmissions = ref<Record<string, number>>({});        onMounted(async () => {
             await Promise.all([
                 fetchStats(),
                 fetchRecentSubmissions(),
-                fetchPlaylists()
+                fetchPlaylists(),
+                fetchEarningsStats()
             ]);
         });
 
@@ -354,9 +415,7 @@ export default defineComponent({
             } finally {
                 loadingSubmissions.value = false;
             }
-        };
-
-        const fetchPlaylists = async () => {
+        };        const fetchPlaylists = async () => {
             try {
                 loadingPlaylists.value = true;
 
@@ -364,10 +423,31 @@ export default defineComponent({
 
                 const response = await PlaylistService.getPlaylistsByCreator(user.value.user_id, 0, 4);
                 recentPlaylists.value = response.data;
+                playlistsCount.value = response.total;
             } catch (error) {
                 console.error('Failed to fetch playlists:', error);
             } finally {
                 loadingPlaylists.value = false;
+            }
+        };
+
+        const fetchEarningsStats = async () => {
+            try {
+                loadingEarnings.value = true;
+
+                if (!user.value) return;
+
+                const response = await SubmissionService.getEarningsStatsByCreator(user.value.user_id);
+                earningsStats.value = response;
+                
+                // Calculate total earnings
+                totalEarnings.value = response.reduce((sum, stat) => sum + stat.amount, 0);
+                hasEarnings.value = totalEarnings.value > 0;
+            } catch (error) {
+                console.error('Failed to fetch earnings stats:', error);
+                hasEarnings.value = false;
+            } finally {
+                loadingEarnings.value = false;
             }
         };
 
@@ -437,9 +517,11 @@ export default defineComponent({
             recentPlaylists,
             loadingSubmissions,
             loadingPlaylists,
-            hasEarnings,
-            totalEarnings,
-            earningsData,
+            hasEarnings,            totalEarnings,
+            earningsStats,
+            loadingEarnings,
+            chartData,
+            chartOptions,
             mailUnreadIcon: mailUnread,
             musicalNotesIcon: musicalNotes,
             checkmarkCircleIcon: checkmarkCircle,
@@ -773,6 +855,14 @@ export default defineComponent({
 .chart-container {
     height: 200px;
     margin-top: 1.5rem;
+}
+
+.no-earnings-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--ion-color-medium);
 }
 
 .placeholder-chart {

@@ -134,4 +134,14 @@ export const SubmissionService = {
       return {};
     }
   },
+
+  getEarningsStatsByCreator: async (creatorId: string): Promise<Array<{month: string, amount: number}>> => {
+    try {
+      const response = await apiClient.get(`/submissions/earnings/creator/${creatorId}`);
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Failed to get earnings stats:', error);
+      return [];
+    }
+  },
 };
