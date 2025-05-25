@@ -76,9 +76,14 @@
                                         <h3 class="playlist-name">{{ playlist.name }}</h3>
 
                                         <div class="playlist-details">
-                                            <div class="playlist-followers">
+                                            <div v-if="playlist.platform?.name?.toLowerCase() === 'spotify'" class="playlist-followers">
                                                 <ion-icon :icon="peopleIcon" class="details-icon"></ion-icon>
                                                 {{ formatFollowers(playlist.follower_count) }}
+                                            </div>
+                                            
+                                            <div v-else-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
+                                                <ion-icon :icon="personIcon" class="details-icon"></ion-icon>
+                                                {{ playlist.creator?.username || 'Unknown Creator' }}
                                             </div>
 
                                             <div v-if="playlist.genre" class="playlist-genre">
@@ -193,9 +198,14 @@
                         </ion-card-header>
 
                         <ion-card-content>
-                            <div class="detail-row">
+                            <div v-if="selectedPlaylist.platform?.name?.toLowerCase() === 'spotify'" class="detail-row">
                                 <div class="detail-label">Followers</div>
                                 <div class="detail-value">{{ formatFollowers(selectedPlaylist.follower_count) }}</div>
+                            </div>
+
+                            <div v-else-if="selectedPlaylist.platform?.name?.toLowerCase() === 'youtube'" class="detail-row">
+                                <div class="detail-label">Channel</div>
+                                <div class="detail-value">{{ selectedPlaylist.creator?.username || 'Unknown Creator' }}</div>
                             </div>
 
                             <div class="detail-row">
@@ -516,7 +526,7 @@ import BottomNavigation from '@/components/BottomNavigation.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil, eyeOutline, eyeOffOutline
+    pencil, eyeOutline, eyeOffOutline, person
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -1006,6 +1016,7 @@ export default defineComponent({
             musicalNotesIcon: musicalNotes,
             searchIcon: search,
             peopleIcon: people,
+            personIcon: person,
             pricetagIcon: pricetag,
             mailUnreadIcon: mailUnread,            openIcon: open,
             chevronBackIcon: chevronBack,
@@ -1346,6 +1357,21 @@ export default defineComponent({
     margin-top: 0.5rem;
     width: 100%;
     color: var(--ion-color-dark);
+}
+
+/* Update detail-row for description to stack vertically */
+.detail-row:has(.description) {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.detail-row:has(.description) .detail-label {
+    margin-bottom: 0.5rem;
+}
+
+.detail-row:has(.description) .detail-value {
+    text-align: left;
+    width: 100%;
 }
 
 .playlist-ext-link {

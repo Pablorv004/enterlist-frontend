@@ -64,6 +64,11 @@ export interface YouTubePlaylist {
   contentDetails: {
     itemCount: number;
   };
+  // Add channel statistics if available
+  channelInfo?: {
+    subscriberCount?: string;
+    viewCount?: string;
+  };
 }
 
 export const YouTubeService = {  // Get user channels

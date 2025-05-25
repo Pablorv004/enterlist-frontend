@@ -197,8 +197,11 @@
                                     <ion-card-content>
                                         <h3 class="playlist-name">{{ playlist.name }}</h3>
                                         <p class="playlist-details">
-                                            <span class="playlist-followers">
+                                            <span v-if="playlist.platform?.name?.toLowerCase() === 'spotify'" class="playlist-followers">
                                                 {{ formatFollowers(playlist.follower_count) }} followers
+                                            </span>
+                                            <span v-else-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
+                                                by {{ playlist.creator?.username || 'Unknown Creator' }}
                                             </span>
                                             <span v-if="playlist.genre" class="playlist-genre">
                                                 • {{ playlist.genre }}

@@ -92,6 +92,7 @@
             <ion-label>
               <h2>{{ playlist.snippet.title }}</h2>
               <p>{{ playlist.contentDetails.itemCount }} videos</p>
+              <p>by {{ playlist.snippet.channelTitle }}</p>
               <p>{{ formatDate(playlist.snippet.publishedAt) }}</p>
             </ion-label>
           </ion-item>
