@@ -3,11 +3,18 @@
         <app-header title="My Songs" :back-button="true" back-url="/artist/dashboard"></app-header>
 
         <ion-content :fullscreen="true" class="songs-content">
-            <div class="songs-container">
-                <!-- Actions Header -->
+            <div class="songs-container">                <!-- Actions Header -->
                 <div class="actions-header">
                     <ion-searchbar v-model="searchQuery" placeholder="Search your songs..." @ionInput="handleSearch"
                         class="song-search"></ion-searchbar>
+
+                    <div class="filter-segment-container">
+                        <ion-segment v-model="selectedVisibilityFilter" @ionChange="handleVisibilityFilterChange" class="visibility-filter-segment">
+                            <ion-segment-button value="all">All</ion-segment-button>
+                            <ion-segment-button value="visible">Visible</ion-segment-button>
+                            <ion-segment-button value="hidden">Hidden</ion-segment-button>
+                        </ion-segment>
+                    </div>
 
                     <div class="actions-buttons">
                         <ion-button @click="importSongsModal" class="import-btn">
@@ -20,7 +27,7 @@
                             Add Manually
                         </ion-button>
                     </div>
-                </div>                <!-- Content -->
+                </div><!-- Content -->
                 <div v-if="loading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
                     <p>Loading your songs...</p>
@@ -151,6 +158,8 @@ import {
     IonTabBar,
     IonTabButton,
     IonLabel,
+    IonSegment,
+    IonSegmentButton,
     actionSheetController,
     modalController,
     alertController,
@@ -185,8 +194,7 @@ import ImportSongsModal from '@/components/ImportSongsModal.vue';
 import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
-    name: 'ArtistSongs',
-    components: {
+    name: 'ArtistSongs',    components: {
         AppHeader,
         EmptyStateDisplay,
         IonPage,
@@ -203,34 +211,42 @@ export default defineComponent({
         IonTabs,
         IonTabBar,
         IonTabButton,
-        IonLabel
+        IonLabel,
+        IonSegment,
+        IonSegmentButton
     },
     setup() {
         const authStore = useAuthStore();
-        const songStore = useSongStore();
-
-        const loading = ref(true);
+        const songStore = useSongStore();        const loading = ref(true);
         const searchQuery = ref('');
+        const selectedVisibilityFilter = ref('all');
         const totalSongs = ref(0);
 
         // Pagination
         const { currentPage, itemsPerPage, totalPages, skip, changePage, prevPage, nextPage } = usePagination(totalSongs, 12);
 
         // Get current user
-        const user = computed(() => authStore.user);
-
-        // Filtered songs
+        const user = computed(() => authStore.user);        // Filtered songs
         const filteredSongs = computed(() => {
-            if (!searchQuery.value) {
-                return songStore.songs;
-            } else {
+            let result = [...songStore.songs];
+
+            // Apply search filter
+            if (searchQuery.value) {
                 const query = searchQuery.value.toLowerCase();
-                return songStore.songs.filter(song =>
+                result = result.filter(song =>
                     song.title.toLowerCase().includes(query) ||
                     (song.album_name && song.album_name.toLowerCase().includes(query)) ||
                     song.artist_name_on_platform.toLowerCase().includes(query)
                 );
             }
+
+            // Apply visibility filter
+            if (selectedVisibilityFilter.value !== 'all') {
+                const isVisible = selectedVisibilityFilter.value === 'visible';
+                result = result.filter(song => song.is_visible === isVisible);
+            }
+
+            return result;
         });
 
         // Get platform icon based on platform ID
@@ -260,12 +276,16 @@ export default defineComponent({
         // Handle search input
         const handleSearch = (event: CustomEvent) => {
             searchQuery.value = event.detail.value;
-        };
-
-        // Clear search
+        };        // Clear search
         const clearSearch = () => {
             searchQuery.value = '';
-        };        // Show song details
+        };
+
+        // Handle visibility filter change
+        const handleVisibilityFilterChange = () => {
+            // Reset to first page when filter changes
+            changePage(1);
+        };// Show song details
         const showSongDetails = async (song: Song) => {
             const modal = await modalController.create({
                 component: SongDetailsModal,
@@ -457,11 +477,10 @@ export default defineComponent({
 
         onMounted(() => {
             loadSongs();
-        });
-
-        return {
+        });        return {
             loading,
             searchQuery,
+            selectedVisibilityFilter,
             filteredSongs,
             currentPage,
             totalPages,
@@ -469,6 +488,7 @@ export default defineComponent({
             getPlatformName,
             handleSearch,
             clearSearch,
+            handleVisibilityFilterChange,
             showSongDetails,
             showOptions,
             importSongsModal,
@@ -518,6 +538,16 @@ export default defineComponent({
     --background: white;
     --border-radius: 8px;
     --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-segment-container {
+    flex-shrink: 0;
+}
+
+.visibility-filter-segment {
+    --background: var(--ion-color-light);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .actions-buttons {

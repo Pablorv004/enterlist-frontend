@@ -844,13 +844,11 @@ export default defineComponent({
             selectedPlaylist.value = null;
             playlistTracks.value = [];
             tracksError.value = null;
-        };
-
-        const toggleVisibility = async (playlist: Playlist) => {
+        };        const toggleVisibility = async (playlist: Playlist) => {
             try {
                 const updatedPlaylist = await PlaylistService.updatePlaylist(
                     playlist.playlist_id,
-                    { ...playlist, is_visible: !playlist.is_visible }
+                    { is_visible: !playlist.is_visible }
                 );
 
                 // Update in local state
@@ -866,15 +864,13 @@ export default defineComponent({
             } catch (error) {
                 showToast('Failed to update playlist visibility', 'danger');
             }
-        };
-
-        const updatePlaylistVisibility = async () => {
+        };        const updatePlaylistVisibility = async () => {
             if (!selectedPlaylist.value) return;
 
             try {
                 const updatedPlaylist = await PlaylistService.updatePlaylist(
                     selectedPlaylist.value.playlist_id,
-                    { ...selectedPlaylist.value }
+                    { is_visible: selectedPlaylist.value.is_visible }
                 );
 
                 // Update in local state
