@@ -280,7 +280,8 @@ import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
 import { SubmissionStatus, Song, Submission } from '@/types';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
-import { logoIcons } from '@/utils/icons';
+import spotifyLogo from '@/assets/spotify.png';
+import youtubeLogo from '@/assets/youtube.png';
 
 export default defineComponent({
     name: 'ArtistDashboard',
@@ -356,9 +357,9 @@ export default defineComponent({
         const getPlatformIcon = (platformId: number) => {
             switch (platformId) {
                 case 1:
-                    return logoIcons.spotify;
+                    return spotifyLogo;
                 case 3:
-                    return logoIcons.youtube;
+                    return youtubeLogo;
                 default:
                     return musicalNotesIcon;
             }

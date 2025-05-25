@@ -267,6 +267,8 @@ import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import { useAuthStore } from '@/store';
 import { Playlist, Submission, SubmissionStatus } from '@/types';
+import spotifyLogo from '@/assets/spotify.png';
+import youtubeLogo from '@/assets/youtube.png';
 
 export default defineComponent({
     name: 'PlaylistMakerDashboard',    components: {
@@ -414,16 +416,16 @@ export default defineComponent({
                 currency: 'USD'
             }).format(amount);
         };        const getPlatformIcon = (platformName?: string): string => {
-            if (!platformName) return '/src/assets/logo.png';
+            if (!platformName) return '@/assets/logo.png';
 
             const platform = platformName.toLowerCase();
             if (platform.includes('spotify')) {
-                return '/src/assets/spotify.png';
+                return spotifyLogo;
             } else if (platform.includes('youtube')) {
-                return '/src/assets/youtube.png';
+                return youtubeLogo;
             }
 
-            return '/src/assets/logo.png';
+            return '@/assets/logo.png';
         };
 
         const getPlaylistSubmissionCount = (playlistId: string): number => {

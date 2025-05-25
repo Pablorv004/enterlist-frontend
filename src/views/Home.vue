@@ -103,7 +103,8 @@ import {
     IonIcon
 } from '@ionic/vue';
 import { person, musicalNotes, logoYoutube } from 'ionicons/icons';
-import logoSpotify from '@/assets/spotify.png';
+import spotifyLogo from '@/assets/spotify.png';
+import youtubeLogo from '@/assets/youtube.png';
 import { useAuthStore } from '@/store';
 import AppHeader from '@/components/AppHeader.vue';
 
@@ -122,12 +123,10 @@ export default defineComponent({
     },
     setup() {
         const authStore = useAuthStore();
-        const isAuthenticated = computed(() => authStore.isAuthenticated);
-
-        // Icons
+        const isAuthenticated = computed(() => authStore.isAuthenticated);        // Icons
         const personIcon = person;
         const musicIcon = musicalNotes;
-        const spotifyIcon = logoSpotify;
+        const spotifyIcon = spotifyLogo;
         const youtubeIcon = logoYoutube;
 
         return {

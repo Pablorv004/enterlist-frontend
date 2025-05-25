@@ -525,6 +525,8 @@ import { PlatformService } from '@/services/PlatformService';
 import { usePagination } from '@/composables';
 import { useAuthStore, usePlaylistStore } from '@/store';
 import { Playlist, LinkedAccount, SubmissionStatus, Track } from '@/types';
+import spotifyLogo from '@/assets/spotify.png';
+import youtubeLogo from '@/assets/youtube.png';
 
 interface PlaylistStats {
     submissions: number;
@@ -783,16 +785,16 @@ export default defineComponent({
                 maximumFractionDigits: 0
             }).format(amount);
         };        const getPlatformIcon = (platformName?: string): string => {
-            if (!platformName) return '/src/assets/logo.png';
+            if (!platformName) return '@/assets/logo.png';
 
             const platform = platformName.toLowerCase();
             if (platform.includes('spotify')) {
-                return '/src/assets/spotify.png';
+                return spotifyLogo;
             } else if (platform.includes('youtube')) {
-                return '/src/assets/youtube.png';
+                return youtubeLogo;
             }
 
-            return '/src/assets/logo.png';
+            return '@/assets/logo.png';
         };
 
         const onImageError = (event: Event) => {
