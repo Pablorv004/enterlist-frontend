@@ -195,12 +195,8 @@
                                     </div>
 
                                     <ion-card-content>
-                                        <h3 class="playlist-name">{{ playlist.name }}</h3>
-                                        <p class="playlist-details">
-                                            <span v-if="playlist.platform?.name?.toLowerCase() === 'spotify'" class="playlist-followers">
-                                                {{ formatFollowers(playlist.follower_count) }} followers
-                                            </span>
-                                            <span v-else-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
+                                        <h3 class="playlist-name">{{ playlist.name }}</h3>                                        <p class="playlist-details">
+                                            <span v-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
                                                 by {{ playlist.creator?.username || 'Unknown Creator' }}
                                             </span>
                                             <span v-if="playlist.genre" class="playlist-genre">
@@ -410,19 +406,12 @@ export default defineComponent({
                 default:
                     return 'medium';
             }
-        };
-
-        const formatFollowers = (count?: number): string => {
-            if (!count) return '0';
-            return count >= 1000 ? `${(count / 1000).toFixed(1)}K` : count.toString();
-        };
-
-        const formatCurrency = (amount: number): string => {
+        };        const formatCurrency = (amount: number): string => {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD'
             }).format(amount);
-        };        const getPlatformIcon = (platformName?: string): string => {
+        };const getPlatformIcon = (platformName?: string): string => {
             if (!platformName) return '@/assets/logo.png';
 
             const platform = platformName.toLowerCase();
@@ -457,12 +446,10 @@ export default defineComponent({
             listIcon: listOutline,
             linkIcon: linkOutline,
             personIcon: personOutline,
-            arrowForwardIcon: arrowForward,
-            calendarIcon: calendarOutline,
+            arrowForwardIcon: arrowForward,            calendarIcon: calendarOutline,
             formatDate,
             formatStatus,
             getStatusColor,
-            formatFollowers,
             formatCurrency,
             getPlatformIcon,
             getPlaylistSubmissionCount

@@ -114,12 +114,8 @@
                             </ion-item>
 
                             <ion-item class="filter-item">
-                                <ion-label>Sort By</ion-label>
-                                <ion-select v-model="playlistSort" interface="action-sheet"
-                                    placeholder="Followers (High to Low)" @ionChange="sortPlaylists">
-                                    <ion-select-option value="followers_desc">Followers (High to
-                                        Low)</ion-select-option>
-                                    <ion-select-option value="followers_asc">Followers (Low to High)</ion-select-option>
+                                <ion-label>Sort By</ion-label>                                <ion-select v-model="playlistSort" interface="action-sheet"
+                                    placeholder="Name (A-Z)" @ionChange="sortPlaylists">
                                     <ion-select-option value="name_asc">Name (A-Z)</ion-select-option>
                                     <ion-select-option value="name_desc">Name (Z-A)</ion-select-option>
                                 </ion-select>
@@ -141,22 +137,13 @@
                                             <ion-icon :icon="informationIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
                                     </div>
-                                </div>
-
-                                <ion-card-header>
+                                </div>                                <ion-card-header>
                                     <ion-card-title>{{ playlist.name }}</ion-card-title>
-                                    <ion-card-subtitle>
-                                        <ion-icon :icon="personIcon" class="subtitle-icon"></ion-icon>
-                                        {{ formatFollowers(playlist.follower_count) }} followers
-                                    </ion-card-subtitle>
-                                </ion-card-header>
-
-                                <ion-card-content>
-                                    <p v-if="playlist.genre" class="playlist-genre">
-                                        <ion-icon :icon="musicalNotesIcon" class="genre-icon"></ion-icon>
+                                    <ion-card-subtitle v-if="playlist.genre">
+                                        <ion-icon :icon="musicalNotesIcon" class="subtitle-icon"></ion-icon>
                                         {{ formatGenre(playlist.genre) }}
-                                    </p>
-
+                                    </ion-card-subtitle>
+                                </ion-card-header>                                <ion-card-content>
                                     <div class="submission-fee">
                                         <ion-badge color="primary">
                                             ${{ (playlist.submission_fee! / 100).toFixed(2) }} submission fee
@@ -230,10 +217,8 @@
                                                 :alt="selectedPlaylist.name" />
                                         </ion-thumbnail>
                                         <div class="summary-details">
-                                            <h3>{{ selectedPlaylist.name }}</h3>
-                                            <p v-if="selectedPlaylist.genre">{{ formatGenre(selectedPlaylist.genre) }}
+                                            <h3>{{ selectedPlaylist.name }}</h3>                                            <p v-if="selectedPlaylist.genre">{{ formatGenre(selectedPlaylist.genre) }}
                                             </p>
-                                            <p>{{ formatFollowers(selectedPlaylist.follower_count) }} followers</p>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -382,9 +367,7 @@
                             <img :src="selectedModalPlaylist.cover_image_url || '/assets/default-playlist-cover.png'"
                                 :alt="selectedModalPlaylist.name" />
                         </ion-thumbnail>
-                        <div class="playlist-modal-info">
-                            <h2>{{ selectedModalPlaylist.name }}</h2>
-                            <p>{{ formatFollowers(selectedModalPlaylist.follower_count) }} followers</p>
+                        <div class="playlist-modal-info">                            <h2>{{ selectedModalPlaylist.name }}</h2>
                             <p v-if="selectedModalPlaylist.genre">{{ formatGenre(selectedModalPlaylist.genre) }}</p>
                             <ion-button v-if="selectedModalPlaylist.url" size="small" fill="clear" color="primary"
                                 :href="selectedModalPlaylist.url" target="_blank">
@@ -497,10 +480,9 @@ export default defineComponent({
         const playlists = ref<Playlist[]>([]);
         const filteredPlaylists = ref<Playlist[]>([]);
         const loadingPlaylists = ref(true);
-        const selectedPlaylistId = ref<string | null>(null);
-        const playlistSearchQuery = ref('');
+        const selectedPlaylistId = ref<string | null>(null);        const playlistSearchQuery = ref('');
         const selectedGenre = ref('');
-        const playlistSort = ref('followers_desc');
+        const playlistSort = ref('name_asc');
         const showPlaylistModal = ref(false);
         const selectedModalPlaylist = ref<Playlist | null>(null);
 
@@ -660,16 +642,8 @@ export default defineComponent({
                 filtered = filtered.filter(playlist =>
                     playlist.genre && playlist.genre.toLowerCase() === selectedGenre.value.toLowerCase()
                 );
-            }
-
-            // Apply sorting
+            }            // Apply sorting
             switch (playlistSort.value) {
-                case 'followers_desc':
-                    filtered.sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0));
-                    break;
-                case 'followers_asc':
-                    filtered.sort((a, b) => (a.follower_count || 0) - (b.follower_count || 0));
-                    break;
                 case 'name_asc':
                     filtered.sort((a, b) => a.name.localeCompare(b.name));
                     break;
@@ -811,14 +785,7 @@ export default defineComponent({
             if (currentStep.value > 0) {
                 currentStep.value -= 1;
             }
-        };
-
-        // Formatting helpers
-        const formatFollowers = (count?: number): string => {
-            if (!count) return '0';
-            return count >= 1000 ? `${(count / 1000).toFixed(1)}K` : count.toString();
-        };
-
+        };        // Formatting helpers
         const formatGenre = (genre: string): string => {
             return genre.split('-').map(word =>
                 word.charAt(0).toUpperCase() + word.slice(1)
@@ -924,13 +891,11 @@ export default defineComponent({
             selectPlaylistFromModal,
             previewSong,
             calculatePlatformFee,
-            calculateTotal,
-            submitSong,
+            calculateTotal,            submitSong,
             goToNextStep,
             goToPreviousStep,
 
             // Formatting helpers
-            formatFollowers,
             formatGenre,
             formatPaymentMethod,
             formatPaymentDetails,

@@ -40,7 +40,6 @@ export const PlaylistService = {
     cover_image_url?: string;
     is_visible?: boolean;
     genre?: string;
-    follower_count?: number;
     submission_fee?: number;
   }): Promise<Playlist> => {
     const response = await apiClient.post('/playlists', playlistData);
@@ -56,7 +55,6 @@ export const PlaylistService = {
       cover_image_url?: string;
       is_visible?: boolean;
       genre?: string;
-      follower_count?: number;
       submission_fee?: number;
     }
   ): Promise<Playlist> => {

@@ -101,11 +101,9 @@
                             <ion-thumbnail class="playlist-thumbnail">
                                 <img :src="submission.playlist?.cover_image_url || '/assets/default-playlist-cover.png'"
                                     :alt="submission.playlist?.name" />
-                            </ion-thumbnail>
-                            <div class="playlist-details">
+                            </ion-thumbnail>                            <div class="playlist-details">
                                 <h4>{{ submission.playlist?.name }}</h4>
                                 <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
-                                <p>{{ formatFollowers(submission.playlist?.follower_count) }} Followers</p>
                                 <ion-button size="small" fill="clear" color="primary" :href="submission.playlist?.url"
                                     target="_blank">
                                     <ion-icon :icon="openIcon" slot="start"></ion-icon>
@@ -468,14 +466,7 @@ export default defineComponent({
                 default:
                     return alertCircle;
             }
-        };
-
-        const formatFollowers = (count?: number): string => {
-            if (!count) return '0';
-            return count >= 1000 ? `${(count / 1000).toFixed(1)}K` : count.toString();
-        };
-
-        const formatTransactionStatus = (status: TransactionStatus): string => {
+        };        const formatTransactionStatus = (status: TransactionStatus): string => {
             switch (status) {
                 case TransactionStatus.PENDING:
                     return 'Pending';
@@ -628,11 +619,9 @@ export default defineComponent({
         return {
             submission,
             loading,
-            error,
-            // Format helpers
+            error,            // Format helpers
             formatDate,
             formatStatus,
-            formatFollowers,
             formatTransactionStatus,
             getTransactionStatusColor,
             getStatusClass,

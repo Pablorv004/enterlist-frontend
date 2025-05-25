@@ -73,7 +73,6 @@ export interface Playlist {
   cover_image_url?: string;
   is_visible: boolean;
   genre?: string;
-  follower_count?: number;
   submission_fee?: number;
   created_at: string;
   updated_at: string;

@@ -73,15 +73,13 @@
                                     </div>
 
                                     <ion-card-content>
-                                        <h3 class="playlist-name">{{ playlist.name }}</h3>
-
-                                        <div class="playlist-details">
-                                            <div v-if="playlist.platform?.name?.toLowerCase() === 'spotify'" class="playlist-followers">
-                                                <ion-icon :icon="peopleIcon" class="details-icon"></ion-icon>
-                                                {{ formatFollowers(playlist.follower_count) }}
+                                        <h3 class="playlist-name">{{ playlist.name }}</h3>                                        <div class="playlist-details">
+                                            <div class="playlist-tracks">
+                                                <ion-icon :icon="musicalNotesIcon" class="details-icon"></ion-icon>
+                                                Tracks
                                             </div>
                                             
-                                            <div v-else-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
+                                            <div v-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
                                                 <ion-icon :icon="personIcon" class="details-icon"></ion-icon>
                                                 {{ playlist.creator?.username || 'Unknown Creator' }}
                                             </div>
@@ -195,15 +193,8 @@
                     <ion-card>
                         <ion-card-header>
                             <ion-card-title>Playlist Information</ion-card-title>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                            <div v-if="selectedPlaylist.platform?.name?.toLowerCase() === 'spotify'" class="detail-row">
-                                <div class="detail-label">Followers</div>
-                                <div class="detail-value">{{ formatFollowers(selectedPlaylist.follower_count) }}</div>
-                            </div>
-
-                            <div v-else-if="selectedPlaylist.platform?.name?.toLowerCase() === 'youtube'" class="detail-row">
+                        </ion-card-header>                        <ion-card-content>
+                            <div v-if="selectedPlaylist.platform?.name?.toLowerCase() === 'youtube'" class="detail-row">
                                 <div class="detail-label">Channel</div>
                                 <div class="detail-value">{{ selectedPlaylist.creator?.username || 'Unknown Creator' }}</div>
                             </div>
@@ -442,10 +433,9 @@
                                 <ion-thumbnail slot="start" class="playlist-selection-thumbnail">
                                     <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
                                         :alt="playlist.name" />
-                                </ion-thumbnail>
-                                <ion-label>
+                                </ion-thumbnail>                                <ion-label>
                                     <h2>{{ playlist.name }}</h2>
-                                    <p>{{ formatFollowers(playlist.follower_count) }} followers</p>
+                                    <p>{{ playlist.track_count || 'Unknown' }} tracks</p>
                                 </ion-label>
                                 <ion-checkbox slot="end" v-model="playlist.selected"></ion-checkbox>
                             </ion-item>
@@ -553,7 +543,7 @@ interface ImportablePlaylist {
     id: string;
     name: string;
     cover_image_url?: string;
-    follower_count?: number;
+    track_count?: number;
     selected: boolean;
 }
 
@@ -682,11 +672,10 @@ export default defineComponent({
 
                 for (let i = 0; i < count; i++) {
                     mockPlaylists.push({
-                        id: `playlist_${Date.now()}_${i}`,
-                        name: `Playlist ${i + 1} - ${Math.random().toString(36).substring(2, 10)}`,
+                        id: `playlist_${Date.now()}_${i}`,                        name: `Playlist ${i + 1} - ${Math.random().toString(36).substring(2, 10)}`,
                         cover_image_url: Math.random() > 0.3 ?
                             `/assets/mock-playlist-${Math.floor(Math.random() * 5) + 1}.jpg` : undefined,
-                        follower_count: Math.floor(Math.random() * 10000),
+                        track_count: Math.floor(Math.random() * 100) + 5, // Random track count between 5-105
                         selected: false
                     });
                 }
@@ -773,16 +762,7 @@ export default defineComponent({
         const handleFilterChange = () => {
             // Reset to first page when filter changes
             changePage(1);
-        };
-
-        const formatFollowers = (count?: number): string => {
-            if (!count) return '0 followers';
-            return count >= 1000 ?
-                `${(count / 1000).toFixed(1)}K followers` :
-                `${count} followers`;
-        };
-
-        const formatDate = (dateString: string): string => {
+        };        const formatDate = (dateString: string): string => {
             return new Date(dateString).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -1025,11 +1005,9 @@ export default defineComponent({
             linkIcon: linkOutline,
             pencilIcon: pencil,
             eyeOutlineIcon: eyeOutline,
-            eyeOffOutlineIcon: eyeOffOutline,
-            handleSearch,
+            eyeOffOutlineIcon: eyeOffOutline,            handleSearch,
             clearSearch,
             handleFilterChange,
-            formatFollowers,
             formatDate,
             formatCurrency,            getPlatformIcon,
             onImageError,            formatDuration,

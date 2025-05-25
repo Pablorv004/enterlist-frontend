@@ -39,9 +39,7 @@ export interface SpotifyPlaylist {
   external_urls: {
     spotify: string;
   };
-  followers: {
-    total: number;
-  };
+
   tracks: {
     total: number;
   };
@@ -75,9 +73,6 @@ export interface SpotifyProfile {
     width: number;
   }>;
   uri: string;
-  followers: {
-    total: number;
-  };
   external_urls: {
     spotify: string;
   };

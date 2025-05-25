@@ -63,10 +63,8 @@
                                     <ion-thumbnail class="playlist-thumbnail">
                                         <img :src="submission.playlist?.cover_image_url || '/assets/default-playlist-cover.png'"
                                             :alt="submission.playlist?.name" />
-                                    </ion-thumbnail>
-                                    <div class="playlist-text">
+                                    </ion-thumbnail>                                    <div class="playlist-text">
                                         <h4>{{ submission.playlist?.name }}</h4>
-                                        <p>{{ formatFollowers(submission.playlist?.follower_count) }} Followers</p>
                                         <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
                                         <ion-button size="small" fill="clear" color="primary"
                                             :href="submission.playlist?.url" target="_blank">
@@ -255,14 +253,7 @@ export default defineComponent({
                 default:
                     return alertCircle;
             }
-        };
-
-        const formatFollowers = (count?: number): string => {
-            if (!count) return '0';
-            return count >= 1000 ? `${(count / 1000).toFixed(1)}K` : count.toString();
-        };
-
-        const formatTransactionStatus = (status: TransactionStatus): string => {
+        };        const formatTransactionStatus = (status: TransactionStatus): string => {
             switch (status) {
                 case TransactionStatus.PENDING:
                     return 'Pending';
@@ -312,11 +303,9 @@ export default defineComponent({
 
         return {
             submission,
-            loading,
-            error,
+            loading,            error,
             formatDate,
             formatStatus,
-            formatFollowers,
             formatTransactionStatus,
             getTransactionStatusColor,
             getStatusClass,

@@ -152,7 +152,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, onMounted } from 'vue';
+import { defineComponent, ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   IonHeader,
   IonToolbar,
@@ -207,8 +207,7 @@ export default defineComponent({
     IonCheckbox,
     IonSpinner,
     IonFooter
-  },
-  setup() {
+  },  setup() {
     const authStore = useAuthStore();
     const userId = computed(() => authStore.user?.user_id || '');
 
@@ -218,6 +217,9 @@ export default defineComponent({
     const selectedPlatform = ref('');
     const platforms = ref<Platform[]>([]);
     const linkedAccounts = ref<LinkedAccount[]>([]);
+    
+    // Component state tracking
+    const isComponentMounted = ref(false);
     
     // Spotify data
     const spotifyTracks = ref<SpotifyTrack[]>([]);
@@ -246,15 +248,19 @@ export default defineComponent({
           p.name.toLowerCase().includes('youtube')
         )
       );
-    });
-
-    // Set default platform based on available accounts
-    watch([hasSpotifyAccount, hasYouTubeAccount], () => {
+    });    // Set default platform based on available accounts
+    const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount], () => {
+      if (!isComponentMounted.value) return;
+      
       if (selectedPlatform.value === '') {
         if (hasSpotifyAccount.value) {
           selectedPlatform.value = 'spotify';
+          // Auto-load content for the default platform
+          loadSpotifyContent();
         } else if (hasYouTubeAccount.value) {
           selectedPlatform.value = 'youtube';
+          // Auto-load content for the default platform
+          loadYoutubeContent();
         }
       }
     });
@@ -321,26 +327,32 @@ export default defineComponent({
       youtubeVideos.value.forEach(video => {
         selectedVideos.value[video.id] = newValue;
       });
-    };
-
-    // Load platform data
+    };    // Load platform data
     const loadPlatforms = async () => {
+      if (!isComponentMounted.value) return;
+      
       try {
         platforms.value = await PlatformService.getPlatforms();
       } catch (error) {
-        showToast('Failed to load platforms', 'danger');
+        if (isComponentMounted.value) {
+          showToast('Failed to load platforms', 'danger');
+        }
       }
     };
 
     const loadLinkedAccounts = async () => {
+      if (!isComponentMounted.value) return;
+      
       try {
         linkedAccounts.value = await PlatformService.getLinkedAccounts(userId.value);
       } catch (error) {
-        showToast('Failed to load linked accounts', 'danger');
+        if (isComponentMounted.value) {
+          showToast('Failed to load linked accounts', 'danger');
+        }
       }
-    };
-
-    const loadSpotifyContent = async () => {
+    };const loadSpotifyContent = async () => {
+      if (!isComponentMounted.value) return;
+      
       loading.value = true;
       loadingMessage.value = 'Loading your Spotify content...';
 
@@ -348,6 +360,8 @@ export default defineComponent({
         const [tracks] = await Promise.all([
           SpotifyService.getTracks(),
         ]);
+
+        if (!isComponentMounted.value) return; // Check again after async operation
 
         spotifyTracks.value = tracks;
 
@@ -359,19 +373,28 @@ export default defineComponent({
           selectedAlbums.value[album.id] = false;
         });
       } catch (error) {
+        if (!isComponentMounted.value) return;
+        
         console.error('Error loading Spotify content:', error);
         showToast('Failed to load your Spotify content', 'danger');
       } finally {
-        loading.value = false;
+        if (isComponentMounted.value) {
+          loading.value = false;
+        }
       }
     };
 
     const loadYoutubeContent = async () => {
+      if (!isComponentMounted.value) return;
+      
       loading.value = true;
       loadingMessage.value = 'Loading your YouTube content...';
 
       try {
         const videos = await YouTubeService.getVideos();
+        
+        if (!isComponentMounted.value) return; // Check again after async operation
+        
         youtubeVideos.value = videos;
 
         // Initialize selection object
@@ -379,15 +402,19 @@ export default defineComponent({
           selectedVideos.value[video.id] = false;
         });
       } catch (error) {
+        if (!isComponentMounted.value) return;
+        
         console.error('Error loading YouTube content:', error);
         showToast('Failed to load your YouTube videos', 'danger');
       } finally {
-        loading.value = false;
+        if (isComponentMounted.value) {
+          loading.value = false;
+        }
       }
-    };
-
-    // Import selected content
+    };    // Import selected content
     const importSelected = async () => {
+      if (!isComponentMounted.value) return;
+      
       loading.value = true;
       
       try {
@@ -409,7 +436,9 @@ export default defineComponent({
             // or handle them on the backend after receiving the IDs
           }
           
-          showToast(`Successfully imported ${selectedTrackIds.length} tracks and ${selectedAlbumIds.length} albums from Spotify`, 'success');
+          if (isComponentMounted.value) {
+            showToast(`Successfully imported ${selectedTrackIds.length} tracks and ${selectedAlbumIds.length} albums from Spotify`, 'success');
+          }
         } 
         else if (selectedPlatform.value === 'youtube') {
           loadingMessage.value = 'Importing your YouTube content...';
@@ -421,16 +450,24 @@ export default defineComponent({
             await YouTubeService.importVideos(selectedVideoIds);
           }
           
-          showToast(`Successfully imported ${selectedVideoIds.length} videos from YouTube`, 'success');
+          if (isComponentMounted.value) {
+            showToast(`Successfully imported ${selectedVideoIds.length} videos from YouTube`, 'success');
+          }
         }
         
         // Close modal after successful import
-        dismiss(true);
+        if (isComponentMounted.value) {
+          dismiss(true);
+        }
       } catch (error) {
-        console.error('Error importing content:', error);
-        showToast('Failed to import content', 'danger');
+        if (isComponentMounted.value) {
+          console.error('Error importing content:', error);
+          showToast('Failed to import content', 'danger');
+        }
       } finally {
-        loading.value = false;
+        if (isComponentMounted.value) {
+          loading.value = false;
+        }
       }
     };
 
@@ -451,9 +488,8 @@ export default defineComponent({
         dismissed: true,
         dataRefreshed
       });
-    };
-
-    onMounted(async () => {
+    };    onMounted(async () => {
+      isComponentMounted.value = true;
       loading.value = true;
       
       try {
@@ -462,7 +498,17 @@ export default defineComponent({
           loadLinkedAccounts()
         ]);
       } finally {
-        loading.value = false;
+        if (isComponentMounted.value) {
+          loading.value = false;
+        }
+      }
+    });
+
+    onUnmounted(() => {
+      isComponentMounted.value = false;
+      // Stop the watcher
+      if (stopWatcher) {
+        stopWatcher();
       }
     });
 

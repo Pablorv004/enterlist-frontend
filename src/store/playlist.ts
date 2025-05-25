@@ -74,7 +74,6 @@ export const usePlaylistStore = defineStore('playlist', () => {
     cover_image_url?: string;
     is_visible?: boolean;
     genre?: string;
-    follower_count?: number;
     submission_fee?: number;
   }): Promise<Playlist> => {
     loading.value = true;
@@ -101,7 +100,6 @@ export const usePlaylistStore = defineStore('playlist', () => {
       cover_image_url?: string;
       is_visible?: boolean;
       genre?: string;
-      follower_count?: number;
       submission_fee?: number;
     }
   ): Promise<Playlist> => {
