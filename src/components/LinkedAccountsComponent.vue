@@ -57,9 +57,9 @@
                                         <img src="@/assets/youtube.png" alt="YouTube" />
                                     </ion-thumbnail>
                                     <ion-label>
-                                        <h2>{{ userType === 'playlist_maker' ? 'YouTube Music' : 'YouTube' }}</h2>
+                                        <h2>YouTube</h2>
                                         <p v-if="getLinkedAccount('youtube')">
-                                            {{ userType === 'playlist_maker' ? `Connected as ${getLinkedAccount('youtube')?.external_user_id}` : 'Connected' }}
+                                            {{ `Connected as ${getLinkedAccount('youtube')?.external_user_id}`}}
                                         </p>
                                         <p v-else>{{ youtubeDescription }}</p>
                                     </ion-label>
