@@ -102,30 +102,10 @@
                         </ion-button>
                     </div>
                 </div>
-            </div>
-        </ion-content>        <!-- Bottom Navigation -->
-        <ion-footer>
-            <ion-toolbar>
-                <div class="bottom-nav">
-                    <ion-button fill="clear" router-link="/artist/dashboard" class="nav-button">
-                        <ion-icon :icon="homeIcon" slot="top"></ion-icon>
-                        <ion-label>Dashboard</ion-label>
-                    </ion-button>
-                    <ion-button fill="clear" class="nav-button active">
-                        <ion-icon :icon="documentTextIcon" slot="top"></ion-icon>
-                        <ion-label>Submissions</ion-label>
-                    </ion-button>
-                    <ion-button fill="clear" router-link="/artist/songs" class="nav-button">
-                        <ion-icon :icon="musicalNotesIcon" slot="top"></ion-icon>
-                        <ion-label>Songs</ion-label>
-                    </ion-button>
-                    <ion-button fill="clear" router-link="/artist/profile" class="nav-button">
-                        <ion-icon :icon="personIcon" slot="top"></ion-icon>
-                        <ion-label>Profile</ion-label>
-                    </ion-button>
-                </div>
-            </ion-toolbar>
-        </ion-footer>
+            </div>        </ion-content>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="submissions" />
     </ion-page>
 </template>
 
@@ -162,11 +142,13 @@ import { SubmissionStatus, Submission } from '@/types';
 import { usePagination } from '@/composables';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 
 export default defineComponent({
     name: 'ArtistSubmissions',    components: {
         AppHeader,
         EmptyStateDisplay,
+        BottomNavigation,
         IonPage,
         IonContent,
         IonSegment,

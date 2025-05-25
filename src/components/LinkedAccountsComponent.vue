@@ -179,6 +179,9 @@
                 </div>
             </div>
         </ion-content>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="profile"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -195,6 +198,7 @@ import {
     refreshOutline, checkmarkCircle, warning, informationCircle
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlatformService } from '@/services/PlatformService';
 import { SongService } from '@/services/SongService';
 import { PlaylistService } from '@/services/PlaylistService';
@@ -219,7 +223,7 @@ export default defineComponent({
     components: {
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle,
         IonCardContent, IonList, IonItem, IonThumbnail, IonLabel, IonButton,
-        IonIcon, IonSpinner, IonToggle, AppHeader
+        IonIcon, IonSpinner, IonToggle, AppHeader, BottomNavigation
     },
     props: {
         userType: {

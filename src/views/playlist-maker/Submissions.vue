@@ -271,6 +271,9 @@
                 </div>
             </ion-content>
         </ion-modal>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -289,6 +292,7 @@ import {
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
 import { PlaylistService } from '@/services/PlaylistService';
 import { usePagination } from '@/composables';
@@ -305,7 +309,7 @@ export default defineComponent({
         IonItem, IonItemSliding, IonItemOption, IonItemOptions, IonThumbnail,
         IonLabel, IonButton, IonIcon, IonBadge, IonSpinner, IonModal, IonHeader,
         IonToolbar, IonTitle, IonButtons, IonTextarea, IonSelect, IonSelectOption,
-        IonRadioGroup, IonRadio, IonCheckbox, AppHeader, EmptyStateDisplay
+        IonRadioGroup, IonRadio, IonCheckbox, AppHeader, EmptyStateDisplay, BottomNavigation
     },
     setup() {
         const authStore = useAuthStore();

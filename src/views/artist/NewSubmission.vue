@@ -439,6 +439,8 @@
                 </div>
             </ion-content>
         </ion-modal>
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -461,6 +463,7 @@ import AppHeader from '@/components/AppHeader.vue';
 import { SongService } from '@/services/SongService';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { Song, Playlist, PaymentMethod, Submission } from '@/types';
 import { useAuthStore } from '@/store';
@@ -472,7 +475,7 @@ export default defineComponent({
         IonCardTitle, IonCardSubtitle, IonCardContent, IonSearchbar, IonList, IonItem,
         IonThumbnail, IonLabel, IonBadge, IonRadio, IonRadioGroup, IonSelect, IonSelectOption,
         IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
-        AppHeader
+        AppHeader, BottomNavigation
     },
     setup() {
         const route = useRoute();

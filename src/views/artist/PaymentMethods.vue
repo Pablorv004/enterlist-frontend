@@ -209,6 +209,9 @@
                 </div>
             </ion-content>
         </ion-modal>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="profile"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -226,6 +229,7 @@ import {
     checkmarkCircle, closeCircle, timeOutline, arrowForward
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { TransactionService } from '@/services/TransactionService';
@@ -239,7 +243,7 @@ export default defineComponent({
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle,
         IonCardContent, IonList, IonItem, IonItemSliding, IonItemOption, IonItemOptions,        IonThumbnail, IonLabel, IonBadge, IonButton, IonIcon, IonSpinner, IonModal,
         IonHeader, IonToolbar, IonTitle, IonButtons, IonRadioGroup, IonRadio, IonListHeader,
-        IonInput, IonCheckbox, AppHeader, EmptyStateDisplay
+        IonInput, IonCheckbox, AppHeader, EmptyStateDisplay, BottomNavigation
     },
     setup() {
         const authStore = useAuthStore();

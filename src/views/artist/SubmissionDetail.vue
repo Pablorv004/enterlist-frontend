@@ -148,7 +148,8 @@
                     </ion-button>
                 </div>
             </div>
-        </ion-content>
+        </ion-content>    <!-- Bottom Navigation -->
+    <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -164,16 +165,16 @@ import {
     play, open, refreshOutline
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
 import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useSubmissionStore } from '@/store';
 
 export default defineComponent({
-    name: 'ArtistSubmissionDetail',
-    components: {
+    name: 'ArtistSubmissionDetail',    components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge,
-        AppHeader
+        AppHeader, BottomNavigation
     },
     setup() {
         const route = useRoute();

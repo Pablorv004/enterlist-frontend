@@ -325,6 +325,9 @@
                 </ion-list>
             </ion-content>
         </ion-modal>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -342,6 +345,7 @@ import {
     play, open, checkmark, close, timer, person
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
 import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useToast } from '@/composables/useToast';
@@ -350,10 +354,9 @@ export default defineComponent({
     name: 'PlaylistMakerSubmissionDetail',
     components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
-        IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel,
-        IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
+        IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel,        IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
         IonItem, IonTextarea, IonNote, IonList,
-        AppHeader
+        AppHeader, BottomNavigation
     },
     setup() {
         const route = useRoute();

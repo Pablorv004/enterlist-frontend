@@ -247,6 +247,9 @@
                 </ion-card>
             </div>
         </ion-content>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="dashboard"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -288,6 +291,7 @@ import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
 import { SubmissionStatus, Song, Submission } from '@/types';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
 
@@ -309,7 +313,8 @@ export default defineComponent({
         IonThumbnail,        IonLabel,
         IonBadge,
         IonSpinner,
-        EmptyStateDisplay
+        EmptyStateDisplay,
+        BottomNavigation
     },
     setup() {
         const authStore = useAuthStore();

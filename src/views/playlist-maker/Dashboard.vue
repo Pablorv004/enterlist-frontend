@@ -247,6 +247,9 @@
                 </div>
             </div>
         </ion-content>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="dashboard"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -263,6 +266,7 @@ import {
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import { useAuthStore } from '@/store';
@@ -275,7 +279,7 @@ export default defineComponent({
         IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
         IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
         IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner,
-        AppHeader, EmptyStateDisplay
+        AppHeader, EmptyStateDisplay, BottomNavigation
     },
     setup() {
         const authStore = useAuthStore();

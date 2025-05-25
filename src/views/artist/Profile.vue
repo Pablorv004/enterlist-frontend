@@ -174,6 +174,9 @@
                 </div>
             </div>
         </ion-content>
+        
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="profile"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -187,6 +190,7 @@ import {
 } from '@ionic/vue';
 import { camera, personCircleOutline } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { UserService } from '@/services/UserService';
 import { useAuthStore } from '@/store';
 import { useFileUpload, useFormValidation } from '@/composables';
@@ -198,7 +202,7 @@ export default defineComponent({
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption,
         IonButton, IonNote, IonAvatar, IonIcon, IonBadge, IonToggle, IonSpinner,
-        AppHeader
+        AppHeader, BottomNavigation
     },
     setup() {
         const authStore = useAuthStore();

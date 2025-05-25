@@ -497,6 +497,8 @@
                 </div>
             </ion-content>
         </ion-modal>
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="content"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -510,6 +512,7 @@ import {
     IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
     IonList, toastController
 } from '@ionic/vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
@@ -550,7 +553,7 @@ export default defineComponent({
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
         IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
         IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-        IonList, AppHeader, EmptyStateDisplay
+        IonList, AppHeader, EmptyStateDisplay, BottomNavigation
     },
     setup() {
         const router = useRouter();
