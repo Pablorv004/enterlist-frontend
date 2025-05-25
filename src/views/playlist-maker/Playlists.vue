@@ -76,7 +76,7 @@
                                         <h3 class="playlist-name">{{ playlist.name }}</h3>                                        <div class="playlist-details">
                                             <div class="playlist-tracks">
                                                 <ion-icon :icon="musicalNotesIcon" class="details-icon"></ion-icon>
-                                                Tracks
+                                                {{playlist.track_count || 'Unknown'}} Tracks
                                             </div>
                                             
                                             <div v-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
@@ -197,11 +197,14 @@
                             <div v-if="selectedPlaylist.platform?.name?.toLowerCase() === 'youtube'" class="detail-row">
                                 <div class="detail-label">Channel</div>
                                 <div class="detail-value">{{ selectedPlaylist.creator?.username || 'Unknown Creator' }}</div>
-                            </div>
-
-                            <div class="detail-row">
+                            </div>                            <div class="detail-row">
                                 <div class="detail-label">Genre</div>
-                                <div class="detail-value">{{ selectedPlaylist.genre || 'Not specified' }}</div>
+                                <div class="detail-value genre-edit">
+                                    <span>{{ selectedPlaylist.genre || 'Not specified' }}</span>
+                                    <ion-button fill="clear" size="small" @click="showGenreEditModal">
+                                        <ion-icon :icon="pencilIcon" slot="icon-only"></ion-icon>
+                                    </ion-button>
+                                </div>
                             </div>
 
                             <div class="detail-row">
@@ -493,6 +496,48 @@
 
                     <div class="fee-actions">
                         <ion-button expand="block" @click="updateFee">Save Fee</ion-button>
+                    </div>                </div>
+            </ion-content>
+        </ion-modal>
+
+        <!-- Genre Edit Modal -->
+        <ion-modal :is-open="isGenreModalOpen" @didDismiss="closeGenreModal" class="genre-edit-modal">
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>Edit Genre</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closeGenreModal">
+                            <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content class="ion-padding">
+                <div class="genre-edit-content">
+                    <p>Select a genre that best describes this playlist's music style.</p>
+                    
+                    <ion-item class="genre-select">
+                        <ion-label position="stacked">Genre</ion-label>
+                        <ion-select 
+                            v-model="selectedGenre" 
+                            placeholder="Select a genre"
+                            interface="popover"
+                        >
+                            <ion-select-option 
+                                v-for="genre in genreOptions" 
+                                :key="genre" 
+                                :value="genre"
+                            >
+                                {{ genre }}
+                            </ion-select-option>
+                        </ion-select>
+                    </ion-item>
+
+                    <ion-note>Choose the genre that best represents the majority of tracks in this playlist.</ion-note>
+
+                    <div class="genre-actions">
+                        <ion-button expand="block" @click="updateGenre">Save Genre</ion-button>
                     </div>
                 </div>
             </ion-content>
@@ -510,7 +555,7 @@ import {
     IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
     IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-    IonList, toastController
+    IonList, IonSelect, IonSelectOption, IonNote, IonInput, toastController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import {
@@ -553,7 +598,7 @@ export default defineComponent({
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
         IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
         IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-        IonList, AppHeader, EmptyStateDisplay, BottomNavigation
+        IonList, IonSelect, IonSelectOption, IonNote, IonInput, AppHeader, EmptyStateDisplay, BottomNavigation
     },
     setup() {
         const router = useRouter();
@@ -587,11 +632,20 @@ export default defineComponent({
         const selectedPlatform = ref<number | null>(null);
         const availablePlaylists = ref<ImportablePlaylist[]>([]);
         const importingPlaylists = ref(false);
-        const importingSelected = ref(false);
-
-        // Fee Edit Modal
+        const importingSelected = ref(false);        // Fee Edit Modal
         const isFeeModalOpen = ref(false);
         const submissionFee = ref(0);
+
+        // Genre Edit Modal
+        const isGenreModalOpen = ref(false);
+        const selectedGenre = ref('');
+        const genreOptions = [
+            'Pop', 'Rock', 'Hip Hop', 'R&B', 'Electronic', 'Jazz', 'Blues',
+            'Country', 'Folk', 'Classical', 'Reggae', 'Punk', 'Metal',
+            'Alternative', 'Indie', 'Funk', 'Soul', 'Gospel', 'World Music',
+            'Latin', 'Reggaeton', 'Trap', 'House', 'Techno', 'Dubstep',
+            'Ambient', 'Lo-fi', 'Acoustic', 'Singer-Songwriter', 'Other'
+        ];
 
         onMounted(async () => {
             if (userId.value) {
@@ -957,9 +1011,7 @@ export default defineComponent({
 
         const closeFeeModal = () => {
             isFeeModalOpen.value = false;
-        };
-
-        const updateFee = async () => {
+        };        const updateFee = async () => {
             if (!selectedPlaylist.value) return;
 
             try {
@@ -972,6 +1024,40 @@ export default defineComponent({
                 showToast('Submission fee updated successfully', 'success');
             } catch (error) {
                 showToast('Failed to update submission fee', 'danger');
+            }
+        };
+
+        const showGenreEditModal = () => {
+            if (selectedPlaylist.value) {
+                selectedGenre.value = selectedPlaylist.value.genre || '';
+                isGenreModalOpen.value = true;
+            }
+        };
+
+        const closeGenreModal = () => {
+            isGenreModalOpen.value = false;
+        };
+
+        const updateGenre = async () => {
+            if (!selectedPlaylist.value) return;
+
+            try {
+                const updatedPlaylist = await PlaylistService.updateGenre(
+                    selectedPlaylist.value.playlist_id,
+                    selectedGenre.value
+                );
+                selectedPlaylist.value = updatedPlaylist;
+                
+                // Update in local playlists array
+                const index = playlists.value.findIndex(p => p.playlist_id === updatedPlaylist.playlist_id);
+                if (index !== -1) {
+                    playlists.value[index] = updatedPlaylist;
+                }
+                
+                closeGenreModal();
+                showToast('Genre updated successfully', 'success');
+            } catch (error) {
+                showToast('Failed to update genre', 'danger');
             }
         };
 
@@ -989,10 +1075,12 @@ export default defineComponent({
             connectedAccounts,
             selectedPlatform,
             availablePlaylists,
-            importingPlaylists,
-            importingSelected,
+            importingPlaylists,            importingSelected,
             isFeeModalOpen,
-            submissionFee,            cloudDownloadIcon: cloudDownload,
+            submissionFee,
+            isGenreModalOpen,
+            selectedGenre,
+            genreOptions,cloudDownloadIcon: cloudDownload,
             musicalNotesIcon: musicalNotes,
             searchIcon: search,
             peopleIcon: people,
@@ -1033,11 +1121,13 @@ export default defineComponent({
             closeImportModal,
             fetchAvailablePlaylists,
             importSelectedPlaylists,
-            getSelectedPlaylists,
-            getSelectedPlatformName,
+            getSelectedPlaylists,            getSelectedPlatformName,
             showFeeEditModal,
             closeFeeModal,
-            updateFee
+            updateFee,
+            showGenreEditModal,
+            closeGenreModal,
+            updateGenre
         };
     }
 });
@@ -1773,9 +1863,39 @@ ion-note {
     .track-duration {
         margin-right: 0.5rem;
     }
-    
-    .track-info {
+      .track-info {
         margin-right: 0.5rem;
     }
+}
+
+/* Genre and Fee Edit Styles */
+.genre-edit, .fee-edit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.genre-edit ion-button, .fee-edit ion-button {
+    --color: var(--ion-color-medium);
+    min-width: auto;
+}
+
+.genre-edit ion-button:hover, .fee-edit ion-button:hover {
+    --color: var(--ion-color-primary);
+}
+
+.genre-edit-modal .genre-edit-content,
+.fee-edit-modal .fee-edit-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.genre-select, .fee-input {
+    margin: 1rem 0;
+}
+
+.genre-actions, .fee-actions {
+    margin-top: 2rem;
 }
 </style>

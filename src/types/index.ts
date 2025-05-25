@@ -74,6 +74,7 @@ export interface Playlist {
   is_visible: boolean;
   genre?: string;
   submission_fee?: number;
+  track_count?: number;
   created_at: string;
   updated_at: string;
   creator?: User;

@@ -85,6 +85,12 @@ export const PlaylistService = {
     return response.data;
   },
   
+  // Method to update genre for a playlist
+  updateGenre: async (id: string, genre: string): Promise<Playlist> => {
+    const response = await apiClient.put(`/playlists/${id}/genre`, { genre: genre });
+    return response.data;
+  },
+  
   // Method to get active playlists (ones marked as visible)
   getActivePlaylists: async (skip = 0, take = 10): Promise<PaginatedResponse<Playlist>> => {
     try {
