@@ -114,29 +114,29 @@
                     </div>
                 </div>
             </div>
-        </ion-content>
-
-        <!-- Bottom Tabs -->
-        <ion-tabs>
-            <ion-tab-bar slot="bottom">
-                <ion-tab-button tab="dashboard" router-link="/artist/dashboard">
-                    <ion-icon :icon="homeIcon"></ion-icon>
-                    <ion-label>Dashboard</ion-label>
-                </ion-tab-button>
-                <ion-tab-button tab="submissions" router-link="/artist/submissions">
-                    <ion-icon :icon="documentTextIcon"></ion-icon>
-                    <ion-label>Submissions</ion-label>
-                </ion-tab-button>
-                <ion-tab-button tab="songs" selected>
-                    <ion-icon :icon="musicalNotesIcon"></ion-icon>
-                    <ion-label>Songs</ion-label>
-                </ion-tab-button>
-                <ion-tab-button tab="profile" router-link="/artist/profile">
-                    <ion-icon :icon="personIcon"></ion-icon>
-                    <ion-label>Profile</ion-label>
-                </ion-tab-button>
-            </ion-tab-bar>
-        </ion-tabs>
+        </ion-content>        <!-- Bottom Navigation -->
+        <ion-footer>
+            <ion-toolbar>
+                <div class="bottom-nav">
+                    <ion-button fill="clear" router-link="/artist/dashboard" class="nav-button">
+                        <ion-icon :icon="homeIcon" slot="top"></ion-icon>
+                        <ion-label>Dashboard</ion-label>
+                    </ion-button>
+                    <ion-button fill="clear" router-link="/artist/submissions" class="nav-button">
+                        <ion-icon :icon="documentTextIcon" slot="top"></ion-icon>
+                        <ion-label>Submissions</ion-label>
+                    </ion-button>
+                    <ion-button fill="clear" class="nav-button active">
+                        <ion-icon :icon="musicalNotesIcon" slot="top"></ion-icon>
+                        <ion-label>Songs</ion-label>
+                    </ion-button>
+                    <ion-button fill="clear" router-link="/artist/profile" class="nav-button">
+                        <ion-icon :icon="personIcon" slot="top"></ion-icon>
+                        <ion-label>Profile</ion-label>
+                    </ion-button>
+                </div>
+            </ion-toolbar>
+        </ion-footer>
     </ion-page>
 </template>
 
@@ -154,9 +154,6 @@ import {
     IonCard,
     IonThumbnail,
     IonSpinner,
-    IonTabs,
-    IonTabBar,
-    IonTabButton,
     IonLabel,
     IonSegment,
     IonSegmentButton,
@@ -208,9 +205,6 @@ export default defineComponent({
         IonCard,
         IonThumbnail,
         IonSpinner,
-        IonTabs,
-        IonTabBar,
-        IonTabButton,
         IonLabel,
         IonSegment,
         IonSegmentButton
