@@ -133,9 +133,8 @@ import {
     IonIcon, IonSpinner, IonToggle, alertController, toastController
 } from '@ionic/vue';
 import {
-    musicalNotes, person, lockClosed, list,
-    cloudDownloadOutline, linkOutline, closeCircleOutline, 
-    refreshOutline, checkmarkCircle, warning, informationCircle
+    musicalNotes, person, lockClosed,
+    refreshOutline
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
@@ -465,6 +464,8 @@ export default defineComponent({
 }
 
 .permission-content h3 {
+    text-align: left;
+    align-items: left;
     margin: 0 0 0.5rem;
     font-size: 1rem;
     font-weight: 600;
