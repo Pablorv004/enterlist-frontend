@@ -21,11 +21,6 @@
                             <ion-icon :icon="cloudDownloadIcon" slot="start"></ion-icon>
                             Import Songs
                         </ion-button>
-
-                        <ion-button @click="addSongModal" color="primary" class="add-btn">
-                            <ion-icon :icon="addIcon" slot="start"></ion-icon>
-                            Add Manually
-                        </ion-button>
                     </div>
                 </div><!-- Content -->
                 <div v-if="loading" class="loading-container">
@@ -42,9 +37,6 @@
                     <template #actions>
                         <ion-button @click="importSongsModal" fill="outline">
                             Import Songs
-                        </ion-button>
-                        <ion-button @click="addSongModal">
-                            Add Manually
                         </ion-button>
                     </template>
                 </empty-state-display>
@@ -296,14 +288,6 @@ export default defineComponent({
                         },
                     },
                     {
-                        text: 'Edit Song',
-                        icon: editIcon,
-                        handler: () => {
-                            // Open edit modal
-                            editSong(song);
-                        },
-                    },
-                    {
                         text: song.is_visible ? 'Hide Song' : 'Show Song',
                         icon: song.is_visible ? eyeOffIcon : eyeIcon,
                         handler: () => {
@@ -314,7 +298,6 @@ export default defineComponent({
                         text: 'Open in Platform',
                         icon: openExternalIcon,
                         handler: () => {
-                            // Open song in its platform
                             if (song.url) {
                                 window.open(song.url, '_blank');
                             } else {
@@ -369,18 +352,6 @@ export default defineComponent({
             loadSongs();
         }
     };
-
-        // Open add song modal
-        const addSongModal = async () => {
-            // This would open a modal to add a song manually
-            showToast('Add song manually feature coming soon!');
-        };
-
-        // Edit song
-        const editSong = async (song: Song) => {
-            // This would open a modal to edit a song
-            showToast('Edit song feature coming soon!');
-        };
 
         // Toggle song visibility
         const toggleSongVisibility = async (song: Song) => {
@@ -473,7 +444,6 @@ export default defineComponent({
             showSongDetails,
             showOptions,
             importSongsModal,
-            addSongModal,
             prevPage,
             nextPage,
             // Icons
