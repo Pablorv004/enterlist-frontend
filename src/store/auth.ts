@@ -9,33 +9,44 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
-    // Initialize from storage (mobile-aware)
+  // Initialize from storage (mobile-aware)
   const initializeFromStorage = async () => {
-    if (Capacitor.isNativePlatform()) {
-      // Use Capacitor Preferences for mobile
-      const { Preferences } = await import('@capacitor/preferences');
-      
-      const { value: tokenValue } = await Preferences.get({ key: 'enterlist_token' });
-      const { value: userValue } = await Preferences.get({ key: 'enterlist_user' });
-      
-      if (tokenValue) {
-        token.value = tokenValue;
-      }
-      if (userValue) {
-        user.value = JSON.parse(userValue);
-      }
-    } else {
-      // Web platform - use localStorage only
-      const storedUser = localStorage.getItem('enterlist_user');
-      const storedToken = localStorage.getItem('enterlist_token');
+    loading.value = true;
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use Capacitor Preferences for mobile
+        const { Preferences } = await import('@capacitor/preferences');
+        
+        const { value: tokenValue } = await Preferences.get({ key: 'enterlist_token' });
+        const { value: userValue } = await Preferences.get({ key: 'enterlist_user' });
+        
+        if (tokenValue) {
+          token.value = tokenValue;
+        }
+        if (userValue) {
+          user.value = JSON.parse(userValue);
+        }
+      } else {
+        // Web platform - use localStorage only
+        const storedUser = localStorage.getItem('enterlist_user');
+        const storedToken = localStorage.getItem('enterlist_token');
 
-      if (storedUser) {
-        user.value = JSON.parse(storedUser);
-      }
+        if (storedUser) {
+          user.value = JSON.parse(storedUser);
+        }
 
-      if (storedToken) {
-        token.value = storedToken;
+        if (storedToken) {
+          token.value = storedToken;
+        }
       }
+        // If we have a token but user data is incomplete, fetch user profile
+      if (token.value && (!user.value || !user.value.user_id)) {
+        await checkAuth();
+      }
+    } catch (err) {
+      console.error('Error initializing from storage:', err);
+    } finally {
+      loading.value = false;
     }
   };
   // Computed properties
@@ -133,19 +144,29 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       localStorage.setItem('enterlist_user', JSON.stringify(userData));
     }
-  };
-  const checkAuth = async (): Promise<void> => {
-    if (!token.value) return;
+  };  const checkAuth = async (): Promise<boolean> => {
+    if (!token.value) return false;
 
     loading.value = true;
     
     try {
       const userData = await AuthService.getProfile();
+      
+      // Make sure we have a valid user with a user_id
+      if (!userData || !userData.user_id) {
+        console.error('Invalid user data received from API');
+        await logout();
+        return false;
+      }
+      
       user.value = userData;
       await storeUserData(userData);
+      return true;
     } catch (err) {
+      console.error('Auth check failed:', err);
       // If token is invalid, logout
       await logout();
+      return false;
     } finally {
       loading.value = false;
     }

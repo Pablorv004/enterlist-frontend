@@ -41,10 +41,24 @@ export const cancelRequests = (key: string) => {
 // Request interceptor to add bearer token to requests
 apiClient.interceptors.request.use(
   (config) => {
+    // Get token from localStorage
     const token = localStorage.getItem('enterlist_token');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      
+      // If the URL contains 'undefined' as a user ID parameter, cancel the request
+      // This prevents requests with invalid IDs that would cause UUID errors
+      const url = config.url || '';
+      if (url.includes('/undefined') || url.includes('=undefined')) {
+        // Create an abort controller and cancel the request
+        const controller = new AbortController();
+        config.signal = controller.signal;
+        controller.abort('Prevented request with undefined ID');
+        console.warn('Prevented API request with undefined ID:', url);
+      }
     }
+    
     return config;
   },
   (error) => {
@@ -60,6 +74,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Don't handle aborted requests as errors
     if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+      console.warn('Request was cancelled:', error.message);
       return Promise.reject(error);
     }
     
@@ -67,7 +82,11 @@ apiClient.interceptors.response.use(
       // Token expired or invalid, redirect to login
       localStorage.removeItem('enterlist_token');
       localStorage.removeItem('enterlist_user');
-      window.location.href = '/login';
+      
+      // Only redirect if we're not already on the login page
+      if (!window.location.href.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

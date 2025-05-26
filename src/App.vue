@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted } from 'vue';
 import { useAuthStore } from '@/store';
 
 export default defineComponent({
@@ -18,11 +18,13 @@ export default defineComponent({
     setup() {
         const authStore = useAuthStore();
 
-        // Initialize auth from local storage
-        authStore.initializeFromStorage();
-
-        // Check authentication status
-        authStore.checkAuth();
+        // Use onMounted to ensure initialization happens after component mount
+        onMounted(async () => {
+            // Initialize auth from local storage and wait for it to complete
+            await authStore.initializeFromStorage();
+            
+            // No need to call checkAuth separately as it's now handled inside initializeFromStorage
+        });
 
         return {};
     }
