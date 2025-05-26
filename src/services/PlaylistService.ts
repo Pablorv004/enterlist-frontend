@@ -75,18 +75,6 @@ export const PlaylistService = {
     return response.data;
   },
   
-  // Method to import playlists from connected platform
-  importPlaylists: async (platformId: number): Promise<Playlist[]> => {
-    try {
-      const response = await apiClient.post('/playlists/import', { platformId });
-      return response.data;
-    } catch (error: any) {
-      if (error.response && error.response.status === 404) {
-        return []; // Return empty array for import if no playlists found
-      }
-      throw error;
-    }
-  },
   
   // Method to update submission fee for a playlist
   updateSubmissionFee: async (id: string, submissionFee: number): Promise<Playlist> => {

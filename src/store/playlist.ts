@@ -150,26 +150,6 @@ export const usePlaylistStore = defineStore('playlist', () => {
       loading.value = false;
     }
   };
-  const importPlaylists = async (platformId: number): Promise<Playlist[]> => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const importedPlaylists = await PlaylistService.importPlaylists(platformId);
-      // Add to existing playlists if not already there
-      importedPlaylists.forEach(playlist => {
-        if (!playlists.value.some(p => p.playlist_id === playlist.playlist_id)) {
-          playlists.value.push(playlist);
-        }
-      });
-      return importedPlaylists;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to import playlists';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
   
   const updateSubmissionFee = async (id: string, submissionFee: number): Promise<Playlist> => {
     loading.value = true;
@@ -226,7 +206,6 @@ export const usePlaylistStore = defineStore('playlist', () => {
     createPlaylist,
     updatePlaylist,
     deletePlaylist,
-    importPlaylists,
     updateSubmissionFee,
     getActivePlaylists
   };

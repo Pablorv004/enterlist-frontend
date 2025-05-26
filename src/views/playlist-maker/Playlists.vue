@@ -460,7 +460,7 @@ export default defineComponent({
         const confirmDeletePlaylist = async (playlist: Playlist) => {
             const alert = await alertController.create({
                 header: 'Confirm Delete',
-                message: `Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`,
+                message: `Are you sure you want to delete "${playlist.name}"? You may re-import it to restore it.`,
                 buttons: [
                     {
                         text: 'Cancel',
