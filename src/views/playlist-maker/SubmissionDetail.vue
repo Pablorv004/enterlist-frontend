@@ -322,14 +322,11 @@
                     </ion-item>
                 </ion-list>
             </ion-content>
-        </ion-modal>
-
-        <!-- Playlist Details Modal -->
+        </ion-modal>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
                 v-if="submission?.playlist"
                 :playlist="submission.playlist"
-                :playlist-stats="playlistStatsMap"
                 :show-edit-buttons="true"
                 @playlist-updated="onPlaylistUpdated"
                 @view-submissions="onViewSubmissions"
@@ -394,23 +391,7 @@ export default defineComponent({
 
         // Artist history
         const artistHistory = ref<Submission[]>([]);
-        const loadingHistory = ref(false);
-
-        // Playlist stats for modal
-        const playlistStatsMap = computed(() => {
-            if (!submission.value?.playlist) return {};
-            return {
-                [submission.value.playlist.playlist_id]: {
-                    submissions: 0,
-                    pending: 0,
-                    approved: 0,
-                    rejected: 0,
-                    earnings: 0
-                }
-            };
-        });
-
-        const fetchSubmission = async () => {
+        const loadingHistory = ref(false);        const fetchSubmission = async () => {
             try {
                 loading.value = true;
                 submission.value = await SubmissionService.getSubmission(submissionId.value);
@@ -684,14 +665,10 @@ export default defineComponent({
             // Form data
             approvalFeedback,
             rejectionFeedback,
-            editedFeedback,
-            showFeedbackError,
+            editedFeedback,            showFeedbackError,
             // Artist history
             artistHistory,
             loadingHistory,
-            // Playlist stats
-            playlistStatsMap,
-            // Action handlers
             openApproveModal,
             openRejectModal,
             openEditFeedbackModal,

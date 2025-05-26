@@ -153,14 +153,11 @@
                     </div>
                 </div>
             </div>
-        </ion-content>
-
-        <!-- Playlist Details Modal -->
+        </ion-content>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isModalOpen" @didDismiss="closeModal" class="playlist-details-modal">
             <playlist-details-modal 
                 v-if="selectedPlaylist"
                 :playlist="selectedPlaylist"
-                :playlist-stats="playlistStats"
                 @playlist-updated="handlePlaylistUpdated"
                 @view-submissions="handleViewSubmissions"
             />
@@ -405,9 +402,7 @@ export default defineComponent({
 
         const viewSubmissions = (playlist: Playlist) => {
             // Store the playlist ID to filter submissions
-            playlistStore.setSelectedPlaylistId(playlist.playlist_id);
-
-            // Navigate to submissions page
+            playlistStore.setSelectedPlaylistId(playlist.playlist_id);            // Navigate to submissions page
             router.push('/playlist-maker/submissions');
 
             // Close modal if open
@@ -416,6 +411,32 @@ export default defineComponent({
             }
         };
 
+        const importPlaylistsModal = async () => {
+            const modal = await modalController.create({
+                component: ImportPlaylistsModal,
+                componentProps: {
+                    userId: userId.value
+                }
+            });
+
+            await modal.present();
+
+            // Refresh playlists list if data was imported
+            const { data } = await modal.onDidDismiss();
+            if (data && data.dataRefreshed) {
+                fetchPlaylists();
+            }
+        };        const showToast = async (message: string, color: string = 'primary') => {
+            const toast = await toastController.create({
+                message,
+                duration: 3000,
+                color
+            });
+
+            await toast.present();
+        };
+
+        // Playlist stats getter methods
         const getSubmissionCount = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.submissions || 0;
         };
@@ -434,33 +455,6 @@ export default defineComponent({
 
         const getEarnings = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.earnings || 0;
-        };
-
-        const importPlaylistsModal = async () => {
-            const modal = await modalController.create({
-                component: ImportPlaylistsModal,
-                componentProps: {
-                    userId: userId.value
-                }
-            });
-
-            await modal.present();
-
-            // Refresh playlists list if data was imported
-            const { data } = await modal.onDidDismiss();
-            if (data && data.dataRefreshed) {
-                fetchPlaylists();
-            }
-        };
-
-        const showToast = async (message: string, color: string = 'primary') => {
-            const toast = await toastController.create({
-                message,
-                duration: 3000,
-                color
-            });
-
-            await toast.present();
         };
 
         return {

@@ -175,54 +175,62 @@
                         </div>
                     </div>
                 </ion-card-content>
-            </ion-card>
-
-            <ion-card>
+            </ion-card>            <!-- Submission Stats Section - Only shown for playlist makers -->
+            <ion-card v-if="showEditButtons">
                 <ion-card-header>
                     <ion-card-title>Submission Stats</ion-card-title>
                 </ion-card-header>
 
                 <ion-card-content>
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <div class="stat-box-value">
-                                {{ getSubmissionCount(playlist.playlist_id) }}
-                            </div>
-                            <div class="stat-box-label">Total Submissions</div>
-                        </div>
-
-                        <div class="stat-box">
-                            <div class="stat-box-value pending">
-                                {{ getPendingCount(playlist.playlist_id) }}
-                            </div>
-                            <div class="stat-box-label">Pending Review</div>
-                        </div>
-
-                        <div class="stat-box">
-                            <div class="stat-box-value approved">
-                                {{ getApprovedCount(playlist.playlist_id) }}
-                            </div>
-                            <div class="stat-box-label">Approved</div>
-                        </div>
-
-                        <div class="stat-box">
-                            <div class="stat-box-value rejected">
-                                {{ getRejectedCount(playlist.playlist_id) }}
-                            </div>
-                            <div class="stat-box-label">Rejected</div>
-                        </div>
+                    <!-- Loading State for Stats -->
+                    <div v-if="statsLoading" class="stats-loading">
+                        <ion-spinner name="crescent"></ion-spinner>
+                        <p>Loading stats...</p>
                     </div>
 
-                    <div class="earnings-info">
-                        <div class="earnings-label">Total Earnings</div>
-                        <div class="earnings-value">{{ formatCurrency(getEarnings(playlist.playlist_id)) }}</div>
-                    </div>
+                    <!-- Stats Content -->
+                    <div v-else>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-box-value">
+                                    {{ playlistStats?.submissions || 0 }}
+                                </div>
+                                <div class="stat-box-label">Total Submissions</div>
+                            </div>
 
-                    <div class="submissions-link" v-if="showEditButtons">
-                        <ion-button expand="block" @click="viewSubmissions(playlist)">
-                            <ion-icon :icon="mailUnreadIcon" slot="start"></ion-icon>
-                            View Submissions
-                        </ion-button>
+                            <div class="stat-box">
+                                <div class="stat-box-value pending">
+                                    {{ playlistStats?.pending || 0 }}
+                                </div>
+                                <div class="stat-box-label">Pending Review</div>
+                            </div>
+
+                            <div class="stat-box">
+                                <div class="stat-box-value approved">
+                                    {{ playlistStats?.approved || 0 }}
+                                </div>
+                                <div class="stat-box-label">Approved</div>
+                            </div>
+
+                            <div class="stat-box">
+                                <div class="stat-box-value rejected">
+                                    {{ playlistStats?.rejected || 0 }}
+                                </div>
+                                <div class="stat-box-label">Rejected</div>
+                            </div>
+                        </div>
+
+                        <div class="earnings-info">
+                            <div class="earnings-label">Total Earnings</div>
+                            <div class="earnings-value">{{ formatCurrency(playlistStats?.earnings || 0) }}</div>
+                        </div>
+
+                        <div class="submissions-link">
+                            <ion-button expand="block" @click="viewSubmissions(playlist)">
+                                <ion-icon :icon="mailUnreadIcon" slot="start"></ion-icon>
+                                View Submissions
+                            </ion-button>
+                        </div>
                     </div>
                 </ion-card-content>
             </ion-card>
@@ -329,6 +337,7 @@ import {
 } from 'ionicons/icons';
 import { Playlist, Track } from '@/types';
 import { PlaylistService } from '@/services/PlaylistService';
+import { SubmissionService } from '@/services/SubmissionService';
 import { usePlaylistStore } from '@/store';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
@@ -348,14 +357,9 @@ export default defineComponent({
         IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonThumbnail, IonItem, IonLabel, IonToggle, IonSpinner, IonModal,
         IonSelect, IonSelectOption, IonNote, IonInput
-    },
-    props: {
+    },    props: {
         playlist: {
             type: Object as () => Playlist,
-            required: true
-        },
-        playlistStats: {
-            type: Object as () => Record<string, PlaylistStats>,
             required: true
         },
         showEditButtons: {
@@ -363,8 +367,7 @@ export default defineComponent({
             default: true
         }
     },
-    emits: ['playlistUpdated', 'viewSubmissions'],
-    setup(props, { emit }) {
+    emits: ['playlistUpdated', 'viewSubmissions'],    setup(props, { emit }) {
         const router = useRouter();
         const playlistStore = usePlaylistStore();
 
@@ -372,6 +375,10 @@ export default defineComponent({
         const playlistTracks = ref<Track[]>([]);
         const tracksLoading = ref(false);
         const tracksError = ref<string | null>(null);
+
+        // Stats
+        const playlistStats = ref<PlaylistStats | null>(null);
+        const statsLoading = ref(false);
 
         // Fee Edit Modal
         const isFeeModalOpen = ref(false);
@@ -391,6 +398,10 @@ export default defineComponent({
         onMounted(() => {
             if (props.playlist?.playlist_id) {
                 fetchPlaylistTracks(props.playlist.playlist_id);
+                // Only fetch stats for playlist makers (when edit buttons are shown)
+                if (props.showEditButtons) {
+                    fetchPlaylistStats(props.playlist.playlist_id);
+                }
             }
         });
 
@@ -450,9 +461,7 @@ export default defineComponent({
 
         const hasTrackData = (): boolean => {
             return playlistTracks.value.length > 0;
-        };
-
-        const fetchPlaylistTracks = async (playlistId: string) => {
+        };        const fetchPlaylistTracks = async (playlistId: string) => {
             try {
                 tracksLoading.value = true;
                 tracksError.value = null;
@@ -465,6 +474,34 @@ export default defineComponent({
                 tracksError.value = 'Failed to load tracks. Please try again.';
             } finally {
                 tracksLoading.value = false;
+            }
+        };
+
+        const fetchPlaylistStats = async (playlistId: string) => {
+            try {
+                statsLoading.value = true;
+                
+                // We need to get the creator ID from the playlist to fetch stats
+                // For now, let's use the current user - this would need to be adjusted based on how the component is used
+                const response = await SubmissionService.getSubmissionStatsByCreator(props.playlist.creator_id);
+                playlistStats.value = response[playlistId] || {
+                    submissions: 0,
+                    pending: 0,
+                    approved: 0,
+                    rejected: 0,
+                    earnings: 0
+                };
+            } catch (error) {
+                console.error('Failed to fetch playlist stats:', error);
+                playlistStats.value = {
+                    submissions: 0,
+                    pending: 0,
+                    approved: 0,
+                    rejected: 0,
+                    earnings: 0
+                };
+            } finally {
+                statsLoading.value = false;
             }
         };
 
@@ -491,30 +528,8 @@ export default defineComponent({
 
                 showToast('Failed to update playlist visibility', 'danger');
             }
-        };
-
-        const viewSubmissions = (playlist: Playlist) => {
+        };        const viewSubmissions = (playlist: Playlist) => {
             emit('viewSubmissions', playlist);
-        };
-
-        const getSubmissionCount = (playlistId: string): number => {
-            return props.playlistStats[playlistId]?.submissions || 0;
-        };
-
-        const getPendingCount = (playlistId: string): number => {
-            return props.playlistStats[playlistId]?.pending || 0;
-        };
-
-        const getApprovedCount = (playlistId: string): number => {
-            return props.playlistStats[playlistId]?.approved || 0;
-        };
-
-        const getRejectedCount = (playlistId: string): number => {
-            return props.playlistStats[playlistId]?.rejected || 0;
-        };
-
-        const getEarnings = (playlistId: string): number => {
-            return props.playlistStats[playlistId]?.earnings || 0;
         };
 
         const showFeeEditModal = () => {
@@ -581,12 +596,12 @@ export default defineComponent({
             });
 
             await toast.present();
-        };
-
-        return {
+        };        return {
             playlistTracks,
             tracksLoading,
             tracksError,
+            playlistStats,
+            statsLoading,
             isFeeModalOpen,
             submissionFee,
             isGenreModalOpen,
@@ -603,11 +618,6 @@ export default defineComponent({
             fetchPlaylistTracks,
             updatePlaylistVisibility,
             viewSubmissions,
-            getSubmissionCount,
-            getPendingCount,
-            getApprovedCount,
-            getRejectedCount,
-            getEarnings,
             showFeeEditModal,
             closeFeeModal,
             updateFee,
@@ -791,6 +801,24 @@ export default defineComponent({
     border-radius: 8px;
     border: 1px solid var(--ion-color-light-shade);
     text-align: left;
+}
+
+/* Stats Loading */
+.stats-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stats-loading p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
 }
 
 .tracks-error-content, .tracks-empty-content {

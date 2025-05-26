@@ -146,14 +146,11 @@
                     </ion-button>
                 </div>
             </div>
-        </ion-content>
-
-        <!-- Playlist Details Modal -->
+        </ion-content>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
                 v-if="submission?.playlist"
                 :playlist="submission.playlist"
-                :playlist-stats="{}"
                 :show-edit-buttons="false"
             />
         </ion-modal>

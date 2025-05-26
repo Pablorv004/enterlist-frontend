@@ -348,79 +348,13 @@
                     </div>
                 </div>
             </div>
-        </ion-content>
-
-        <!-- Playlist Details Modal -->
+        </ion-content>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="showPlaylistModal" @didDismiss="showPlaylistModal = false">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Playlist Details</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="showPlaylistModal = false">Close</ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
-                <div v-if="selectedModalPlaylist" class="playlist-modal-content">
-                    <div class="playlist-modal-header">
-                        <ion-thumbnail class="playlist-modal-thumbnail">
-                            <img :src="selectedModalPlaylist.cover_image_url || '/assets/default-playlist-cover.png'"
-                                :alt="selectedModalPlaylist.name" />
-                        </ion-thumbnail>
-                        <div class="playlist-modal-info">                            <h2>{{ selectedModalPlaylist.name }}</h2>
-                            <p v-if="selectedModalPlaylist.genre">{{ formatGenre(selectedModalPlaylist.genre) }}</p>
-                            <ion-button v-if="selectedModalPlaylist.url" size="small" fill="clear" color="primary"
-                                :href="selectedModalPlaylist.url" target="_blank">
-                                <ion-icon :icon="openIcon" slot="start"></ion-icon>
-                                View on {{ selectedModalPlaylist.platform?.name }}
-                            </ion-button>
-                        </div>
-                    </div>
-
-                    <div class="playlist-modal-description" v-if="selectedModalPlaylist.description">
-                        <h3>Description</h3>
-                        <p>{{ selectedModalPlaylist.description }}</p>
-                    </div>
-
-                    <div class="playlist-modal-curator" v-if="selectedModalPlaylist.creator">
-                        <h3>Curator</h3>
-                        <p><strong>{{ selectedModalPlaylist.creator.username }}</strong></p>
-                    </div>
-
-                    <div class="playlist-modal-stats">
-                        <h3>Submission Details</h3>
-                        <div class="stat-item">
-                            <ion-icon :icon="timerIcon" class="stat-icon"></ion-icon>
-                            <div class="stat-info">
-                                <p class="stat-label">Average Response Time</p>
-                                <p class="stat-value">{{ getResponseTime(selectedModalPlaylist) }}</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <ion-icon :icon="peopleIcon" class="stat-icon"></ion-icon>
-                            <div class="stat-info">
-                                <p class="stat-label">Acceptance Rate</p>
-                                <p class="stat-value">{{ getAcceptanceRate(selectedModalPlaylist) }}</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <ion-icon :icon="cashIcon" class="stat-icon"></ion-icon>
-                            <div class="stat-info">
-                                <p class="stat-label">Submission Fee</p>
-                                <p class="stat-value">${{ (selectedModalPlaylist.submission_fee! / 100).toFixed(2) }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="playlist-modal-actions">
-                        <ion-button color="primary" @click="selectPlaylistFromModal(selectedModalPlaylist.playlist_id)">
-                            Select This Playlist
-                        </ion-button>
-                    </div>
-                </div>
-            </ion-content>
+            <playlist-details-modal
+                v-if="selectedModalPlaylist"
+                :playlist="selectedModalPlaylist"
+                :show-edit-buttons="false"
+            />
         </ion-modal>
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="submissions"></bottom-navigation>
@@ -447,18 +381,18 @@ import { SongService } from '@/services/SongService';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import BottomNavigation from '@/components/BottomNavigation.vue';
+import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { Song, Playlist, PaymentMethod, Submission } from '@/types';
 import { useAuthStore } from '@/store';
 
 export default defineComponent({
-    name: 'ArtistNewSubmission',
-    components: {
+    name: 'ArtistNewSubmission',    components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard, IonCardHeader,
         IonCardTitle, IonCardSubtitle, IonCardContent, IonSearchbar, IonList, IonItem,
         IonThumbnail, IonLabel, IonBadge, IonRadio, IonRadioGroup, IonSelect, IonSelectOption,
         IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
-        AppHeader, BottomNavigation
+        AppHeader, BottomNavigation, PlaylistDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -808,18 +742,7 @@ export default defineComponent({
                 const details = JSON.parse(method.details);
                 return `${details.brand} • Expires ${details.exp_month}/${details.exp_year}`;
             }
-            return '';
-        };
-
-        const getResponseTime = (playlist: Playlist): string => {
-            // This would normally come from the API
-            return '3-5 days';
-        };
-
-        const getAcceptanceRate = (playlist: Playlist): string => {
-            // This would normally come from the API
-            return '65%';
-        };
+            return '';        };
 
         // Toast and alerts
         const showToast = async (message: string, color: string) => {
@@ -893,14 +816,10 @@ export default defineComponent({
             calculatePlatformFee,
             calculateTotal,            submitSong,
             goToNextStep,
-            goToPreviousStep,
-
-            // Formatting helpers
+            goToPreviousStep,            // Formatting helpers
             formatGenre,
             formatPaymentMethod,
             formatPaymentDetails,
-            getResponseTime,
-            getAcceptanceRate,
 
             // Icons
             checkmarkIcon: checkmark,
