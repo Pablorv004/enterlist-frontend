@@ -195,10 +195,8 @@
                                     </div>
 
                                     <ion-card-content>
-                                        <h3 class="playlist-name">{{ playlist.name }}</h3>                                        <p class="playlist-details">
-                                            <span v-if="playlist.platform?.name?.toLowerCase() === 'youtube'" class="playlist-creator">
-                                                by {{ playlist.creator?.username || 'Unknown Creator' }}
-                                            </span>
+                                        <h3 class="playlist-name">{{ playlist.name }}</h3>                                        
+                                        <p class="playlist-details">
                                             <span v-if="playlist.genre" class="playlist-genre">
                                                 • {{ playlist.genre }}
                                             </span>
@@ -935,10 +933,19 @@ export default defineComponent({
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: center;
+}
+
+.playlist-genre {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
 }
 
 .playlist-submissions {
     margin-top: auto;
+    display: flex;
+    justify-content: center;
 }
 
 /* Earnings Section */

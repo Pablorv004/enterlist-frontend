@@ -17,8 +17,10 @@
                 </ion-button>
             </div>
 
-            <div v-else class="submission-detail-container">                <!-- Status Banner -->
+            <div v-else class="submission-detail-container">
+                <!-- Status Banner -->
                 <div :class="['status-banner', getStatusClass(submission.status)]">
+                    <ion-icon :icon="getStatusIcon(submission.status)" class="status-icon"></ion-icon>
                     <div class="status-info">
                         <h3>{{ formatStatus(submission.status) }}</h3>
                         <p v-if="submission.status === 'pending'">This submission is waiting for your review</p>
@@ -48,7 +50,8 @@
 
                 <!-- Song & Artist Info -->
                 <ion-card class="main-info-card">
-                    <ion-card-content>                        <div class="song-artist-container">
+                    <ion-card-content>
+                        <div class="song-artist-container">
                             <!-- Song Info -->
                             <div class="song-info">
                                 <h3>Song Details</h3>
@@ -60,13 +63,11 @@
                                     <div class="song-text">
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
-                                        <div class="song-actions">
-                                            <ion-button size="small" fill="clear" color="primary"
-                                                :href="submission.song?.url" target="_blank">
-                                                <ion-icon :icon="playIcon" slot="start"></ion-icon>
-                                                Listen on {{ submission.song?.platform?.name }}
-                                            </ion-button>
-                                        </div>
+                                        <ion-button size="small" fill="clear" color="primary"
+                                            :href="submission.song?.url" target="_blank">
+                                            <ion-icon :icon="playIcon" slot="start"></ion-icon>
+                                            Listen on {{ submission.song?.platform?.name }}
+                                        </ion-button>
                                     </div>
                                 </div>
                             </div>
@@ -78,13 +79,11 @@
                                     <div class="artist-text">
                                         <h4>{{ submission.artist?.username }}</h4>
                                         <p v-if="submission.artist?.email">{{ submission.artist?.email }}</p>
-                                        <div class="artist-actions">
-                                            <ion-button v-if="submission.artist?.user_id" size="small" fill="clear"
-                                                color="tertiary" @click="showArtistHistory">
-                                                <ion-icon :icon="personIcon" slot="start"></ion-icon>
-                                                View Artist History
-                                            </ion-button>
-                                        </div>
+                                        <ion-button v-if="submission.artist?.user_id" size="small" fill="clear"
+                                            color="tertiary" @click="showArtistHistory">
+                                            <ion-icon :icon="personIcon" slot="start"></ion-icon>
+                                            View Artist History
+                                        </ion-button>
                                     </div>
                                 </div>
                             </div>
