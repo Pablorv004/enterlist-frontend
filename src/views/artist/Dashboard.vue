@@ -212,44 +212,16 @@
                         </ion-row>
                     </ion-grid>
                 </div>
-
-                <!-- Help Card -->
-                <ion-card class="help-card">
-                    <ion-card-content>
-                        <div class="help-content">
-                            <div class="help-icon-container">
-                                <ion-icon :icon="helpCircleIcon" class="help-icon"></ion-icon>
-                            </div>
-                            <div class="help-text">
-                                <h3>Need Help?</h3>
-                                <p>Learn how to maximize your chances of playlist placement</p>
-                            </div>
-                            <ion-button fill="outline" class="help-button">
-                                Read Guide
-                            </ion-button>
-                        </div>
-                    </ion-card-content>
-                </ion-card>
             </div>
         </ion-content>
         
         <!-- Song Details Modal -->
         <ion-modal :is-open="isSongModalOpen" @didDismiss="closeSongModal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Song Details</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeSongModal">Close</ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
                 <song-details-modal
                     v-if="selectedModalSong"
                     :song="selectedModalSong"
                     :show-edit-buttons="false"
                 />
-            </ion-content>
         </ion-modal>
         
         <!-- Bottom Navigation -->
