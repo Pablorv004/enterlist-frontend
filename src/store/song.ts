@@ -152,28 +152,7 @@ export const useSongStore = defineStore('song', () => {
       throw err;
     } finally {
       loading.value = false;
-    }
-  };
-  const importSongs = async (platformId: number): Promise<Song[]> => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const importedSongs = await SongService.importSongs(platformId);
-      // Add to existing songs if not already there
-      importedSongs.forEach(song => {
-        if (!songs.value.some(s => s.song_id === song.song_id)) {
-          songs.value.push(song);
-        }
-      });
-      return importedSongs;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to import songs';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
+    }  };
 
   const cancelAllRequests = () => {
     cancelRequests('fetchSongs');
@@ -192,7 +171,6 @@ export const useSongStore = defineStore('song', () => {
     createSong,
     updateSong,
     deleteSong,
-    importSongs,
     cancelAllRequests
   };
 });

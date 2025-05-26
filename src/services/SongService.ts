@@ -90,18 +90,5 @@ export const SongService = {
     return response.data;
   },
   deleteSong: async (id: string): Promise<void> => {
-    await apiClient.put(`/songs/${id}`, { deleted: true });
-  },
-  // Method to import songs from connected platform
-  importSongs: async (platformId: number): Promise<Song[]> => {
-    try {
-      const response = await apiClient.post('/songs/import', { platformId });
-      return response.data;
-    } catch (error: any) {
-      if (error.response && error.response.status === 404) {
-        return []; // Return empty array for import if no songs found
-      }
-      throw error;
-    }
-  }
+    await apiClient.put(`/songs/${id}`, { deleted: true });  }
 };
