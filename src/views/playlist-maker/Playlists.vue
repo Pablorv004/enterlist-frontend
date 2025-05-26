@@ -150,228 +150,13 @@
 
         <!-- Playlist Details Modal -->
         <ion-modal :is-open="isModalOpen" @didDismiss="closeModal" class="playlist-details-modal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Playlist Details</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeModal">
-                            <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <div v-if="selectedPlaylist" class="playlist-details-content">
-                    <div class="playlist-header">
-                        <ion-thumbnail class="playlist-thumbnail">
-                            <img :src="selectedPlaylist.cover_image_url || '/assets/default-playlist-cover.png'"
-                                :alt="selectedPlaylist.name" />
-                        </ion-thumbnail>
-
-                        <div class="playlist-title-info">
-                            <h1>{{ selectedPlaylist.name }}</h1>
-                            <div class="platform-badge">
-                                <img :src="getPlatformIcon(selectedPlaylist.platform?.name)"
-                                    :alt="selectedPlaylist.platform?.name" class="platform-icon-small" />
-                                <span>{{ selectedPlaylist.platform?.name }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <ion-item lines="none" class="playlist-visibility-toggle">
-                        <ion-label>Active for Submissions</ion-label>
-                        <ion-toggle v-model="selectedPlaylist.is_visible"
-                            @ionChange="updatePlaylistVisibility"></ion-toggle>
-                    </ion-item>
-
-                    <ion-card>
-                        <ion-card-header>
-                            <ion-card-title>Playlist Information</ion-card-title>
-                        </ion-card-header>                        <ion-card-content>
-                                <div class="detail-row">
-                                <div class="detail-label">Genre</div>
-                                <div class="detail-value genre-edit">
-                                    <span>{{ selectedPlaylist.genre || 'Not specified' }}</span>
-                                    <ion-button fill="clear" size="small" @click="showGenreEditModal">
-                                        <ion-icon :icon="pencilIcon" slot="icon-only"></ion-icon>
-                                    </ion-button>
-                                </div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Description</div>
-                                <div class="detail-value description">{{ selectedPlaylist.description || 'No description' }}</div>
-                            </div>                            <div class="detail-row">
-                                <div class="detail-label">Submission Fee</div>
-                                <div class="detail-value fee-edit">
-                                    <span>{{ selectedPlaylist.submission_fee ? formatCurrency(selectedPlaylist.submission_fee) : 'Free' }}</span>
-                                    <ion-button fill="clear" size="small" @click="showFeeEditModal">
-                                        <ion-icon :icon="pencilIcon" slot="icon-only"></ion-icon>
-                                    </ion-button>
-                                </div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Imported</div>
-                                <div class="detail-value">{{ formatDate(selectedPlaylist.created_at) }}</div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Last Updated</div>
-                                <div class="detail-value">{{ formatDate(selectedPlaylist.updated_at) }}</div>
-                            </div>
-
-                            <div class="playlist-ext-link">
-                                <ion-button fill="outline" :href="selectedPlaylist.url" target="_blank">
-                                    <ion-icon :icon="openIcon" slot="start"></ion-icon>
-                                    Open in {{ selectedPlaylist.platform?.name }}
-                                </ion-button>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>                    <!-- Playlist Tracks Section -->
-                    <ion-card>
-                        <ion-card-header>
-                            <ion-card-title>Playlist Tracks ({{ getTrackCount() }})</ion-card-title>
-                        </ion-card-header>                        <ion-card-content>
-                            <!-- Loading State -->
-                            <div v-if="tracksLoading" class="tracks-loading">
-                                <ion-spinner name="crescent"></ion-spinner>
-                                <p>Loading tracks...</p>
-                            </div>
-
-                            <!-- Error State -->
-                            <div v-else-if="tracksError" class="tracks-error">
-                                <ion-icon :icon="musicalNotesIcon" size="large"></ion-icon>
-                                <div class="tracks-error-content">
-                                    <h4>Failed to Load Tracks</h4>
-                                    <p>{{ tracksError }}</p>
-                                    <ion-button 
-                                        fill="outline" 
-                                        size="small"
-                                        @click="fetchPlaylistTracks(selectedPlaylist.playlist_id)"
-                                    >
-                                        Try Again
-                                    </ion-button>
-                                </div>
-                            </div>
-
-                            <!-- Empty State -->
-                            <div v-else-if="!hasTrackData()" class="tracks-empty">
-                                <ion-icon :icon="musicalNotesIcon" size="large"></ion-icon>
-                                <div class="tracks-empty-content">
-                                    <h4>No Tracks Found</h4>
-                                    <p>
-                                        This playlist appears to be empty or tracks could not be loaded.
-                                        You can view the playlist directly on {{ selectedPlaylist.platform?.name }}.
-                                    </p>
-                                    <ion-button 
-                                        fill="outline" 
-                                        size="small"
-                                        :href="selectedPlaylist.url" 
-                                        target="_blank"
-                                    >
-                                        <ion-icon :icon="openIcon" slot="start"></ion-icon>
-                                        View on {{ selectedPlaylist.platform?.name }}
-                                    </ion-button>
-                                </div>
-                            </div>
-
-                            <!-- Tracks List -->
-                            <div v-else class="tracks-list">
-                                <div 
-                                    v-for="(track, index) in playlistTracks" 
-                                    :key="track.track_id || index"
-                                    class="track-item"
-                                >
-                                    <div class="track-thumbnail">
-                                        <img 
-                                            v-if="track.thumbnail_url" 
-                                            :src="track.thumbnail_url" 
-                                            :alt="track.title"
-                                            @error="onImageError"
-                                        />
-                                        <ion-icon v-else :icon="musicalNotesIcon" class="track-placeholder"></ion-icon>
-                                    </div>
-                                    
-                                    <div class="track-info">
-                                        <div class="track-title">{{ track.title }}</div>
-                                        <div class="track-artist">{{ track.artist }}</div>
-                                        <div v-if="track.album" class="track-album">{{ track.album }}</div>
-                                    </div>
-                                    
-                                    <div class="track-actions">
-                                        <div v-if="track.duration_ms" class="track-duration">
-                                            {{ formatDuration(track.duration_ms) }}
-                                        </div>
-                                        
-                                        <ion-button 
-                                            v-if="track.url" 
-                                            fill="clear" 
-                                            size="small"
-                                            :href="track.url" 
-                                            target="_blank"
-                                        >
-                                            <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
-                                        </ion-button>
-                                    </div>
-                                </div>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
-
-                    <ion-card>
-                        <ion-card-header>
-                            <ion-card-title>Submission Stats</ion-card-title>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                            <div class="stats-grid">
-                                <div class="stat-box">
-                                    <div class="stat-box-value">
-                                        {{ getSubmissionCount(selectedPlaylist.playlist_id) }}
-                                    </div>
-                                    <div class="stat-box-label">Total Submissions</div>
-                                </div>
-
-                                <div class="stat-box">
-                                    <div class="stat-box-value pending">
-                                        {{ getPendingCount(selectedPlaylist.playlist_id) }}
-                                    </div>
-                                    <div class="stat-box-label">Pending Review</div>
-                                </div>
-
-                                <div class="stat-box">
-                                    <div class="stat-box-value approved">
-                                        {{ getApprovedCount(selectedPlaylist.playlist_id) }}
-                                    </div>
-                                    <div class="stat-box-label">Approved</div>
-                                </div>
-
-                                <div class="stat-box">
-                                    <div class="stat-box-value rejected">
-                                        {{ getRejectedCount(selectedPlaylist.playlist_id) }}
-                                    </div>
-                                    <div class="stat-box-label">Rejected</div>
-                                </div>
-                            </div>
-
-                            <div class="earnings-info">
-                                <div class="earnings-label">Total Earnings</div>
-                                <div class="earnings-value">{{ formatCurrency(getEarnings(selectedPlaylist.playlist_id))
-                                    }}</div>
-                            </div>
-
-                            <div class="submissions-link">
-                                <ion-button expand="block" @click="viewSubmissions(selectedPlaylist)">
-                                    <ion-icon :icon="mailUnreadIcon" slot="start"></ion-icon>
-                                    View Submissions
-                                </ion-button>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
-                </div>
-            </ion-content>
+            <playlist-details-modal 
+                v-if="selectedPlaylist"
+                :playlist="selectedPlaylist"
+                :playlist-stats="playlistStats"
+                @playlist-updated="handlePlaylistUpdated"
+                @view-submissions="handleViewSubmissions"
+            />
         </ion-modal>
 
         <!-- Import Playlists Modal -->
@@ -456,84 +241,6 @@
             </ion-content>
         </ion-modal>
 
-        <!-- Submission Fee Edit Modal -->
-        <ion-modal :is-open="isFeeModalOpen" @didDismiss="closeFeeModal" class="fee-edit-modal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Edit Submission Fee</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeFeeModal">
-                            <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <div class="fee-edit-content">
-                    <p>Set a submission fee for artists who want to submit their music to this playlist.</p>
-                    
-                    <ion-item class="fee-input">
-                        <ion-label position="stacked">Submission Fee (USD)</ion-label>
-                        <ion-input 
-                            type="number" 
-                            v-model="submissionFee" 
-                            min="0" 
-                            max="100"
-                            placeholder="Enter amount (0 for free submissions)"
-                        ></ion-input>
-                    </ion-item>
-
-                    <ion-note>Fee will be charged to artists when submitting to this playlist. You'll receive 85% of the fee after platform charges.</ion-note>
-
-                    <div class="fee-actions">
-                        <ion-button expand="block" @click="updateFee">Save Fee</ion-button>
-                    </div>                </div>
-            </ion-content>
-        </ion-modal>
-
-        <!-- Genre Edit Modal -->
-        <ion-modal :is-open="isGenreModalOpen" @didDismiss="closeGenreModal" class="genre-edit-modal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Edit Genre</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeGenreModal">
-                            <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <div class="genre-edit-content">
-                    <p>Select a genre that best describes this playlist's music style.</p>
-                    
-                    <ion-item class="genre-select">
-                        <ion-label position="stacked">Genre</ion-label>
-                        <ion-select 
-                            v-model="selectedGenre" 
-                            placeholder="Select a genre"
-                            interface="popover"
-                        >
-                            <ion-select-option 
-                                v-for="genre in genreOptions" 
-                                :key="genre" 
-                                :value="genre"
-                            >
-                                {{ genre }}
-                            </ion-select-option>
-                        </ion-select>
-                    </ion-item>
-
-                    <ion-note>Choose the genre that best represents the majority of tracks in this playlist.</ion-note>
-
-                    <div class="genre-actions">
-                        <ion-button expand="block" @click="updateGenre">Save Genre</ion-button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-modal>
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="content"></bottom-navigation>
     </ion-page>
@@ -550,6 +257,7 @@ import {
     IonList, IonSelect, IonSelectOption, IonNote, IonInput, toastController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
+import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
@@ -585,12 +293,14 @@ interface ImportablePlaylist {
 }
 
 export default defineComponent({
-    name: 'PlaylistMakerPlaylists',    components: {
+    name: 'PlaylistMakerPlaylists',
+    components: {
         IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
         IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
         IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-        IonList, IonSelect, IonSelectOption, IonNote, IonInput, AppHeader, EmptyStateDisplay, BottomNavigation
+        IonList, IonSelect, IonSelectOption, IonNote, IonInput, AppHeader, EmptyStateDisplay, BottomNavigation,
+        PlaylistDetailsModal
     },
     setup() {
         const router = useRouter();
@@ -609,14 +319,11 @@ export default defineComponent({
             currentPage, totalPages,
             itemsPerPage, changePage, prevPage, nextPage
         } = usePagination();
-        const totalItems = ref(0);        // Modal
+        const totalItems = ref(0);
+        
+        // Modal
         const isModalOpen = ref(false);
         const selectedPlaylist = ref<Playlist | null>(null);
-
-        // Tracks
-        const playlistTracks = ref<Track[]>([]);
-        const tracksLoading = ref(false);
-        const tracksError = ref<string | null>(null);
 
         // Import Modal
         const isImportModalOpen = ref(false);
@@ -624,20 +331,7 @@ export default defineComponent({
         const selectedPlatform = ref<number | null>(null);
         const availablePlaylists = ref<ImportablePlaylist[]>([]);
         const importingPlaylists = ref(false);
-        const importingSelected = ref(false);        // Fee Edit Modal
-        const isFeeModalOpen = ref(false);
-        const submissionFee = ref(0);
-
-        // Genre Edit Modal
-        const isGenreModalOpen = ref(false);
-        const selectedGenre = ref('');
-        const genreOptions = [
-            'Pop', 'Rock', 'Hip Hop', 'R&B', 'Electronic', 'Jazz', 'Blues',
-            'Country', 'Folk', 'Classical', 'Reggae', 'Punk', 'Metal',
-            'Alternative', 'Indie', 'Funk', 'Soul', 'Gospel', 'World Music',
-            'Latin', 'Reggaeton', 'Trap', 'House', 'Techno', 'Dubstep',
-            'Ambient', 'Lo-fi', 'Acoustic', 'Singer-Songwriter', 'Other'
-        ];
+        const importingSelected = ref(false);
 
         onMounted(async () => {
             if (userId.value) {
@@ -822,51 +516,37 @@ export default defineComponent({
         const onImageError = (event: Event) => {
             const img = event.target as HTMLImageElement;
             img.style.display = 'none';
-        };        const formatDuration = (duration?: number): string => {
-            if (!duration) return '';
-            
-            // Handle both milliseconds and seconds
-            const totalSeconds = duration > 10000 ? Math.floor(duration / 1000) : duration;
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        };        const getTrackCount = (): number => {
-            return playlistTracks.value.length;
-        };
-
-        const hasTrackData = (): boolean => {
-            return playlistTracks.value.length > 0;
-        };
-
-        const fetchPlaylistTracks = async (playlistId: string) => {
-            try {
-                tracksLoading.value = true;
-                tracksError.value = null;
-                playlistTracks.value = [];
-
-                const response = await PlaylistService.getPlaylistTracks(playlistId);
-                playlistTracks.value = response.tracks;
-            } catch (error) {
-                console.error('Failed to fetch playlist tracks:', error);
-                tracksError.value = 'Failed to load tracks. Please try again.';
-            } finally {
-                tracksLoading.value = false;
-            }
         };        const showPlaylistDetails = async (playlist: Playlist) => {
             selectedPlaylist.value = { ...playlist };
             isModalOpen.value = true;
-            
-            // Fetch tracks for the selected playlist
-            if (playlist.playlist_id) {
-                await fetchPlaylistTracks(playlist.playlist_id);
-            }
         };        const closeModal = () => {
             isModalOpen.value = false;
             selectedPlaylist.value = null;
-            playlistTracks.value = [];
-            tracksError.value = null;
-        };        const toggleVisibility = async (playlist: Playlist) => {
+        };
+
+        const handlePlaylistUpdated = (updatedPlaylist: Playlist) => {
+            // Update in local playlists array
+            const index = playlists.value.findIndex(p => p.playlist_id === updatedPlaylist.playlist_id);
+            if (index !== -1) {
+                playlists.value[index] = updatedPlaylist;
+            }
+            
+            // Update selected playlist
+            selectedPlaylist.value = updatedPlaylist;
+        };
+
+        const handleViewSubmissions = (playlist: Playlist) => {
+            // Store the playlist ID to filter submissions
+            playlistStore.setSelectedPlaylistId(playlist.playlist_id);
+
+            // Navigate to submissions page
+            router.push('/playlist-maker/submissions');
+
+            // Close modal
+            closeModal();
+        };
+
+        const toggleVisibility = async (playlist: Playlist) => {
             try {
                 const updatedPlaylist = await PlaylistService.updatePlaylist(
                     playlist.playlist_id,
@@ -886,36 +566,7 @@ export default defineComponent({
             } catch (error) {
                 showToast('Failed to update playlist visibility', 'danger');
             }
-        };        const updatePlaylistVisibility = async () => {
-            if (!selectedPlaylist.value) return;
-
-            try {
-                const updatedPlaylist = await PlaylistService.updatePlaylist(
-                    selectedPlaylist.value.playlist_id,
-                    { is_visible: selectedPlaylist.value.is_visible }
-                );
-
-                // Update in local state
-                const index = playlists.value.findIndex(p => p.playlist_id === updatedPlaylist.playlist_id);
-                if (index !== -1) {
-                    playlists.value[index] = updatedPlaylist;
-                }
-
-                showToast(
-                    `Playlist is now ${updatedPlaylist.is_visible ? 'active' : 'inactive'} for submissions`,
-                    'success'
-                );
-            } catch (error) {
-                // Revert the toggle in the UI
-                if (selectedPlaylist.value) {
-                    selectedPlaylist.value.is_visible = !selectedPlaylist.value.is_visible;
-                }
-
-                showToast('Failed to update playlist visibility', 'danger');
-            }
-        };
-
-        const viewSubmissions = (playlist: Playlist) => {
+        };        const viewSubmissions = (playlist: Playlist) => {
             // Store the playlist ID to filter submissions
             playlistStore.setSelectedPlaylistId(playlist.playlist_id);
 
@@ -946,21 +597,10 @@ export default defineComponent({
 
         const getEarnings = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.earnings || 0;
-        };        const importPlaylistsModal = async () => {
-            const modal = await modalController.create({
-                component: ImportPlaylistsModal,
-                componentProps: {
-                    userId: userId.value
-                }
-            });
+        };
 
-            await modal.present();
-
-            // Refresh playlists list if data was imported
-            const { data } = await modal.onDidDismiss();
-            if (data && data.dataRefreshed) {
-                fetchPlaylists();
-            }
+        const importPlaylistsModal = async () => {
+            isImportModalOpen.value = true;
         };
 
         const closeImportModal = () => {
@@ -977,65 +617,6 @@ export default defineComponent({
             await toast.present();
         };
 
-        const showFeeEditModal = () => {
-            if (selectedPlaylist.value) {
-                submissionFee.value = selectedPlaylist.value.submission_fee || 0;
-                isFeeModalOpen.value = true;
-            }
-        };
-
-        const closeFeeModal = () => {
-            isFeeModalOpen.value = false;
-        };        const updateFee = async () => {
-            if (!selectedPlaylist.value) return;
-
-            try {
-                const updatedPlaylist = await playlistStore.updateSubmissionFee(
-                    selectedPlaylist.value.playlist_id,
-                    submissionFee.value
-                );
-                selectedPlaylist.value = updatedPlaylist;
-                closeFeeModal();
-                showToast('Submission fee updated successfully', 'success');
-            } catch (error) {
-                showToast('Failed to update submission fee', 'danger');
-            }
-        };
-
-        const showGenreEditModal = () => {
-            if (selectedPlaylist.value) {
-                selectedGenre.value = selectedPlaylist.value.genre || '';
-                isGenreModalOpen.value = true;
-            }
-        };
-
-        const closeGenreModal = () => {
-            isGenreModalOpen.value = false;
-        };
-
-        const updateGenre = async () => {
-            if (!selectedPlaylist.value) return;
-
-            try {
-                const updatedPlaylist = await PlaylistService.updateGenre(
-                    selectedPlaylist.value.playlist_id,
-                    selectedGenre.value
-                );
-                selectedPlaylist.value = updatedPlaylist;
-                
-                // Update in local playlists array
-                const index = playlists.value.findIndex(p => p.playlist_id === updatedPlaylist.playlist_id);
-                if (index !== -1) {
-                    playlists.value[index] = updatedPlaylist;
-                }
-                
-                closeGenreModal();
-                showToast('Genre updated successfully', 'success');
-            } catch (error) {
-                showToast('Failed to update genre', 'danger');
-            }
-        };
-
         return {
             searchQuery,
             selectedFilter,
@@ -1050,40 +631,36 @@ export default defineComponent({
             connectedAccounts,
             selectedPlatform,
             availablePlaylists,
-            importingPlaylists,            importingSelected,
-            isFeeModalOpen,
-            submissionFee,
-            isGenreModalOpen,
-            selectedGenre,
-            genreOptions,cloudDownloadIcon: cloudDownload,
+            importingPlaylists,
+            importingSelected,
+            playlistStats,
+            cloudDownloadIcon: cloudDownload,
             musicalNotesIcon: musicalNotes,
             searchIcon: search,
             peopleIcon: people,
             personIcon: person,
             pricetagIcon: pricetag,
-            mailUnreadIcon: mailUnread,            openIcon: open,
+            mailUnreadIcon: mailUnread,
+            openIcon: open,
             chevronBackIcon: chevronBack,
             chevronForwardIcon: chevronForward,
             closeIcon: closeOutline,
             linkIcon: linkOutline,
             pencilIcon: pencil,
             eyeOutlineIcon: eyeOutline,
-            eyeOffOutlineIcon: eyeOffOutline,            handleSearch,
+            eyeOffOutlineIcon: eyeOffOutline,
+            handleSearch,
             clearSearch,
             handleFilterChange,
             formatDate,
-            formatCurrency,            getPlatformIcon,
-            onImageError,            formatDuration,
-            getTrackCount,
-            hasTrackData,
-            playlistTracks,
-            tracksLoading,
-            tracksError,
-            fetchPlaylistTracks,
+            formatCurrency,
+            getPlatformIcon,
+            onImageError,
             showPlaylistDetails,
             closeModal,
+            handlePlaylistUpdated,
+            handleViewSubmissions,
             toggleVisibility,
-            updatePlaylistVisibility,
             viewSubmissions,
             getSubmissionCount,
             getPendingCount,
@@ -1096,13 +673,8 @@ export default defineComponent({
             closeImportModal,
             fetchAvailablePlaylists,
             importSelectedPlaylists,
-            getSelectedPlaylists,            getSelectedPlatformName,
-            showFeeEditModal,
-            closeFeeModal,
-            updateFee,
-            showGenreEditModal,
-            closeGenreModal,
-            updateGenre
+            getSelectedPlaylists,
+            getSelectedPlatformName
         };
     }
 });
