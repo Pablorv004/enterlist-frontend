@@ -30,11 +30,14 @@ export default defineComponent({
         const route = useRoute();
         const authStore = useAuthStore();
         const loading = ref(true);
+        const error = ref('');
 
         onMounted(async () => {
             // Handle OAuth authentication if we have OAuth parameters
             if (route.query.access_token && route.query.user && route.query.status === 'success') {
                 try {
+                    loading.value = true;
+                    
                     // Parse user data from query parameters
                     const accessToken = route.query.access_token as string;
                     const userDataStr = route.query.user as string;
@@ -44,16 +47,19 @@ export default defineComponent({
                     await authStore.setAuthData(accessToken, userData);
                     
                     // Clear the URL parameters
-                    await router.replace({ 
-                        path: '/dashboard',
+                    router.replace({ 
+                        name: 'dashboard',
                         query: {} 
                     });
                     
                 } catch (err) {
                     console.error('OAuth authentication failed:', err);
-                    authStore.logout();
-                    router.replace('/login');
-                    return;
+                    error.value = 'Authentication failed. Please try again.';
+                    // Redirect to login on error
+                    router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                }
+                finally {
+                    loading.value = false;
                 }
             }
             

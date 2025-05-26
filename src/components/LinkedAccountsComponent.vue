@@ -30,7 +30,7 @@
                                     <ion-label>
                                         <h2>Spotify</h2>
                                         <p v-if="getLinkedAccount('spotify')">
-                                            {{ userType === 'playlist_maker' ? `Connected as ${getLinkedAccount('spotify')?.external_user_id}` : 'Connected' }}
+                                            {{ `Connected as ${getLinkedAccount('spotify')?.external_user_id}` }}
                                         </p>
                                         <p v-else>{{ spotifyDescription }}</p>
                                     </ion-label>
@@ -260,7 +260,7 @@ export default defineComponent({
         const title = computed(() => 'Linked Accounts');
         
         const backUrl = computed(() => 
-            props.userType === 'artist' ? '/artist/dashboard' : '/playlist-maker/dashboard'
+            '/dashboard'
         );
 
         const accountsTitle = computed(() => 
