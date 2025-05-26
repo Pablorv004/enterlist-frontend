@@ -154,7 +154,7 @@
 
                         <ion-item>
                             <ion-thumbnail slot="start" class="payment-method-icon">
-                                <img src="@/assets/logo.png" alt="PayPal">
+                                <img src="@/assets/paypal.png" alt="PayPal">
                             </ion-thumbnail>
                             <ion-label>PayPal</ion-label>
                             <ion-radio slot="end" value="paypal"></ion-radio>
@@ -332,7 +332,7 @@ export default defineComponent({
             if (type === PaymentMethodType.CARD) {
                 return '../assets/logo.png'; // Using an existing image
             } else if (type === PaymentMethodType.PAYPAL) {
-                return '../assets/logo.png'; // Using an existing image
+                return '@/assets/paypal.png'; // Using an existing image
             }
             return '../assets/logo.png'; // Using an existing image
         };
