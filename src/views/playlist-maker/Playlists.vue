@@ -114,8 +114,7 @@
                                                 <span class="stat-label">Earned</span>
                                             </div>
                                         </div>
-                                        
-                                        <div class="playlist-actions">
+                                          <div class="playlist-actions">
                                             <ion-button fill="clear" size="small"
                                                 @click.stop="toggleVisibility(playlist)">
                                                 <ion-icon
@@ -131,6 +130,11 @@
                                             <ion-button fill="clear" size="small" :href="playlist.url" target="_blank"
                                                 @click.stop>
                                                 <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
+                                            </ion-button>
+
+                                            <ion-button fill="clear" size="small"
+                                                @click.stop="showPlaylistOptions(playlist)">
+                                                <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
                                             </ion-button>
                                         </div>
                                     </ion-card-content>
@@ -174,7 +178,7 @@ import { useRouter } from 'vue-router';
 import {
     IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
     IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
-    IonModal, toastController, modalController
+    IonModal, toastController, modalController, actionSheetController, alertController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
@@ -182,7 +186,7 @@ import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil, eyeOutline, eyeOffOutline, person
+    pencil, eyeOutline, eyeOffOutline, person, ellipsisVertical, trash
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -204,8 +208,7 @@ interface PlaylistStats {
 }
 
 export default defineComponent({
-    name: 'PlaylistMakerPlaylists',
-    components: {
+    name: 'PlaylistMakerPlaylists',    components: {
         IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
         IonModal, AppHeader, EmptyStateDisplay, BottomNavigation,
@@ -451,10 +454,90 @@ export default defineComponent({
 
         const getRejectedCount = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.rejected || 0;
+        };        const getEarnings = (playlistId: string): number => {
+            return playlistStats.value[playlistId]?.earnings || 0;
+        };        // Show options menu for a playlist
+        const showPlaylistOptions = async (playlist: Playlist) => {
+            const actionSheet = await actionSheetController.create({
+                header: playlist.name,
+                buttons: [
+                    {
+                        text: playlist.is_visible ? 'Hide Playlist' : 'Show Playlist',
+                        icon: playlist.is_visible ? eyeOffOutline : eyeOutline,
+                        handler: () => {
+                            toggleVisibility(playlist);
+                        },
+                    },
+                    {
+                        text: 'View Submissions',
+                        icon: mailUnread,
+                        handler: () => {
+                            viewSubmissions(playlist);
+                        },
+                    },
+                    {
+                        text: 'Open in Platform',
+                        icon: open,
+                        handler: () => {
+                            if (playlist.url) {
+                                window.open(playlist.url, '_blank');
+                            } else {
+                                showToast('No external URL available for this playlist', 'warning');
+                            }
+                        },
+                    },
+                    {
+                        text: 'Delete',
+                        role: 'destructive',
+                        icon: trash,
+                        handler: () => {
+                            confirmDeletePlaylist(playlist);
+                        },
+                    },
+                    {
+                        text: 'Cancel',
+                        role: 'cancel',
+                    },
+                ],
+            });
+
+            await actionSheet.present();
         };
 
-        const getEarnings = (playlistId: string): number => {
-            return playlistStats.value[playlistId]?.earnings || 0;
+        // Confirm playlist deletion
+        const confirmDeletePlaylist = async (playlist: Playlist) => {
+            const alert = await alertController.create({
+                header: 'Confirm Delete',
+                message: `Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`,
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        role: 'cancel',
+                    },
+                    {
+                        text: 'Delete',
+                        role: 'destructive',
+                        handler: () => deletePlaylist(playlist),
+                    },
+                ],
+            });
+
+            await alert.present();
+        };
+
+        // Delete playlist
+        const deletePlaylist = async (playlist: Playlist) => {
+            try {
+                await PlaylistService.deletePlaylist(playlist.playlist_id);
+                
+                // Remove from local playlists array
+                playlists.value = playlists.value.filter(p => p.playlist_id !== playlist.playlist_id);
+                
+                showToast(`Playlist "${playlist.name}" deleted successfully`, 'success');
+            } catch (error) {
+                console.error('Failed to delete playlist:', error);
+                showToast('Failed to delete playlist', 'danger');
+            }
         };
 
         return {
@@ -479,10 +562,11 @@ export default defineComponent({
             chevronBackIcon: chevronBack,
             chevronForwardIcon: chevronForward,
             closeIcon: closeOutline,
-            linkIcon: linkOutline,
-            pencilIcon: pencil,
+            linkIcon: linkOutline,            pencilIcon: pencil,
             eyeOutlineIcon: eyeOutline,
             eyeOffOutlineIcon: eyeOffOutline,
+            ellipsisVerticalIcon: ellipsisVertical,
+            trashIcon: trash,
             handleSearch,
             clearSearch,
             handleFilterChange,
@@ -499,8 +583,10 @@ export default defineComponent({
             getSubmissionCount,
             getPendingCount,
             getApprovedCount,
-            getRejectedCount,
-            getEarnings,
+            getRejectedCount,            getEarnings,
+            showPlaylistOptions,
+            confirmDeletePlaylist,
+            deletePlaylist,
             prevPage,
             nextPage,
             importPlaylistsModal

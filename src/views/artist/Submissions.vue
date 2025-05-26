@@ -73,16 +73,6 @@
                                     <ion-badge :color="getStatusColor(submission.status)" class="status-badge">
                                         {{ formatStatus(submission.status) }}
                                     </ion-badge>
-
-                                    <div v-if="submission.status === 'approved'" class="review-feedback success">
-                                        <ion-icon :icon="checkmarkIcon"></ion-icon>
-                                        <span>Approved!</span>
-                                    </div>
-
-                                    <div v-if="submission.status === 'rejected'" class="review-feedback error">
-                                        <ion-icon :icon="closeIcon"></ion-icon>
-                                        <span>Not a fit</span>
-                                    </div>
                                 </div>
                             </div>
                         </ion-item>

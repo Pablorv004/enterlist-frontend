@@ -784,7 +784,7 @@ export default defineComponent({
 .earnings-value {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--ion-color-success);
+    color: var(--ion-color-dark);
 }
 
 .submissions-link {
