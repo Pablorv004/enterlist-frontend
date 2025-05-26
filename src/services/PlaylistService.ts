@@ -21,6 +21,15 @@ export const PlaylistService = {
     }
   },
 
+  getPlaylistsByPlatform: async (platformId: number, skip = 0, take = 50): Promise<PaginatedResponse<Playlist>> => {
+    try {
+      const response = await apiClient.get(`/playlists/platform/${platformId}?skip=${skip}&take=${take}`);
+      return response.data;
+    } catch (error: unknown) {
+      return handleNotFoundPaginated<Playlist>(error);
+    }
+  },
+
   getPlaylist: async (id: string): Promise<Playlist> => {
     try {
       const response = await apiClient.get(`/playlists/${id}`);

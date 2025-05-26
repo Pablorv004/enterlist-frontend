@@ -143,10 +143,9 @@
                                         <ion-icon :icon="musicalNotesIcon" class="subtitle-icon"></ion-icon>
                                         {{ formatGenre(playlist.genre) }}
                                     </ion-card-subtitle>
-                                </ion-card-header>                                <ion-card-content>
-                                    <div class="submission-fee">
+                                </ion-card-header>                                <ion-card-content>                                    <div class="submission-fee">
                                         <ion-badge color="primary">
-                                            ${{ (playlist.submission_fee! / 100).toFixed(2) }} submission fee
+                                            ${{ playlist.submission_fee!.toFixed(2) }} submission fee
                                         </ion-badge>
                                     </div>
                                 </ion-card-content>
@@ -300,21 +299,20 @@
                             <ion-card-header>
                                 <ion-card-title>Payment Summary</ion-card-title>
                             </ion-card-header>
-                            <ion-card-content>
-                                <div class="summary-item">
+                            <ion-card-content>                                <div class="summary-item">
                                     <span>Submission Fee</span>
-                                    <span>${{ (selectedPlaylist.submission_fee! / 100).toFixed(2) }}</span>
+                                    <span>${{ selectedPlaylist.submission_fee!.toFixed(2) }}</span>
                                 </div>
 
                                 <div class="summary-item">
                                     <span>Platform Fee</span>
-                                    <span>${{ (calculatePlatformFee(selectedPlaylist.submission_fee!) / 100).toFixed(2)
+                                    <span>${{ calculatePlatformFee(selectedPlaylist.submission_fee!).toFixed(2)
                                         }}</span>
                                 </div>
 
                                 <div class="summary-item total">
                                     <span>Total</span>
-                                    <span>${{ (calculateTotal(selectedPlaylist.submission_fee!) / 100).toFixed(2)
+                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!).toFixed(2)
                                         }}</span>
                                 </div>
                             </ion-card-content>
@@ -475,12 +473,20 @@ export default defineComponent({
 
             // Set default payment method if available
             await loadPaymentMethods();
-        });
-
-        // Watch for songId changes in query
+        });        // Watch for songId changes in query
         watch(() => route.query.songId, (newSongId) => {
             if (newSongId && typeof newSongId === 'string') {
                 selectedSongId.value = newSongId;
+            }
+        });
+
+        // Watch for selected song changes to reload playlists with platform filtering
+        watch(() => selectedSong.value?.platform_id, async (newPlatformId, oldPlatformId) => {
+            // Only reload if platform changed and we're on step 1 (playlist selection) or later
+            if (newPlatformId !== oldPlatformId && currentStep.value >= 1) {
+                await loadPlaylists();
+                // Reset selected playlist since the list changed
+                selectedPlaylistId.value = null;
             }
         });
 
@@ -553,14 +559,20 @@ export default defineComponent({
         // Preview song
         const previewSong = (url: string) => {
             window.open(url, '_blank');
-        };
-
-        // Load playlists from API
+        };        // Load playlists from API
         const loadPlaylists = async () => {
             try {
                 loadingPlaylists.value = true;
 
-                const response = await PlaylistService.getPlaylists();
+                let response;
+                
+                // If a song is selected, filter playlists by platform
+                if (selectedSong.value?.platform_id) {
+                    response = await PlaylistService.getPlaylistsByPlatform(selectedSong.value.platform_id);
+                } else {
+                    response = await PlaylistService.getPlaylists();
+                }
+                
                 playlists.value = response.data;
 
                 sortPlaylists();
@@ -662,11 +674,9 @@ export default defineComponent({
             } finally {
                 loadingPaymentMethods.value = false;
             }
-        };
-
-        // Calculate platform fee (5% of submission fee)
+        };        // Calculate platform fee (5% of submission fee)
         const calculatePlatformFee = (submissionFee: number): number => {
-            return Math.round(submissionFee * 0.05);
+            return submissionFee * 0.05;
         };
 
         // Calculate total payment
@@ -1106,6 +1116,9 @@ export default defineComponent({
 
 .submission-fee {
     margin-top: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Review & Payment */
