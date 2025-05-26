@@ -27,7 +27,9 @@
                 <div v-if="loading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
                     <p>Loading your playlists...</p>
-                </div>                <empty-state-display 
+                </div>
+                
+                <empty-state-display 
                     v-else-if="filteredPlaylists.length === 0 && !searchQuery"
                     :icon="musicalNotesIcon"
                     title="No playlists yet"
@@ -41,7 +43,9 @@
                             Connect Accounts
                         </ion-button>
                     </template>
-                </empty-state-display>                <empty-state-display 
+                </empty-state-display>
+                
+                <empty-state-display 
                     v-else-if="filteredPlaylists.length === 0 && searchQuery"
                     :icon="searchIcon"
                     title="No results found"
@@ -73,7 +77,8 @@
                                     </div>
 
                                     <ion-card-content>
-                                        <h3 class="playlist-name">{{ playlist.name }}</h3>                                        <div class="playlist-details">
+                                        <h3 class="playlist-name">{{ playlist.name }}</h3>
+                                        <div class="playlist-details">
                                             <div class="playlist-tracks">
                                                 <ion-icon :icon="musicalNotesIcon" class="details-icon"></ion-icon>
                                                 {{playlist.track_count || 'Unknown'}} Tracks
@@ -108,7 +113,9 @@
                                                     formatCurrency(getEarnings(playlist.playlist_id)) }}</span>
                                                 <span class="stat-label">Earned</span>
                                             </div>
-                                        </div>                                        <div class="playlist-actions">
+                                        </div>
+                                        
+                                        <div class="playlist-actions">
                                             <ion-button fill="clear" size="small"
                                                 @click.stop="toggleVisibility(playlist)">
                                                 <ion-icon
@@ -159,88 +166,6 @@
             />
         </ion-modal>
 
-        <!-- Import Playlists Modal -->
-        <ion-modal :is-open="isImportModalOpen" @didDismiss="closeImportModal" class="import-modal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Import Playlists</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeImportModal">
-                            <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <div v-if="!connectedAccounts.length" class="no-accounts">
-                    <ion-icon :icon="linkIcon" class="no-accounts-icon"></ion-icon>
-                    <h3>No Connected Accounts</h3>
-                    <p>Connect your music platform accounts to import playlists</p>
-                    <ion-button router-link="/playlist-maker/linked-accounts" @click="closeImportModal">
-                        Connect Accounts
-                    </ion-button>
-                </div>
-
-                <div v-else>
-                    <h3 class="accounts-title">Select Platform</h3>
-                    <ion-list class="platforms-list">
-                        <ion-radio-group v-model="selectedPlatform">
-                            <ion-item v-for="account in connectedAccounts" :key="account.linked_account_id">
-                                <ion-thumbnail slot="start" class="platform-thumbnail">
-                                    <img :src="getPlatformIcon(account.platform?.name)" :alt="account.platform?.name" />
-                                </ion-thumbnail>
-                                <ion-label>
-                                    <h2>{{ account.platform?.name }}</h2>
-                                    <p>{{ account.external_user_id }}</p>
-                                </ion-label>
-                                <ion-radio slot="end" :value="account.platform_id"></ion-radio>
-                            </ion-item>
-                        </ion-radio-group>
-                    </ion-list>
-
-                    <div v-if="importingPlaylists" class="importing-spinner">
-                        <ion-spinner name="crescent"></ion-spinner>
-                        <p>Loading playlists from {{ getSelectedPlatformName() }}...</p>
-                    </div>
-
-                    <div v-else-if="availablePlaylists.length > 0" class="available-playlists">
-                        <h3 class="playlists-title">Available Playlists</h3>
-                        <p class="selection-help">Select the playlists you want to import</p>
-
-                        <ion-list class="playlists-selection-list">
-                            <ion-item v-for="playlist in availablePlaylists" :key="playlist.id">
-                                <ion-thumbnail slot="start" class="playlist-selection-thumbnail">
-                                    <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
-                                        :alt="playlist.name" />
-                                </ion-thumbnail>                                <ion-label>
-                                    <h2>{{ playlist.name }}</h2>
-                                    <p>{{ playlist.track_count || 'Unknown' }} tracks</p>
-                                </ion-label>
-                                <ion-checkbox slot="end" v-model="playlist.selected"></ion-checkbox>
-                            </ion-item>
-                        </ion-list>
-                    </div>
-
-                    <div class="import-actions">
-                        <ion-button v-if="!importingPlaylists && selectedPlatform && !availablePlaylists.length"
-                            expand="block" @click="fetchAvailablePlaylists">
-                            Load Playlists
-                        </ion-button>
-
-                        <ion-button v-if="availablePlaylists.length && getSelectedPlaylists().length > 0" expand="block"
-                            @click="importSelectedPlaylists" :disabled="importingSelected">
-                            <ion-spinner v-if="importingSelected" name="crescent"></ion-spinner>
-                            <span v-else>
-                                Import {{ getSelectedPlaylists().length }} Playlist{{ getSelectedPlaylists().length !==
-                                1 ? 's' : '' }}
-                            </span>
-                        </ion-button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-modal>
-
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="content"></bottom-navigation>
     </ion-page>
@@ -252,12 +177,11 @@ import { useRouter } from 'vue-router';
 import {
     IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
     IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
-    IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
-    IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-    IonList, IonSelect, IonSelectOption, IonNote, IonInput, toastController
+    IonModal, toastController, modalController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
+import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
@@ -265,8 +189,6 @@ import {
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
-import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
-import { modalController } from '@ionic/vue';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import { PlatformService } from '@/services/PlatformService';
@@ -284,22 +206,12 @@ interface PlaylistStats {
     earnings: number;
 }
 
-interface ImportablePlaylist {
-    id: string;
-    name: string;
-    cover_image_url?: string;
-    track_count?: number;
-    selected: boolean;
-}
-
 export default defineComponent({
     name: 'PlaylistMakerPlaylists',
     components: {
         IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
-        IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonThumbnail,
-        IonItem, IonLabel, IonToggle, IonRadioGroup, IonRadio, IonCheckbox,
-        IonList, IonSelect, IonSelectOption, IonNote, IonInput, AppHeader, EmptyStateDisplay, BottomNavigation,
+        IonModal, AppHeader, EmptyStateDisplay, BottomNavigation,
         PlaylistDetailsModal
     },
     setup() {
@@ -325,19 +237,10 @@ export default defineComponent({
         const isModalOpen = ref(false);
         const selectedPlaylist = ref<Playlist | null>(null);
 
-        // Import Modal
-        const isImportModalOpen = ref(false);
-        const connectedAccounts = ref<LinkedAccount[]>([]);
-        const selectedPlatform = ref<number | null>(null);
-        const availablePlaylists = ref<ImportablePlaylist[]>([]);
-        const importingPlaylists = ref(false);
-        const importingSelected = ref(false);
-
         onMounted(async () => {
             if (userId.value) {
                 fetchPlaylists();
                 fetchPlaylistStats();
-                fetchConnectedAccounts();
             }
         });
 
@@ -359,7 +262,9 @@ export default defineComponent({
             } finally {
                 loading.value = false;
             }
-        };        const fetchPlaylistStats = async () => {
+        };
+
+        const fetchPlaylistStats = async () => {
             try {
                 if (!userId.value) return;
                 
@@ -368,84 +273,6 @@ export default defineComponent({
             } catch (error) {
                 console.error('Failed to load playlist stats:', error);
             }
-        };
-
-        const fetchConnectedAccounts = async () => {
-            try {
-                connectedAccounts.value = await PlatformService.getLinkedAccounts(userId.value);
-            } catch (error) {
-                console.error('Failed to load connected accounts:', error);
-            }
-        };
-
-        const fetchAvailablePlaylists = async () => {
-            if (!selectedPlatform.value) return;
-
-            try {
-                importingPlaylists.value = true;
-                availablePlaylists.value = [];
-
-                // In a real implementation, we would call an API
-                // For this demo, we'll simulate it
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                // Create mock data
-                const mockPlaylists: ImportablePlaylist[] = [];
-                const count = Math.floor(Math.random() * 10) + 5;
-
-                for (let i = 0; i < count; i++) {
-                    mockPlaylists.push({
-                        id: `playlist_${Date.now()}_${i}`,                        name: `Playlist ${i + 1} - ${Math.random().toString(36).substring(2, 10)}`,
-                        cover_image_url: Math.random() > 0.3 ?
-                            `/assets/mock-playlist-${Math.floor(Math.random() * 5) + 1}.jpg` : undefined,
-                        track_count: Math.floor(Math.random() * 100) + 5, // Random track count between 5-105
-                        selected: false
-                    });
-                }
-
-                availablePlaylists.value = mockPlaylists;
-            } catch (error) {
-                showToast('Failed to load available playlists', 'danger');
-            } finally {
-                importingPlaylists.value = false;
-            }
-        };
-
-        const importSelectedPlaylists = async () => {
-            const selected = getSelectedPlaylists();
-
-            if (selected.length === 0) {
-                showToast('Please select at least one playlist to import', 'warning');
-                return;
-            }
-
-            try {
-                importingSelected.value = true;
-
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Close modal and refresh playlists
-                closeImportModal();
-                fetchPlaylists();
-
-                showToast(`Successfully imported ${selected.length} playlist(s)`, 'success');
-            } catch (error) {
-                showToast('Failed to import playlists', 'danger');
-            } finally {
-                importingSelected.value = false;
-            }
-        };
-
-        const getSelectedPlaylists = (): ImportablePlaylist[] => {
-            return availablePlaylists.value.filter(p => p.selected);
-        };
-
-        const getSelectedPlatformName = (): string => {
-            if (!selectedPlatform.value) return '';
-
-            const account = connectedAccounts.value.find(a => a.platform_id === selectedPlatform.value);
-            return account?.platform?.name || '';
         };
 
         watch(currentPage, () => {
@@ -485,7 +312,9 @@ export default defineComponent({
         const handleFilterChange = () => {
             // Reset to first page when filter changes
             changePage(1);
-        };        const formatDate = (dateString: string): string => {
+        };
+
+        const formatDate = (dateString: string): string => {
             return new Date(dateString).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -500,7 +329,9 @@ export default defineComponent({
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(amount);
-        };        const getPlatformIcon = (platformName?: string): string => {
+        };
+
+        const getPlatformIcon = (platformName?: string): string => {
             if (!platformName) return '@/assets/logo.png';
 
             const platform = platformName.toLowerCase();
@@ -516,10 +347,14 @@ export default defineComponent({
         const onImageError = (event: Event) => {
             const img = event.target as HTMLImageElement;
             img.style.display = 'none';
-        };        const showPlaylistDetails = async (playlist: Playlist) => {
+        };
+
+        const showPlaylistDetails = async (playlist: Playlist) => {
             selectedPlaylist.value = { ...playlist };
             isModalOpen.value = true;
-        };        const closeModal = () => {
+        };
+
+        const closeModal = () => {
             isModalOpen.value = false;
             selectedPlaylist.value = null;
         };
@@ -566,7 +401,9 @@ export default defineComponent({
             } catch (error) {
                 showToast('Failed to update playlist visibility', 'danger');
             }
-        };        const viewSubmissions = (playlist: Playlist) => {
+        };
+
+        const viewSubmissions = (playlist: Playlist) => {
             // Store the playlist ID to filter submissions
             playlistStore.setSelectedPlaylistId(playlist.playlist_id);
 
@@ -600,11 +437,20 @@ export default defineComponent({
         };
 
         const importPlaylistsModal = async () => {
-            isImportModalOpen.value = true;
-        };
+            const modal = await modalController.create({
+                component: ImportPlaylistsModal,
+                componentProps: {
+                    userId: userId.value
+                }
+            });
 
-        const closeImportModal = () => {
-            isImportModalOpen.value = false;
+            await modal.present();
+
+            // Refresh playlists list if data was imported
+            const { data } = await modal.onDidDismiss();
+            if (data && data.dataRefreshed) {
+                fetchPlaylists();
+            }
         };
 
         const showToast = async (message: string, color: string = 'primary') => {
@@ -627,12 +473,6 @@ export default defineComponent({
             totalPages,
             isModalOpen,
             selectedPlaylist,
-            isImportModalOpen,
-            connectedAccounts,
-            selectedPlatform,
-            availablePlaylists,
-            importingPlaylists,
-            importingSelected,
             playlistStats,
             cloudDownloadIcon: cloudDownload,
             musicalNotesIcon: musicalNotes,
@@ -669,12 +509,7 @@ export default defineComponent({
             getEarnings,
             prevPage,
             nextPage,
-            importPlaylistsModal,
-            closeImportModal,
-            fetchAvailablePlaylists,
-            importSelectedPlaylists,
-            getSelectedPlaylists,
-            getSelectedPlatformName
+            importPlaylistsModal
         };
     }
 });
@@ -902,547 +737,5 @@ export default defineComponent({
     margin: 0 1rem;
     font-size: 0.9rem;
     color: var(--ion-color-medium);
-}
-
-/* Modal Styles */
-.playlist-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.playlist-thumbnail {
-    width: 80px;
-    height: 80px;
-    --border-radius: 8px;
-    margin-right: 1rem;
-}
-
-.playlist-title-info h1 {
-    margin: 0 0 0.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.platform-badge {
-    display: inline-flex;
-    align-items: center;
-    background: var(--ion-color-light);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-}
-
-.platform-icon-small {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
-}
-
-.playlist-visibility-toggle {
-    margin-bottom: 1rem;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--ion-color-light);
-}
-
-.detail-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.detail-label {
-    font-weight: 500;
-    color: var(--ion-color-medium);
-}
-
-.detail-value {
-    text-align: right;
-}
-
-.detail-value.description {
-    white-space: pre-line;
-    text-align: left;
-    margin-top: 0.5rem;
-    width: 100%;
-    color: var(--ion-color-dark);
-}
-
-/* Update detail-row for description to stack vertically */
-.detail-row:has(.description) {
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.detail-row:has(.description) .detail-label {
-    margin-bottom: 0.5rem;
-}
-
-.detail-row:has(.description) .detail-value {
-    text-align: left;
-    width: 100%;
-}
-
-.playlist-ext-link {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-box {
-    background: var(--ion-color-light);
-    border-radius: 8px;
-    padding: 1rem;
-    text-align: center;
-}
-
-.stat-box-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.stat-box-value.pending {
-    color: var(--ion-color-warning);
-}
-
-.stat-box-value.approved {
-    color: var(--ion-color-success);
-}
-
-.stat-box-value.rejected {
-    color: var(--ion-color-danger);
-}
-
-.stat-box-label {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-}
-
-.earnings-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: var(--ion-color-success-tint);
-    border-radius: 8px;
-}
-
-.earnings-label {
-    font-weight: 500;
-}
-
-.earnings-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--ion-color-success);
-}
-
-.submissions-link {
-    margin-top: 1.5rem;
-}
-
-/* Import Modal Styles */
-.no-accounts {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem;
-}
-
-.no-accounts-icon {
-    font-size: 4rem;
-    color: var(--ion-color-medium);
-    margin-bottom: 1rem;
-}
-
-.accounts-title,
-.playlists-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0 0 1rem;
-}
-
-.platforms-list {
-    margin-bottom: 2rem;
-}
-
-.platform-thumbnail {
-    --border-radius: 8px;
-    width: 44px;
-    height: 44px;
-}
-
-.importing-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    text-align: center;
-}
-
-.selection-help {
-    color: var(--ion-color-medium);
-    margin-bottom: 1rem;
-}
-
-.playlist-selection-thumbnail {
-    --border-radius: 4px;
-}
-
-.import-actions {
-    margin-top: 2rem;
-}
-
-/* Fee Edit Modal Styles */
-.fee-edit-modal {
-    --width: 90%;
-    --max-width: 400px;
-}
-
-.fee-edit-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.fee-input {
-    --margin-top: 0;
-}
-
-ion-note {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-    margin-top: -0.5rem;
-}
-
-/* Playlist Tracks Styles */
-/* Tracks Section */
-.tracks-loading, .tracks-error, .tracks-empty {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--ion-color-light);
-    border-radius: 8px;
-    border: 1px solid var(--ion-color-light-shade);
-    text-align: left;
-}
-
-.tracks-error-content, .tracks-empty-content {
-    flex: 1;
-}
-
-.tracks-loading {
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.tracks-loading p {
-    margin: 0;
-    color: var(--ion-color-medium);
-    font-size: 0.9rem;
-}
-
-.tracks-error-content h4, .tracks-empty-content h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--ion-color-dark);
-}
-
-.tracks-error-content p, .tracks-empty-content p {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: var(--ion-color-medium);
-    line-height: 1.4;
-}
-
-.tracks-list {
-    max-height: 400px;
-    overflow-y: auto;
-    border: 1px solid var(--ion-color-light);
-    border-radius: 8px;
-    background: white;
-}
-
-.track-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--ion-color-light);
-    transition: background-color 0.2s;
-    gap: 0.75rem;
-}
-
-.track-item:last-child {
-    border-bottom: none;
-}
-
-.track-item:hover {
-    background-color: var(--ion-color-light);
-}
-
-.track-thumbnail {
-    width: 48px;
-    height: 48px;
-    border-radius: 4px;
-    overflow: hidden;
-    background: var(--ion-color-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.track-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.track-placeholder {
-    font-size: 1.5rem;
-    color: var(--ion-color-medium);
-}
-
-.track-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.track-title {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--ion-color-dark);
-    margin-bottom: 0.25rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.track-artist {
-    font-size: 0.85rem;
-    color: var(--ion-color-medium);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.track-album {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium-shade);
-    margin-top: 0.1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.track-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-
-.track-duration {
-    font-size: 0.85rem;
-    color: var(--ion-color-medium);
-    font-weight: 500;
-    min-width: 35px;
-    text-align: right;
-}
-
-.tracks-list {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid var(--ion-color-light);
-    border-radius: 8px;
-    background: white;
-}
-
-.track-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--ion-color-light);
-    transition: background-color 0.2s;
-}
-
-.track-item:last-child {
-    border-bottom: none;
-}
-
-.track-item:hover {
-    background-color: var(--ion-color-light);
-}
-
-.track-number {
-    width: 30px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--ion-color-medium);
-    text-align: center;
-    flex-shrink: 0;
-}
-
-.track-thumbnail {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    object-fit: cover;
-    margin: 0 0.75rem;
-    flex-shrink: 0;
-    background: var(--ion-color-light);
-}
-
-.track-info {
-    flex: 1;
-    min-width: 0;
-    margin-right: 0.75rem;
-}
-
-.track-title {
-    font-weight: 500;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0 0 0.25rem 0;
-}
-
-.track-artist {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-}
-
-.track-duration {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-}
-
-.track-actions {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.track-link {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --padding-top: 6px;
-    --padding-bottom: 6px;
-    margin: 0;
-    --border-radius: 6px;
-}
-
-.no-tracks {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    text-align: center;
-    color: var(--ion-color-medium);
-}
-
-.no-tracks-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-.no-tracks p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-/* Responsive adjustments for tracks */
-@media (max-width: 768px) {
-    .track-item {
-        padding: 0.5rem;
-    }
-    
-    .track-number {
-        width: 25px;
-        font-size: 0.8rem;
-    }
-    
-    .track-thumbnail {
-        width: 35px;
-        height: 35px;
-        margin: 0 0.5rem;
-    }
-    
-    .track-title {
-        font-size: 0.85rem;
-    }
-    
-    .track-artist, .track-duration {
-        font-size: 0.75rem;
-    }
-    
-    .track-duration {
-        margin-right: 0.5rem;
-    }
-      .track-info {
-        margin-right: 0.5rem;
-    }
-}
-
-/* Genre and Fee Edit Styles */
-.genre-edit, .fee-edit {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.genre-edit ion-button, .fee-edit ion-button {
-    --color: var(--ion-color-medium);
-    min-width: auto;
-}
-
-.genre-edit ion-button:hover, .fee-edit ion-button:hover {
-    --color: var(--ion-color-primary);
-}
-
-.genre-edit-modal .genre-edit-content,
-.fee-edit-modal .fee-edit-content {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.genre-select, .fee-input {
-    margin: 1rem 0;
-}
-
-.genre-actions, .fee-actions {
-    margin-top: 2rem;
 }
 </style>
