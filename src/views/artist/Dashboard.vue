@@ -731,6 +731,13 @@ export default defineComponent({
     margin-right: 0.25rem;
 }
 
+.submission-item ion-label h3 {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Songs Grid */
 .my-songs {
     margin-bottom: 2.5rem;
