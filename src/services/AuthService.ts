@@ -5,12 +5,10 @@ export const AuthService = {  login: async (email: string, password: string): Pr
     const response = await apiClient.post('/auth/login', { email, password });
     return response.data;
   },
-
   register: async (userData: {
     username: string;
     email: string;
     password: string;
-    role: string;
     oauth_provider?: string;
     oauth_id?: string;
   }): Promise<User> => {

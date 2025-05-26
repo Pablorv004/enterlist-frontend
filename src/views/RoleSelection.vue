@@ -92,8 +92,7 @@ export default defineComponent({
         IonIcon,
         IonText,
         IonSpinner
-    },
-    setup() {
+    },    setup() {
         const router = useRouter();
         const route = useRoute();
         const authStore = useAuthStore();
@@ -105,7 +104,39 @@ export default defineComponent({
         const oauthData = ref({
             provider: route.query.provider as string,
             status: route.query.status as string,
-        });        onMounted(() => {
+        });
+
+        onMounted(async () => {
+            // Handle OAuth authentication if we have OAuth parameters
+            if (route.query.access_token && route.query.user && route.query.status === 'success') {
+                try {
+                    loading.value = true;
+                    
+                    // Parse user data from query parameters
+                    const accessToken = route.query.access_token as string;
+                    const userDataStr = route.query.user as string;
+                    const userData = JSON.parse(decodeURIComponent(userDataStr));
+                    
+                    // Set authentication data in the store
+                    await authStore.setAuthData(accessToken, userData);
+                    
+                    // Clear the URL parameters
+                    router.replace({ 
+                        name: 'RoleSelection',
+                        query: {} 
+                    });
+                    
+                } catch (err) {
+                    console.error('OAuth authentication failed:', err);
+                    error.value = 'Authentication failed. Please try again.';
+                    // Redirect to login on error
+                    router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                }
+                finally {
+                    loading.value = false;
+                }
+            }
+            
             // Check if user is already authenticated and has a role
             if (authStore.isAuthenticated && authStore.user?.role && 
                 (authStore.isArtist || authStore.isPlaylistMaker)) {

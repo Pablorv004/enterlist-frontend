@@ -13,10 +13,6 @@
                             class="login-button">
                             Sign In
                         </ion-button>
-                        <ion-button v-if="!isAuthenticated" router-link="/register" shape="round" size="large"
-                            fill="outline" class="register-button">
-                            Create Account
-                        </ion-button>
                         <ion-button v-if="isAuthenticated" router-link="/dashboard" shape="round" size="large"
                             class="dashboard-button">
                             Go to Dashboard
@@ -68,7 +64,7 @@
 
                 <div class="platforms-grid">
                     <div class="platform-item">
-                        <ion-icon :icon="spotifyIcon" class="platform-icon spotify"></ion-icon>
+                        <img :src="spotifyIcon" class="platform-icon spotify"></img>
                         <span class="platform-name">Spotify</span>
                     </div>
                     <div class="platform-item">
@@ -200,13 +196,6 @@ export default defineComponent({
     min-width: 140px;
 }
 
-.register-button {
-    --border-color: white;
-    --color: white;
-    font-weight: 600;
-    min-width: 140px;
-}
-
 .features-section {
     padding: 5rem 2rem;
     background-color: white;
@@ -291,6 +280,8 @@ ion-card-title {
 
 .spotify {
     color: #1DB954;
+    max-width: 64px;
+    max-height: 64px;
 }
 
 .youtube {

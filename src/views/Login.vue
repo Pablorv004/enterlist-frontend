@@ -12,20 +12,8 @@
                         <ion-card-title class="card-title">{{ isLoginMode ? 'Sign In' : 'Create Account'
                             }}</ion-card-title>
                         <ion-card-subtitle>{{ isLoginMode ? 'Welcome back!' : 'Join the network' }}</ion-card-subtitle>
-                    </ion-card-header>
-
-                    <ion-card-content>
+                    </ion-card-header>                    <ion-card-content>
                         <form @submit.prevent="submitForm" class="login-form">
-                            <!-- Role selection for register mode -->
-                            <ion-item v-if="!isLoginMode" class="form-input">
-                                <ion-label position="floating">I am a...</ion-label>
-                                <ion-select v-model="form.role" interface="popover">
-                                    <ion-select-option value="artist">Artist</ion-select-option>
-                                    <ion-select-option value="playlist_maker">Playlist Creator</ion-select-option>
-                                </ion-select>
-                                <ion-note slot="error" v-if="isDirty.role && errors.role">{{ errors.role }}</ion-note>
-                            </ion-item>
-
                             <!-- Username for register mode -->
                             <ion-item v-if="!isLoginMode" class="form-input">
                                 <ion-label position="floating">Username</ion-label>
@@ -174,15 +162,12 @@ export default defineComponent({
         const router = useRouter();
         const route = useRoute();
         const authStore = useAuthStore();
-        const { errors, isDirty, validateField, validateForm, resetValidation } = useFormValidation();
-
-        // Form state
+        const { errors, isDirty, validateField, validateForm, resetValidation } = useFormValidation();        // Form state
         const form = reactive({
             username: '',
             email: '',
             password: '',
-            confirmPassword: '',
-            role: 'artist'
+            confirmPassword: ''
         });
 
         // UI state
@@ -271,21 +256,18 @@ export default defineComponent({
                     toast.present();
                 } catch (err: any) {
                     // Error is handled in the store and displayed in the template
-                }
-            } else {
+                }            } else {
                 // Register validation
                 if (!validateForm({
                     username: form.username,
                     email: form.email,
                     password: form.password,
-                    confirmPassword: form.confirmPassword,
-                    role: form.role
+                    confirmPassword: form.confirmPassword
                 }, {
                     username: validationRules.username,
                     email: validationRules.email,
                     password: validationRules.password,
-                    confirmPassword: validationRules.confirmPassword,
-                    role: validationRules.role
+                    confirmPassword: validationRules.confirmPassword
                 })) {
                     return;
                 }
@@ -294,14 +276,12 @@ export default defineComponent({
                     await authStore.register({
                         username: form.username,
                         email: form.email,
-                        password: form.password,
-                        role: form.role
+                        password: form.password
                     });
-                    router.push('/dashboard');
-
-                    // Show welcome toast
+                    // Redirect to role selection after successful registration
+                    router.push('/role-selection');                    // Show welcome toast
                     const toast = await toastController.create({
-                        message: 'Account created successfully!',
+                        message: 'Account created successfully! Please select your role.',
                         duration: 3000,
                         position: 'top',
                         color: 'success'
