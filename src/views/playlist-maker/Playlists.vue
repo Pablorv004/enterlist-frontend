@@ -132,9 +132,9 @@
                                                 <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
                                             </ion-button>
 
-                                            <ion-button fill="clear" size="small"
-                                                @click.stop="showPlaylistOptions(playlist)">
-                                                <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
+                                            <ion-button fill="clear" size="small" color="danger"
+                                                @click.stop="confirmDeletePlaylist(playlist)">
+                                                <ion-icon :icon="trashIcon" slot="icon-only"></ion-icon>
                                             </ion-button>
                                         </div>
                                     </ion-card-content>
@@ -178,7 +178,7 @@ import { useRouter } from 'vue-router';
 import {
     IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
     IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
-    IonModal, toastController, modalController, actionSheetController, alertController
+    IonModal, toastController, modalController, alertController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
@@ -186,7 +186,7 @@ import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil, eyeOutline, eyeOffOutline, person, ellipsisVertical, trash
+    pencil, eyeOutline, eyeOffOutline, person, trash
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -456,55 +456,7 @@ export default defineComponent({
             return playlistStats.value[playlistId]?.rejected || 0;
         };        const getEarnings = (playlistId: string): number => {
             return playlistStats.value[playlistId]?.earnings || 0;
-        };        // Show options menu for a playlist
-        const showPlaylistOptions = async (playlist: Playlist) => {
-            const actionSheet = await actionSheetController.create({
-                header: playlist.name,
-                buttons: [
-                    {
-                        text: playlist.is_visible ? 'Hide Playlist' : 'Show Playlist',
-                        icon: playlist.is_visible ? eyeOffOutline : eyeOutline,
-                        handler: () => {
-                            toggleVisibility(playlist);
-                        },
-                    },
-                    {
-                        text: 'View Submissions',
-                        icon: mailUnread,
-                        handler: () => {
-                            viewSubmissions(playlist);
-                        },
-                    },
-                    {
-                        text: 'Open in Platform',
-                        icon: open,
-                        handler: () => {
-                            if (playlist.url) {
-                                window.open(playlist.url, '_blank');
-                            } else {
-                                showToast('No external URL available for this playlist', 'warning');
-                            }
-                        },
-                    },
-                    {
-                        text: 'Delete',
-                        role: 'destructive',
-                        icon: trash,
-                        handler: () => {
-                            confirmDeletePlaylist(playlist);
-                        },
-                    },
-                    {
-                        text: 'Cancel',
-                        role: 'cancel',
-                    },
-                ],
-            });
-
-            await actionSheet.present();
-        };
-
-        // Confirm playlist deletion
+        };        // Confirm playlist deletion
         const confirmDeletePlaylist = async (playlist: Playlist) => {
             const alert = await alertController.create({
                 header: 'Confirm Delete',
@@ -565,7 +517,6 @@ export default defineComponent({
             linkIcon: linkOutline,            pencilIcon: pencil,
             eyeOutlineIcon: eyeOutline,
             eyeOffOutlineIcon: eyeOffOutline,
-            ellipsisVerticalIcon: ellipsisVertical,
             trashIcon: trash,
             handleSearch,
             clearSearch,
@@ -584,7 +535,6 @@ export default defineComponent({
             getPendingCount,
             getApprovedCount,
             getRejectedCount,            getEarnings,
-            showPlaylistOptions,
             confirmDeletePlaylist,
             deletePlaylist,
             prevPage,
@@ -766,6 +716,7 @@ export default defineComponent({
     margin-bottom: 0.75rem;
     font-size: 0.8rem;
     color: var(--ion-color-medium);
+    justify-content: center;
 }
 
 .details-icon {

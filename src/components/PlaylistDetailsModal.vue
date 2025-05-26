@@ -779,6 +779,7 @@ export default defineComponent({
 
 .earnings-label {
     font-weight: 500;
+    color: var(--ion-color-dark);
 }
 
 .earnings-value {
