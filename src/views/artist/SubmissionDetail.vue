@@ -151,21 +151,12 @@
             </div>
         </ion-content>        <!-- Song Details Modal -->
         <ion-modal :is-open="isSongModalOpen" @didDismiss="closeSongModal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Song Details</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeSongModal">Close</ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
-                <song-details-modal
-                    v-if="submission?.song"
-                    :song="submission.song"
-                    :show-edit-buttons="false"
-                />
-            </ion-content>
+            <song-details-modal
+                v-if="submission?.song"
+                :song="submission.song"
+                :show-edit-buttons="false"
+                @close="closeSongModal"
+            />
         </ion-modal>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
@@ -223,6 +214,17 @@ export default defineComponent({
             try {
                 loading.value = true;
                 submission.value = await SubmissionService.getSubmission(submissionId.value);
+                
+                // Fetch complete playlist data if available
+                if (submission.value?.playlist?.playlist_id) {
+                    try {
+                        completePlaylistData.value = await PlaylistService.getPlaylist(submission.value.playlist.playlist_id);
+                    } catch (err) {
+                        console.error('Failed to load complete playlist data:', err);
+                        // Fallback to using the limited data if the fetch fails
+                        completePlaylistData.value = submission.value.playlist;
+                    }
+                }
             } catch (err) {
                 error.value = 'Failed to load submission details';
                 console.error(err);
@@ -337,20 +339,8 @@ export default defineComponent({
         const loadingPlaylist = ref(false);
 
         const openPlaylistModal = async () => {
-            if (!submission.value?.playlist?.playlist_id) return;
-            
-            try {
-                loadingPlaylist.value = true;
-                completePlaylistData.value = await PlaylistService.getPlaylist(submission.value.playlist.playlist_id);
-                isPlaylistModalOpen.value = true;
-            } catch (err) {
-                console.error('Failed to load complete playlist data:', err);
-                // Fallback to using the limited data if the fetch fails
-                completePlaylistData.value = submission.value.playlist;
-                isPlaylistModalOpen.value = true;
-            } finally {
-                loadingPlaylist.value = false;
-            }
+            if (!completePlaylistData.value) return;
+            isPlaylistModalOpen.value = true;
         };
 
         const closePlaylistModal = () => {
