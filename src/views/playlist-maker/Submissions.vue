@@ -651,6 +651,13 @@ export default defineComponent({
     --inner-padding-end: 1rem;
 }
 
+.submission-item ion-label h2 {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .submission-thumbnail {
     --border-radius: 8px;
     width: 56px;
