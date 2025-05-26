@@ -729,6 +729,7 @@ export default defineComponent({
     border-radius: 8px;
     margin-bottom: 1rem;
     color: white;
+    text-align: left;
 }
 
 .status-pending {
@@ -761,21 +762,6 @@ export default defineComponent({
     margin: 0;
 }
 
-.curator-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.main-info-card,
-.playlist-card,
-.details-card,
-.message-card,
-.feedback-card {
-    margin-bottom: 1rem;
-}
-
 .song-artist-container {
     display: flex;
     flex-direction: column;
@@ -804,7 +790,9 @@ export default defineComponent({
 .song-details,
 .artist-details {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .song-thumbnail,
@@ -812,7 +800,14 @@ export default defineComponent({
     --border-radius: 8px;
     width: 80px;
     height: 80px;
-    margin-right: 1rem;
+    margin: 0 0 1rem 0;
+}
+
+.song-text,
+.artist-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .song-text h4,
@@ -827,6 +822,22 @@ export default defineComponent({
 .playlist-details p {
     margin: 0 0 0.25rem;
     color: var(--ion-color-medium);
+}
+
+.curator-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.main-info-card,
+.playlist-card,
+.details-card,
+.message-card,
+.feedback-card {
+    margin-bottom: 1rem;
 }
 
 .playlist-info {
