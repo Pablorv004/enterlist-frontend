@@ -169,8 +169,8 @@
         </ion-modal>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
-                v-if="submission?.playlist"
-                :playlist="submission.playlist"
+                v-if="completePlaylistData"
+                :playlist="completePlaylistData"
                 :show-edit-buttons="false"
             />
         </ion-modal>
@@ -195,7 +195,8 @@ import {
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
-import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
+import { PlaylistService } from '@/services/PlaylistService';
+import { Submission, SubmissionStatus, TransactionStatus, Playlist } from '@/types';
 import { useSubmissionStore } from '@/store';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import SongDetailsModal from '@/components/SongDetailsModal.vue';
@@ -332,9 +333,24 @@ export default defineComponent({
         // Modal states
         const isPlaylistModalOpen = ref(false);
         const isSongModalOpen = ref(false);
+        const completePlaylistData = ref<Playlist | null>(null);
+        const loadingPlaylist = ref(false);
 
-        const openPlaylistModal = () => {
-            isPlaylistModalOpen.value = true;
+        const openPlaylistModal = async () => {
+            if (!submission.value?.playlist?.playlist_id) return;
+            
+            try {
+                loadingPlaylist.value = true;
+                completePlaylistData.value = await PlaylistService.getPlaylist(submission.value.playlist.playlist_id);
+                isPlaylistModalOpen.value = true;
+            } catch (err) {
+                console.error('Failed to load complete playlist data:', err);
+                // Fallback to using the limited data if the fetch fails
+                completePlaylistData.value = submission.value.playlist;
+                isPlaylistModalOpen.value = true;
+            } finally {
+                loadingPlaylist.value = false;
+            }
         };
 
         const closePlaylistModal = () => {
@@ -351,7 +367,8 @@ export default defineComponent({
 
         return {
             submission,
-            loading,            error,
+            loading,
+            error,
             formatDate,
             formatStatus,
             formatTransactionStatus,
@@ -370,7 +387,9 @@ export default defineComponent({
             playIcon: play,
             openIcon: open,
             refreshIcon: refreshOutline,
-            informationIcon: informationCircle
+            informationIcon: informationCircle,
+            completePlaylistData,
+            loadingPlaylist
         };
     }
 });

@@ -352,6 +352,7 @@ import { SubmissionService } from '@/services/SubmissionService';
 import { Playlist, Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useToast } from '@/composables/useToast';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
+import { PlaylistService } from '@/services/PlaylistService';
 
 export default defineComponent({
     name: 'PlaylistMakerSubmissionDetail',
@@ -386,7 +387,13 @@ export default defineComponent({
 
         // Artist history
         const artistHistory = ref<Submission[]>([]);
-        const loadingHistory = ref(false);        const fetchSubmission = async () => {
+        const loadingHistory = ref(false);
+
+        // Complete playlist data
+        const completePlaylistData = ref<Playlist | null>(null);
+        const loadingPlaylist = ref(false);
+
+        const fetchSubmission = async () => {
             try {
                 loading.value = true;
                 submission.value = await SubmissionService.getSubmission(submissionId.value);
@@ -515,8 +522,21 @@ export default defineComponent({
             editFeedbackModalOpen.value = true;
         };
 
-        const openPlaylistModal = () => {
-            isPlaylistModalOpen.value = true;
+        const openPlaylistModal = async () => {
+            if (!submission.value?.playlist?.playlist_id) return;
+            
+            try {
+                loadingPlaylist.value = true;
+                completePlaylistData.value = await PlaylistService.getPlaylist(submission.value.playlist.playlist_id);
+                isPlaylistModalOpen.value = true;
+            } catch (err) {
+                console.error('Failed to load complete playlist data:', err);
+                // Fallback to using the limited data if the fetch fails
+                completePlaylistData.value = submission.value.playlist;
+                isPlaylistModalOpen.value = true;
+            } finally {
+                loadingPlaylist.value = false;
+            }
         };
 
         const closePlaylistModal = () => {
@@ -639,6 +659,9 @@ export default defineComponent({
             // Artist history
             artistHistory,
             loadingHistory,
+            // Complete playlist data
+            completePlaylistData,
+            loadingPlaylist,
             openApproveModal,
             openRejectModal,
             openEditFeedbackModal,
