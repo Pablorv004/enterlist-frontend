@@ -429,7 +429,8 @@ export default defineComponent({
 
                 if (!user.value) return;
 
-                const response = await SubmissionService.getSubmissionsByArtist(user.value.user_id, 0, 5);
+                // Get submissions to playlists owned by this playlist maker
+                const response = await SubmissionService.getSubmissionsByCreator(user.value.user_id, 0, 5);
                 recentSubmissions.value = response.data;
 
                 // Count submissions per playlist
