@@ -13,7 +13,7 @@
                 <!-- Content -->
                 <div v-else>
                     <ion-card class="accounts-card">
-                        <ion-card-header>
+                        <ion-card-header class="centered-header">
                             <ion-card-title>{{ accountsTitle }}</ion-card-title>
                             <ion-card-subtitle>{{ accountsSubtitle }}</ion-card-subtitle>
                         </ion-card-header>
@@ -28,11 +28,11 @@
                                         <img src="@/assets/spotify.png" alt="Spotify" />
                                     </ion-thumbnail>
                                     <ion-label>
-                                        <h2>Spotify</h2>
+                                        <h2 class="platform-name">Spotify</h2>
                                         <p v-if="getLinkedAccount('spotify')">
                                             {{ `Connected as ${getLinkedAccount('spotify')?.external_user_id}` }}
                                         </p>
-                                        <p v-else>{{ spotifyDescription }}</p>
+                                        <p v-else>Not connected</p>
                                     </ion-label>
                                     <ion-button 
                                         v-if="getLinkedAccount('spotify')" 
@@ -44,7 +44,7 @@
                                     </ion-button>
                                     <ion-button 
                                         v-else 
-                                        :color="userType === 'playlist_maker' ? 'success' : 'primary'"
+                                        color="primary"
                                         @click="connectPlatform('spotify')"
                                     >
                                         Connect
@@ -57,11 +57,11 @@
                                         <img src="@/assets/youtube.png" alt="YouTube" />
                                     </ion-thumbnail>
                                     <ion-label>
-                                        <h2>YouTube</h2>
+                                        <h2 class="platform-name">YouTube</h2>
                                         <p v-if="getLinkedAccount('youtube')">
                                             {{ `Connected as ${getLinkedAccount('youtube')?.external_user_id}`}}
                                         </p>
-                                        <p v-else>{{ youtubeDescription }}</p>
+                                        <p v-else>Not connected</p>
                                     </ion-label>
                                     <ion-button 
                                         v-if="getLinkedAccount('youtube')" 
@@ -73,50 +73,10 @@
                                     </ion-button>
                                     <ion-button 
                                         v-else 
-                                        :color="userType === 'playlist_maker' ? 'success' : 'primary'"
+                                        color="primary"
                                         @click="connectPlatform('youtube')"
                                     >
                                         Connect
-                                    </ion-button>
-                                </ion-item>
-                            </ion-list>
-                        </ion-card-content>
-                    </ion-card>
-
-                    <!-- Sync Settings Card -->
-                    <ion-card v-if="hasLinkedAccounts" class="sync-settings-card">
-                        <ion-card-header>
-                            <ion-card-title>{{ syncTitle }}</ion-card-title>
-                            <ion-card-subtitle>{{ syncSubtitle }}</ion-card-subtitle>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                            <ion-list>
-                                <ion-item class="toggle-item">
-                                    <ion-label>
-                                        <h3>{{ autoSyncTitle }}</h3>
-                                        <p>{{ autoSyncDescription }}</p>
-                                    </ion-label>
-                                    <ion-toggle v-model="syncSettings.autoSync"></ion-toggle>
-                                </ion-item>
-
-                                <ion-item class="toggle-item">
-                                    <ion-label>
-                                        <h3>{{ autoImportTitle }}</h3>
-                                        <p>{{ autoImportDescription }}</p>
-                                    </ion-label>
-                                    <ion-toggle v-model="syncSettings.autoImportNew"></ion-toggle>
-                                </ion-item>
-
-                                <ion-item>
-                                    <ion-label>
-                                        <h3>Last Sync</h3>
-                                        <p v-if="lastSyncDate">{{ formatDate(lastSyncDate) }}</p>
-                                        <p v-else>Never synced</p>
-                                    </ion-label>
-                                    <ion-button size="small" fill="outline" slot="end" @click="handleSync">
-                                        <ion-icon :icon="refreshOutlineIcon" slot="start"></ion-icon>
-                                        Sync Now
                                     </ion-button>
                                 </ion-item>
                             </ion-list>
@@ -132,10 +92,10 @@
 
                         <ion-card-content>
                             <div class="permission-item">
-                                <ion-icon :icon="permissionIcon" class="permission-icon"></ion-icon>
+                                <ion-icon :icon="musicalNotes" class="permission-icon"></ion-icon>
                                 <div class="permission-content">
-                                    <h3>{{ permissionTitle }}</h3>
-                                    <p>{{ permissionDescription }}</p>
+                                    <h3>Read Your Music Library</h3>
+                                    <p>We access your music content to help you import it to your profile</p>
                                 </div>
                             </div>
 
@@ -165,7 +125,8 @@
                         </ion-card-header>
 
                         <ion-card-content>
-                            <ion-list class="activity-list">                                <ion-item v-for="(activity, index) in recentActivity" :key="index" class="activity-item">
+                            <ion-list class="activity-list">
+                                <ion-item v-for="(activity, index) in recentActivity" :key="index" class="activity-item">
                                     <ion-icon :icon="getActivityIcon(activity.action || activity.type || 'default')" slot="start" class="activity-icon"></ion-icon>
                                     <ion-label>
                                         <h3>{{ activity.action || activity.title }}</h3>
@@ -239,15 +200,6 @@ export default defineComponent({
         const platforms = ref<Platform[]>([]);
         const linkedAccounts = ref<LinkedAccount[]>([]);
 
-        // Sync settings
-        const syncSettings = reactive<SyncSettings>({
-            autoSync: props.userType === 'artist',
-            autoImportNew: props.userType === 'playlist_maker'
-        });
-
-        // Last sync date
-        const lastSyncDate = ref<Date | string | null>(null);
-
         // Computed property to check if there are linked accounts
         const hasLinkedAccounts = computed(() => {
             return Array.isArray(linkedAccounts.value) && linkedAccounts.value.length > 0;
@@ -256,79 +208,17 @@ export default defineComponent({
         // Mock recent activity data
         const recentActivity = ref<ActivityItem[]>([]);
 
-        // Computed properties for user type specific content
+        // Simplified content - removed user type conditionals
         const title = computed(() => 'Linked Accounts');
         
-        const backUrl = computed(() => 
-            '/dashboard'
-        );
+        const backUrl = computed(() => '/dashboard');
 
-        const accountsTitle = computed(() => 
-            props.userType === 'artist' ? 'Linked Music Platforms' : 'Music Platform Accounts'
-        );
+        const accountsTitle = computed(() => 'Music Platform Accounts');
 
-        const accountsSubtitle = computed(() => 
-            props.userType === 'artist' 
-                ? 'Connect your music platforms to import your content'
-                : 'Connect your music accounts to import playlists'
-        );
+        const accountsSubtitle = computed(() => 'Connect your music platforms to import your content');
 
         const accountsIntro = computed(() => 
-            props.userType === 'artist'
-                ? 'Link your music platforms to easily import your songs and manage your catalog from a single place.'
-                : 'Connect your accounts from music platforms to easily import your playlists for artist submissions. We\'ll never post anything without your permission.'
-        );
-
-        const spotifyDescription = computed(() => 
-            props.userType === 'artist' ? 'Not connected' : 'Connect to import your Spotify playlists'
-        );
-
-        const youtubeDescription = computed(() => 
-            props.userType === 'artist' ? 'Not connected' : 'Connect to import your YouTube Music playlists'
-        );
-
-        const syncTitle = computed(() => 
-            props.userType === 'artist' ? 'Song Sync Settings' : 'Playlist Sync Settings'
-        );
-
-        const syncSubtitle = computed(() => 
-            props.userType === 'artist' 
-                ? 'Manage how your songs sync with platforms'
-                : 'Manage how your playlists sync with platforms'
-        );
-
-        const autoSyncTitle = computed(() => 
-            props.userType === 'artist' ? 'Auto-Sync Songs' : 'Auto-Sync Playlists'
-        );
-
-        const autoSyncDescription = computed(() => 
-            props.userType === 'artist'
-                ? 'Automatically sync songs daily from your connected platforms'
-                : 'Automatically sync playlists daily from your connected platforms'
-        );
-
-        const autoImportTitle = computed(() => 
-            props.userType === 'artist' ? 'Auto-Import New Songs' : 'Auto-Import New Playlists'
-        );
-
-        const autoImportDescription = computed(() => 
-            props.userType === 'artist'
-                ? 'Automatically import new songs when detected on your connected platforms'
-                : 'Automatically import new playlists when detected on your connected platforms'
-        );
-
-        const permissionIcon = computed(() => 
-            props.userType === 'artist' ? musicalNotes : list
-        );
-
-        const permissionTitle = computed(() => 
-            props.userType === 'artist' ? 'Read Your Music Library' : 'Read Your Playlists'
-        );
-
-        const permissionDescription = computed(() => 
-            props.userType === 'artist'
-                ? 'We access your songs and albums to help you import them for playlist submissions'
-                : 'We access your playlists to help you import them for artist submissions'
+            'Link your music platforms to easily import your content and manage it from a single place. We\'ll never post anything without your permission.'
         );
 
         onMounted(async () => {
@@ -356,30 +246,19 @@ export default defineComponent({
                 const response = await PlatformService.getLinkedAccounts(userId.value);
                 linkedAccounts.value = Array.isArray(response) ? response : [];
                 
-                // Mock activity based on user type
-                if (props.userType === 'artist') {
-                    recentActivity.value = [
-                        {
-                            action: 'import',
-                            description: 'Imported 3 songs from Spotify',
-                            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                        },
-                        {
-                            action: 'connect',
-                            description: 'Connected Spotify account',
-                            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-                        }
-                    ];
-                } else {
-                    recentActivity.value = [
-                        {
-                            type: 'import',
-                            title: 'Playlist Import',
-                            description: 'Imported 5 playlists from Spotify',
-                            timestamp: new Date().toISOString()
-                        }
-                    ];
-                }
+                // Simplified mock activity
+                recentActivity.value = [
+                    {
+                        action: 'import',
+                        description: 'Imported content from Spotify',
+                        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                    },
+                    {
+                        action: 'connect',
+                        description: 'Connected Spotify account',
+                        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+                    }
+                ];
             } catch (error) {
                 console.error('Failed to load linked accounts:', error);
                 showToast('Failed to load linked accounts', 'danger');
@@ -465,12 +344,10 @@ export default defineComponent({
             );
 
             if (!platform) return;
-
-            const resource = props.userType === 'artist' ? 'songs' : 'playlists';
             
             const alert = await alertController.create({
                 header: 'Disconnect Account',
-                message: `Are you sure you want to disconnect your ${platform.name} account? This won't delete any ${resource} you've already imported.`,
+                message: `Are you sure you want to disconnect your ${platform.name} account? This won't delete any content you've already imported.`,
                 buttons: [
                     {
                         text: 'Cancel',
@@ -522,38 +399,6 @@ export default defineComponent({
             }
         };
 
-        const handleSync = async () => {
-            try {
-                const toast = await toastController.create({
-                    message: 'Starting sync...',
-                    duration: 2000,
-                    color: 'primary'
-                });
-                await toast.present();
-
-                // Simulate sync process
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Update last sync date
-                lastSyncDate.value = new Date();
-
-                const resource = props.userType === 'artist' ? 'songs' : 'playlists';
-                
-                // Add to recent activity
-                recentActivity.value.unshift({
-                    action: 'import',
-                    description: `Synced ${resource} from connected platforms`,
-                    timestamp: new Date()
-                });
-
-                showToast(`${resource.charAt(0).toUpperCase() + resource.slice(1)} synced successfully!`, 'success');
-            } catch (error) {
-                console.error('Failed to sync:', error);
-                const resource = props.userType === 'artist' ? 'songs' : 'playlists';
-                showToast(`Failed to sync ${resource}`, 'danger');
-            }
-        };
-
         const getActivityIcon = (action: string) => {
             switch (action) {
                 case 'import':
@@ -597,28 +442,15 @@ export default defineComponent({
             platforms,
             linkedAccounts,
             recentActivity,
-            syncSettings,
-            lastSyncDate,
             hasLinkedAccounts,
-            // Computed content
+            // Simplified content
             title,
             backUrl,
             accountsTitle,
             accountsSubtitle,
             accountsIntro,
-            spotifyDescription,
-            youtubeDescription,
-            syncTitle,
-            syncSubtitle,
-            autoSyncTitle,
-            autoSyncDescription,
-            autoImportTitle,
-            autoImportDescription,
-            permissionIcon,
-            permissionTitle,
-            permissionDescription,
             // Icons
-            musicIcon: musicalNotes,
+            musicalNotes,
             personIcon: person,
             lockClosedIcon: lockClosed,
             refreshOutlineIcon: refreshOutline,
@@ -626,7 +458,6 @@ export default defineComponent({
             getLinkedAccount,
             connectPlatform,
             confirmDisconnect,
-            handleSync,
             getActivityIcon,
             formatDate
         };
@@ -656,16 +487,20 @@ export default defineComponent({
 }
 
 .accounts-card,
-.sync-settings-card,
 .permissions-card,
 .activity-card {
     margin-bottom: 1.5rem;
+}
+
+.centered-header {
+    text-align: center;
 }
 
 .accounts-intro {
     margin-bottom: 1.5rem;
     color: var(--ion-color-medium);
     line-height: 1.5;
+    text-align: center;
 }
 
 .platform-item {
@@ -673,6 +508,11 @@ export default defineComponent({
     --inner-padding-end: 0;
     --padding-top: 0.75rem;
     --padding-bottom: 0.75rem;
+}
+
+.platform-name {
+    font-weight: bold;
+    text-align: left;
 }
 
 .platform-icon {
@@ -709,11 +549,6 @@ export default defineComponent({
     color: var(--ion-color-medium);
     font-size: 0.9rem;
     line-height: 1.4;
-}
-
-.toggle-item {
-    --padding-top: 0.75rem;
-    --padding-bottom: 0.75rem;
 }
 
 .activity-icon {
