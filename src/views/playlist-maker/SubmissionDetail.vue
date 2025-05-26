@@ -58,11 +58,6 @@
                                     <div class="song-text">
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
-                                        <ion-button size="small" fill="clear" color="primary"
-                                            :href="submission.song?.url" target="_blank">
-                                            <ion-icon :icon="playIcon" slot="start"></ion-icon>
-                                            Listen on {{ submission.song?.platform?.name }}
-                                        </ion-button>
                                     </div>
                                 </div>
                             </div>

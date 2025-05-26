@@ -50,11 +50,6 @@
                                             <ion-icon :icon="informationIcon" slot="start"></ion-icon>
                                             View Details
                                         </ion-button>
-                                        <ion-button size="small" fill="clear" color="primary"
-                                            :href="submission.song?.url" target="_blank">
-                                            <ion-icon :icon="playIcon" slot="start"></ion-icon>
-                                            Listen on {{ submission.song?.platform?.name }}
-                                        </ion-button>
                                     </div>
                                 </div>
                             </div>
