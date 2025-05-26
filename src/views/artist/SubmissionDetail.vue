@@ -168,25 +168,13 @@
                     :show-edit-buttons="false"
                 />
             </ion-content>
-        </ion-modal>
-
-        <!-- Playlist Details Modal -->
+        </ion-modal>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Playlist Details</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closePlaylistModal">Close</ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
-                <playlist-details-modal
-                    v-if="submission?.playlist"
-                    :playlist="submission.playlist"
-                    :show-edit-buttons="false"
-                />
-            </ion-content>
+            <playlist-details-modal
+                v-if="submission?.playlist"
+                :playlist="submission.playlist"
+                :show-edit-buttons="false"
+            />
         </ion-modal>
 
         <!-- Bottom Navigation -->

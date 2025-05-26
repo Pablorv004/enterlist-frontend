@@ -102,13 +102,6 @@
                                         <span>My Songs</span>
                                     </ion-card-content>
                                 </ion-card>
-                            </ion-col>                            <ion-col size="6" size-md="3">
-                                <ion-card button router-link="/artist/profile" class="action-card">
-                                    <ion-card-content>
-                                        <ion-icon :icon="personIcon"></ion-icon>
-                                        <span>My Profile</span>
-                                    </ion-card-content>
-                                </ion-card>
                             </ion-col>
 
                             <ion-col size="6" size-md="3">
@@ -206,7 +199,7 @@
                         <ion-row>
                             <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="song in songs"
                                 :key="song.song_id">
-                                <ion-card button :router-link="`/artist/songs/${song.song_id}`" class="song-card">
+                                <ion-card button class="song-card" @click="openSongModal(song)">
                                     <div class="song-img-container">
                                         <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                             :alt="song.title" class="song-img" />
@@ -781,6 +774,19 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.song-platform {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .platform-icon {
