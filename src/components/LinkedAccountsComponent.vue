@@ -116,27 +116,6 @@
                             </div>
                         </ion-card-content>
                     </ion-card>
-
-                    <!-- Activity Card -->
-                    <ion-card v-if="hasLinkedAccounts && recentActivity.length > 0" class="activity-card">
-                        <ion-card-header>
-                            <ion-card-title>Recent Activity</ion-card-title>
-                            <ion-card-subtitle>Recent actions with your linked accounts</ion-card-subtitle>
-                        </ion-card-header>
-
-                        <ion-card-content>
-                            <ion-list class="activity-list">
-                                <ion-item v-for="(activity, index) in recentActivity" :key="index" class="activity-item">
-                                    <ion-icon :icon="getActivityIcon(activity.action || activity.type || 'default')" slot="start" class="activity-icon"></ion-icon>
-                                    <ion-label>
-                                        <h3>{{ activity.action || activity.title }}</h3>
-                                        <p>{{ activity.description }}</p>
-                                        <p class="activity-time">{{ formatDate(activity.timestamp) }}</p>
-                                    </ion-label>
-                                </ion-item>
-                            </ion-list>
-                        </ion-card-content>
-                    </ion-card>
                 </div>
             </div>
         </ion-content>
@@ -171,14 +150,6 @@ interface SyncSettings {
     autoImportNew: boolean;
 }
 
-interface ActivityItem {
-    action?: string;
-    type?: string;
-    title?: string;
-    description: string;
-    timestamp: Date | string;
-}
-
 export default defineComponent({
     name: 'LinkedAccountsComponent',
     components: {
@@ -204,10 +175,6 @@ export default defineComponent({
         const hasLinkedAccounts = computed(() => {
             return Array.isArray(linkedAccounts.value) && linkedAccounts.value.length > 0;
         });
-
-        // Mock recent activity data
-        const recentActivity = ref<ActivityItem[]>([]);
-
         // Simplified content - removed user type conditionals
         const title = computed(() => 'Linked Accounts');
         
@@ -246,19 +213,6 @@ export default defineComponent({
                 const response = await PlatformService.getLinkedAccounts(userId.value);
                 linkedAccounts.value = Array.isArray(response) ? response : [];
                 
-                // Simplified mock activity
-                recentActivity.value = [
-                    {
-                        action: 'import',
-                        description: 'Imported content from Spotify',
-                        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                    },
-                    {
-                        action: 'connect',
-                        description: 'Connected Spotify account',
-                        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-                    }
-                ];
             } catch (error) {
                 console.error('Failed to load linked accounts:', error);
                 showToast('Failed to load linked accounts', 'danger');
@@ -386,33 +340,10 @@ export default defineComponent({
                     account.platform_id !== platform.platform_id
                 );
 
-                recentActivity.value.unshift({
-                    action: 'disconnect',
-                    description: `Disconnected ${platform.name} account`,
-                    timestamp: new Date()
-                });
-
                 showToast(`Successfully disconnected from ${platform.name}`, 'success');
             } catch (error) {
                 console.error('Failed to disconnect platform:', error);
                 showToast(`Failed to disconnect from ${platform.name}`, 'danger');
-            }
-        };
-
-        const getActivityIcon = (action: string) => {
-            switch (action) {
-                case 'import':
-                    return cloudDownloadOutline;
-                case 'connect':
-                    return linkOutline;
-                case 'disconnect':
-                    return closeCircleOutline;
-                case 'sync':
-                    return refreshOutline;
-                case 'error':
-                    return warning;
-                default:
-                    return informationCircle;
             }
         };
 
@@ -441,7 +372,6 @@ export default defineComponent({
             loading,
             platforms,
             linkedAccounts,
-            recentActivity,
             hasLinkedAccounts,
             // Simplified content
             title,
@@ -458,7 +388,6 @@ export default defineComponent({
             getLinkedAccount,
             connectPlatform,
             confirmDisconnect,
-            getActivityIcon,
             formatDate
         };
     }
@@ -488,9 +417,6 @@ export default defineComponent({
 
 .accounts-card,
 .permissions-card,
-.activity-card {
-    margin-bottom: 1.5rem;
-}
 
 .centered-header {
     text-align: center;
@@ -549,16 +475,5 @@ export default defineComponent({
     color: var(--ion-color-medium);
     font-size: 0.9rem;
     line-height: 1.4;
-}
-
-.activity-icon {
-    color: var(--ion-color-primary);
-    font-size: 1.5rem;
-}
-
-.activity-time {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-    margin-top: 0.25rem;
 }
 </style>
