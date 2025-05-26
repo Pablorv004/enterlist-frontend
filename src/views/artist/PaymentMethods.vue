@@ -11,24 +11,23 @@
                 </div>                <!-- Empty State -->
                 <empty-state-display 
                     v-else-if="paymentMethods.length === 0"
-                    :icon="cardIcon"
+                    :icon="walletIcon"
                     title="No Payment Methods"
-                    message="Add a payment method to submit your songs to playlists"
+                    message="Add a PayPal account to submit your songs to playlists"
                     resource-type="payment-methods">
                     <template #actions>
                         <ion-button @click="showAddPaymentMethodModal">
                             <ion-icon :icon="addIcon" slot="start"></ion-icon>
-                            Add Payment Method
+                            Add PayPal Account
                         </ion-button>
                     </template>
                 </empty-state-display>
 
                 <!-- Payment Methods List -->
                 <div v-else>
-                    <ion-card>
-                        <ion-card-header>
-                            <ion-card-title>Your Payment Methods</ion-card-title>
-                            <ion-card-subtitle>Manage your payment options for song submissions</ion-card-subtitle>
+                    <ion-card>                        <ion-card-header>
+                            <ion-card-title>Your PayPal Accounts</ion-card-title>
+                            <ion-card-subtitle>Manage your PayPal accounts for song submissions</ion-card-subtitle>
                         </ion-card-header>
 
                         <ion-card-content>
@@ -135,61 +134,8 @@
                         </ion-button>
                     </ion-buttons>
                 </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <ion-list>
-                    <ion-radio-group v-model="newPaymentMethod.type">
-                        <ion-list-header>
-                            <ion-label>Payment Type</ion-label>
-                        </ion-list-header>
-
-                        <ion-item>
-                            <ion-thumbnail slot="start" class="payment-method-icon">
-                                <img src="@/assets/logo.png" alt="Credit Card">
-                            </ion-thumbnail>
-                            <ion-label>Credit Card</ion-label>
-                            <ion-radio slot="end" value="card"></ion-radio>
-                        </ion-item>
-
-                        <ion-item>
-                            <ion-thumbnail slot="start" class="payment-method-icon">
-                                <img src="@/assets/paypal.png" alt="PayPal">
-                            </ion-thumbnail>
-                            <ion-label>PayPal</ion-label>
-                            <ion-radio slot="end" value="paypal"></ion-radio>
-                        </ion-item>
-                    </ion-radio-group>
-                </ion-list>
-
-                <div v-if="newPaymentMethod.type === 'card'" class="card-form">
-                    <ion-item>
-                        <ion-label position="stacked">Card Number</ion-label>
-                        <ion-input v-model="newPaymentMethod.cardNumber" placeholder="XXXX XXXX XXXX XXXX"
-                            type="text"></ion-input>
-                    </ion-item>
-
-                    <div class="card-row">
-                        <ion-item class="expiry-item">
-                            <ion-label position="stacked">Expiry Date</ion-label>
-                            <ion-input v-model="newPaymentMethod.expiryDate" placeholder="MM/YY"
-                                type="text"></ion-input>
-                        </ion-item>
-
-                        <ion-item class="cvv-item">
-                            <ion-label position="stacked">CVV</ion-label>
-                            <ion-input v-model="newPaymentMethod.cvv" placeholder="XXX" type="text"></ion-input>
-                        </ion-item>
-                    </div>
-
-                    <ion-item>
-                        <ion-label position="stacked">Name on Card</ion-label>
-                        <ion-input v-model="newPaymentMethod.cardholderName" placeholder="John Doe"
-                            type="text"></ion-input>
-                    </ion-item>
-                </div>
-
-                <div v-if="newPaymentMethod.type === 'paypal'" class="paypal-form">
+            </ion-header>            <ion-content class="ion-padding">
+                <div class="paypal-form">
                     <ion-item>
                         <ion-label position="stacked">PayPal Email</ion-label>
                         <ion-input v-model="newPaymentMethod.paypalEmail" placeholder="email@example.com"
@@ -204,7 +150,7 @@
                 <div class="submit-button">
                     <ion-button expand="block" @click="addPaymentMethod" :disabled="addingPaymentMethod">
                         <ion-spinner v-if="addingPaymentMethod" name="crescent"></ion-spinner>
-                        <span v-else>Add Payment Method</span>
+                        <span v-else">Add PayPal Account</span>
                     </ion-button>
                 </div>
             </ion-content>
@@ -256,48 +202,10 @@ export default defineComponent({
 
         const isModalOpen = ref(false);
         const addingPaymentMethod = ref(false);        const newPaymentMethod = reactive({
-            type: 'card' as PaymentMethodType,
-            cardNumber: '',
-            expiryDate: '',
-            cvv: '',
-            cardholderName: '',
+            type: 'paypal' as PaymentMethodType,
             paypalEmail: '',
             setAsDefault: false
         });
-
-        // Card formatting functions
-        const formatCardNumber = (value: string): string => {
-            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-            const matches = v.match(/\d{4,16}/g);
-            const match = matches && matches[0] || '';
-            const parts = [];
-            for (let i = 0, len = match.length; i < len; i += 4) {
-                parts.push(match.substring(i, i + 4));
-            }
-            if (parts.length) {
-                return parts.join(' ');
-            } else {
-                return v;
-            }
-        };
-
-        const formatExpiryDate = (value: string): string => {
-            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-            if (v.length >= 2) {
-                return v.substring(0, 2) + '/' + v.substring(2, 4);
-            }
-            return v;
-        };
-
-        const onCardNumberInput = (event: any) => {
-            const formatted = formatCardNumber(event.target.value);
-            newPaymentMethod.cardNumber = formatted;
-        };
-
-        const onExpiryDateInput = (event: any) => {
-            const formatted = formatExpiryDate(event.target.value);
-            newPaymentMethod.expiryDate = formatted;
-        };
 
         onMounted(async () => {
             if (userId.value) {
@@ -306,7 +214,7 @@ export default defineComponent({
                     fetchTransactions()
                 ]);
             }
-        });        const fetchPaymentMethods = async () => {
+        });const fetchPaymentMethods = async () => {
             try {
                 loading.value = true;
                 paymentMethods.value = await PaymentMethodService.getPaymentMethods(userId.value);
@@ -329,23 +237,12 @@ export default defineComponent({
                 loadingTransactions.value = false;
             }
         };        const getPaymentMethodIcon = (type: PaymentMethodType): string => {
-            if (type === PaymentMethodType.CARD) {
-                return '../assets/logo.png'; // Using an existing image
-            } else if (type === PaymentMethodType.PAYPAL) {
+            if (type === PaymentMethodType.PAYPAL) {
                 return '@/assets/paypal.png'; // Using an existing image
             }
-            return '../assets/logo.png'; // Using an existing image
-        };
-
-        const formatPaymentMethodName = (method: PaymentMethod): string => {
-            if (method.type === PaymentMethodType.CARD) {
-                // Parse details (would be JSON in a real implementation)
-                const details = typeof method.details === 'string'
-                    ? JSON.parse(method.details)
-                    : method.details;
-
-                return `${details.brand || 'Card'} •••• ${details.last4 || '****'}`;
-            } else if (method.type === PaymentMethodType.PAYPAL) {
+            return '@/assets/paypal.png'; // Default to PayPal
+        };        const formatPaymentMethodName = (method: PaymentMethod): string => {
+            if (method.type === PaymentMethodType.PAYPAL) {
                 const details = typeof method.details === 'string'
                     ? JSON.parse(method.details)
                     : method.details;
@@ -354,16 +251,8 @@ export default defineComponent({
             }
 
             return 'Unknown Payment Method';
-        };
-
-        const formatPaymentMethodDetails = (method: PaymentMethod): string => {
-            if (method.type === PaymentMethodType.CARD) {
-                const details = typeof method.details === 'string'
-                    ? JSON.parse(method.details)
-                    : method.details;
-
-                return `Expires ${details.exp_month || 'MM'}/${details.exp_year || 'YY'}`;
-            } else if (method.type === PaymentMethodType.PAYPAL) {
+        };        const formatPaymentMethodDetails = (method: PaymentMethod): string => {
+            if (method.type === PaymentMethodType.PAYPAL) {
                 return 'PayPal Account';
             }
 
@@ -372,17 +261,11 @@ export default defineComponent({
 
         const showAddPaymentMethodModal = () => {
             isModalOpen.value = true;
-        };
-
-        const closeModal = () => {
+        };        const closeModal = () => {
             isModalOpen.value = false;
             // Reset form
             Object.assign(newPaymentMethod, {
-                type: 'card',
-                cardNumber: '',
-                expiryDate: '',
-                cvv: '',
-                cardholderName: '',
+                type: 'paypal',
                 paypalEmail: '',
                 setAsDefault: false
             });
@@ -390,65 +273,27 @@ export default defineComponent({
             try {
                 addingPaymentMethod.value = true;
 
-                if (newPaymentMethod.type === PaymentMethodType.CARD) {
-                    if (!newPaymentMethod.cardNumber || !newPaymentMethod.expiryDate ||
-                        !newPaymentMethod.cvv || !newPaymentMethod.cardholderName) {
-                        showToast('Please fill in all card details', 'warning');
-                        return;
-                    }
-
-                    // Format expiry date
-                    const [expMonth, expYear] = newPaymentMethod.expiryDate.split('/');
-                    
-                    // Use secure API endpoint to tokenize the card data
-                    // This prevents storing sensitive card details on the frontend
-                    const cardData = {
-                        cardNumber: newPaymentMethod.cardNumber,
-                        expiryMonth: expMonth,
-                        expiryYear: expYear,
-                        cvv: newPaymentMethod.cvv,
-                        cardholderName: newPaymentMethod.cardholderName
-                    };
-                    
-                    // Tokenize the card securely via backend
-                    const tokenResponse = await apiClient.post('/payment-methods/tokenize-card', cardData);
-                    const providerToken = tokenResponse.data.providerToken;
-
-                    await PaymentMethodService.createPaymentMethod({
-                        artist_id: userId.value,
-                        type: PaymentMethodType.CARD,
-                        provider_token: providerToken,
-                        details: JSON.stringify({
-                            brand: tokenResponse.data.cardBrand || 'Card',
-                            last4: newPaymentMethod.cardNumber.slice(-4),
-                            exp_month: expMonth,
-                            exp_year: expYear
-                        }),
-                        is_default: newPaymentMethod.setAsDefault
-                    });
-                } else if (newPaymentMethod.type === PaymentMethodType.PAYPAL) {
-                    if (!newPaymentMethod.paypalEmail) {
-                        showToast('Please enter your PayPal email', 'warning');
-                        return;
-                    }
-
-                    // Get PayPal token from backend using the provided email
-                    const paypalResponse = await apiClient.post('/payment-methods/create-paypal-token', {
-                        email: newPaymentMethod.paypalEmail
-                    });
-                    
-                    const paypalToken = paypalResponse.data.token;
-
-                    await PaymentMethodService.createPaymentMethod({
-                        artist_id: userId.value,
-                        type: PaymentMethodType.PAYPAL,
-                        provider_token: paypalToken,
-                        details: JSON.stringify({
-                            email: newPaymentMethod.paypalEmail
-                        }),
-                        is_default: newPaymentMethod.setAsDefault
-                    });
+                if (!newPaymentMethod.paypalEmail) {
+                    showToast('Please enter your PayPal email', 'warning');
+                    return;
                 }
+
+                // Get PayPal token from backend using the provided email
+                const paypalResponse = await apiClient.post('/payment-methods/create-paypal-token', {
+                    email: newPaymentMethod.paypalEmail
+                });
+                
+                const paypalToken = paypalResponse.data.token;
+
+                await PaymentMethodService.createPaymentMethod({
+                    artist_id: userId.value,
+                    type: PaymentMethodType.PAYPAL,
+                    provider_token: paypalToken,
+                    details: JSON.stringify({
+                        email: newPaymentMethod.paypalEmail
+                    }),
+                    is_default: newPaymentMethod.setAsDefault
+                });
 
                 // Refresh data
                 await fetchPaymentMethods();
@@ -456,13 +301,13 @@ export default defineComponent({
                 // Close modal
                 closeModal();
 
-                showToast('Payment method added successfully', 'success');
+                showToast('PayPal account added successfully', 'success');
             } catch (error) {
-                showToast('Failed to add payment method', 'danger');
+                showToast('Failed to add PayPal account', 'danger');
             } finally {
                 addingPaymentMethod.value = false;
             }
-        };        const setDefaultPaymentMethod = async (paymentMethodId: string) => {
+        };const setDefaultPaymentMethod = async (paymentMethodId: string) => {
             try {
                 await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId, userId.value);
 
@@ -579,7 +424,7 @@ export default defineComponent({
             isModalOpen,
             addingPaymentMethod,
             newPaymentMethod,
-            cardIcon: cardOutline,
+            walletIcon: cardOutline,
             addIcon: addOutline,
             checkmarkIcon: checkmarkOutline,
             trashIcon: trashOutline,
@@ -597,9 +442,7 @@ export default defineComponent({
             getTransactionStatusIcon,
             formatTransactionTitle,
             formatDate,
-            formatCurrency,
-            onCardNumberInput,
-            onExpiryDateInput
+            formatCurrency
         };
     }
 });
@@ -718,19 +561,6 @@ export default defineComponent({
 }
 
 /* Modal Styles */
-.card-row {
-    display: flex;
-    gap: 1rem;
-}
-
-.expiry-item {
-    flex: 2;
-}
-
-.cvv-item {
-    flex: 1;
-}
-
 .submit-button {
     margin-top: 2rem;
 }

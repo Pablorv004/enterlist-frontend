@@ -22,7 +22,6 @@ export enum TransactionStatus {
 
 // Payment method type enum
 export enum PaymentMethodType {
-  CARD = 'card',
   PAYPAL = 'paypal'
 }
 

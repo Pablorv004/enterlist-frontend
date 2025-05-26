@@ -744,13 +744,13 @@ export default defineComponent({
             }
 
             currentStep.value += 1;
-        };
-
-        const goToPreviousStep = () => {
+        };        const goToPreviousStep = () => {
             if (currentStep.value > 0) {
                 currentStep.value -= 1;
             }
-        };        // Formatting helpers
+        };
+
+        // Formatting helpers
         const formatGenre = (genre: string): string => {
             return genre.split('-').map(word =>
                 word.charAt(0).toUpperCase() + word.slice(1)
@@ -758,10 +758,7 @@ export default defineComponent({
         };
 
         const formatPaymentMethod = (method: PaymentMethod): string => {
-            if (method.type === 'card') {
-                const details = JSON.parse(method.details);
-                return `Card ending in ${details.last4}`;
-            } else if (method.type === 'paypal') {
+            if (method.type === 'paypal') {
                 const details = JSON.parse(method.details);
                 return `PayPal (${details.email})`;
             }
@@ -769,11 +766,8 @@ export default defineComponent({
         };
 
         const formatPaymentDetails = (method: PaymentMethod): string => {
-            if (method.type === 'card') {
-                const details = JSON.parse(method.details);
-                return `${details.brand} • Expires ${details.exp_month}/${details.exp_year}`;
-            }
-            return '';        };
+            return '';
+        };
 
         // Toast and alerts
         const showToast = async (message: string, color: string) => {
