@@ -507,7 +507,7 @@ export default defineComponent({
 }
 
 .import-btn {
-    --background: var(--ion-color-medium);
+    --background: var(--ion-color-primary);
     --border-radius: 8px;
     font-weight: 500;
 }

@@ -624,4 +624,12 @@ ion-segment-button {
   --color-checked: white;
   --indicator-color: var(--ion-color-primary);
 }
+
+ion-label h2 {
+  text-align: left;
+}
+
+ion-label p {
+  text-align: left;
+}
 </style>
