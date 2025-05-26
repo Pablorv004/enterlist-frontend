@@ -214,6 +214,42 @@
                         </ion-row>
                     </ion-grid>
                 </div>
+
+                <!-- Earnings Chart (if they have earnings) -->
+                <div v-if="!loadingEarnings && earningsStats.length > 0" class="earnings-section">
+                    <div class="section-header">
+                        <h2>Recent Earnings</h2>
+                    </div>
+                    
+                    <ion-card class="earnings-card">
+                        <ion-card-header>
+                            <ion-card-title>Earnings Overview</ion-card-title>
+                            <ion-card-subtitle>Last 12 months</ion-card-subtitle>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <div class="total-earnings">
+                                <h3>{{ formatCurrency(totalEarnings) }}</h3>
+                                <p>Total Earned</p>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <div v-if="loadingEarnings" class="loading-container">
+                                    <ion-spinner name="crescent"></ion-spinner>
+                                    <p>Loading earnings data...</p>
+                                </div>
+                                <div v-else-if="!chartData" class="no-earnings-message">
+                                    <p>No earnings data available for the last 12 months</p>
+                                </div>
+                                <div v-else class="chart-wrapper">
+                                    <Bar 
+                                        :data="chartData" 
+                                        :options="chartOptions" 
+                                    />
+                                </div>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </div>
             </div>
         </ion-content>
         
@@ -264,13 +300,14 @@ import { useAuthStore } from '@/store';
 import { Playlist, Submission, SubmissionStatus } from '@/types';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default defineComponent({
-    name: 'PlaylistMakerDashboard',    components: {
+    name: 'PlaylistMakerDashboard',
+    components: {
         IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
         IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
         IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner,
@@ -279,6 +316,7 @@ export default defineComponent({
     setup() {
         const authStore = useAuthStore();
         const user = computed(() => authStore.user);
+        const router = useRouter();
 
         const playlistsCount = ref(0);
         const pendingSubmissionsCount = ref(0);
@@ -589,7 +627,8 @@ export default defineComponent({
             recentPlaylists,
             loadingSubmissions,
             loadingPlaylists,
-            hasEarnings,            totalEarnings,
+            hasEarnings,
+            totalEarnings,
             earningsStats,
             loadingEarnings,
             chartData,
