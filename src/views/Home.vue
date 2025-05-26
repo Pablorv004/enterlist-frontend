@@ -104,7 +104,6 @@ import {
 } from '@ionic/vue';
 import { person, musicalNotes, logoYoutube } from 'ionicons/icons';
 import spotifyLogo from '@/assets/spotify.png';
-import youtubeLogo from '@/assets/youtube.png';
 import { useAuthStore } from '@/store';
 import AppHeader from '@/components/AppHeader.vue';
 
