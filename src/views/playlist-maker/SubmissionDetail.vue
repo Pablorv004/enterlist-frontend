@@ -94,13 +94,13 @@
                     <ion-card-content>
                         <div class="playlist-info">
                             <ion-thumbnail class="playlist-thumbnail">
-                                <img :src="submission.playlist?.cover_image_url || '/assets/default-playlist-cover.png'"
-                                    :alt="submission.playlist?.name" />
+                                <img :src="completePlaylistData?.cover_image_url || '/assets/default-playlist-cover.png'"
+                                    :alt="completePlaylistData?.name" />
                             </ion-thumbnail>                            <div class="playlist-details">
-                                <h4>{{ submission.playlist?.name }}</h4>
-                                <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
+                                <h4>{{ completePlaylistData?.name }}</h4>
+                                <p v-if="completePlaylistData?.genre">{{ completePlaylistData?.genre }}</p>
                                 <ion-button size="small" fill="clear" color="primary" 
-                                    @click="openPlaylistModal" v-if="submission.playlist">
+                                    @click="openPlaylistModal" v-if="completePlaylistData">
                                     <ion-icon :icon="openIcon" slot="start"></ion-icon>
                                     View Playlist
                                 </ion-button>
@@ -320,8 +320,8 @@
         </ion-modal>        <!-- Playlist Details Modal -->        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
-                v-if="submission?.playlist"
-                :playlist="submission.playlist"
+                v-if="completePlaylistData"
+                :playlist="completePlaylistData"
                 :show-edit-buttons="true"
                 @playlist-updated="onPlaylistUpdated"
                 @view-submissions="onViewSubmissions"
@@ -626,6 +626,7 @@ export default defineComponent({
             if (submission.value?.playlist) {
                 submission.value.playlist = updatedPlaylist;
             }
+            completePlaylistData.value = updatedPlaylist;
         };
 
         const onViewSubmissions = () => {

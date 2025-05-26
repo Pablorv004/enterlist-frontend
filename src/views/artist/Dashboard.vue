@@ -26,17 +26,7 @@
                                 </ion-card-content>
                             </ion-card>
                         </ion-col>
-
-                        <ion-col size="12" size-md="3">
-                            <ion-card class="stats-card">
-                                <ion-card-content>
-                                    <div class="stats-icon">
-                                        <ion-icon :icon="searchIcon"></ion-icon>
-                                    </div>
-                                </ion-card-content>
-                            </ion-card>
-                        </ion-col>
-
+                        
                         <ion-col size="12" size-md="3">
                             <ion-card class="stats-card">
                                 <ion-card-content>

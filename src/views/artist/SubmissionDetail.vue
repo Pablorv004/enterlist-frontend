@@ -64,13 +64,13 @@
                                 <h3>Playlist Details</h3>
                                 <div class="playlist-details">
                                     <ion-thumbnail class="playlist-thumbnail">
-                                        <img :src="submission.playlist?.cover_image_url || '/assets/default-playlist-cover.png'"
-                                            :alt="submission.playlist?.name" />
+                                        <img :src="completePlaylistData?.cover_image_url || '/assets/default-playlist-cover.png'"
+                                            :alt="completePlaylistData?.name" />
                                     </ion-thumbnail>                                    <div class="playlist-text">
-                                        <h4>{{ submission.playlist?.name }}</h4>
-                                        <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
+                                        <h4>{{ completePlaylistData?.name }}</h4>
+                                        <p v-if="completePlaylistData?.genre">{{ completePlaylistData?.genre }}</p>
                                         <ion-button size="small" fill="clear" color="primary"
-                                            @click="openPlaylistModal" v-if="submission.playlist">
+                                            @click="openPlaylistModal" v-if="completePlaylistData">
                                             <ion-icon :icon="openIcon" slot="start"></ion-icon>
                                             View Playlist
                                         </ion-button>
