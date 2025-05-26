@@ -230,8 +230,31 @@ const router = createRouter({
     routes
 });
 
-// Initialize OAuth service for handling both mobile and web OAuth flows
-const oauthService = OAuthService.initialize(router);
+// Global OAuth service instance
+let globalOAuthService: OAuthService | null = null;
+
+// Function to get or create OAuth service instance
+function getOAuthService(): OAuthService {
+    if (!globalOAuthService) {
+        globalOAuthService = new OAuthService(router);
+        
+        // Set up mobile deep links if on native platform
+        if (Capacitor.isNativePlatform()) {
+            // Use dynamic import to avoid immediate initialization
+            import('@capacitor/app').then(({ App: CapacitorApp }) => {
+                CapacitorApp.addListener('appUrlOpen', async (event) => {
+                    try {
+                        await globalOAuthService!.handleMobileCallback(event.url);
+                    } catch (error) {
+                        console.error('Mobile OAuth callback failed:', error);
+                        await globalOAuthService!.handleOAuthError('OAuth authentication failed');
+                    }
+                });
+            });
+        }
+    }
+    return globalOAuthService;
+}
 
 // Navigation guards
 router.beforeEach(async (to, from, next) => {
@@ -239,8 +262,10 @@ router.beforeEach(async (to, from, next) => {
     
     // Always initialize from storage before checking auth
     authStore.initializeFromStorage();
-      // Handle OAuth redirects using the unified OAuth service for web platform
+    
+    // Handle OAuth redirects using the unified OAuth service for web platform
     if (!Capacitor.isNativePlatform()) {
+        const oauthService = getOAuthService();
         const isOAuthHandled = await oauthService.handleWebCallback(to.query);
         if (isOAuthHandled) {
             // OAuth service handled the redirect, don't proceed with normal routing

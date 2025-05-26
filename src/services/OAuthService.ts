@@ -16,11 +16,18 @@ export interface OAuthErrorData {
 
 export class OAuthService {
   private router: Router;
-  private authStore: ReturnType<typeof useAuthStore>;
+  private _authStore: ReturnType<typeof useAuthStore> | null = null;
 
   constructor(router: Router) {
     this.router = router;
-    this.authStore = useAuthStore();
+  }
+
+  // Lazy getter for auth store to avoid Pinia initialization issues
+  private get authStore() {
+    if (!this._authStore) {
+      this._authStore = useAuthStore();
+    }
+    return this._authStore;
   }
 
   /**
@@ -130,8 +137,7 @@ export class OAuthService {
         });
         
         await this.handleOAuthCallback(params);
-        return true;
-      } catch (error) {
+        return true;    } catch (error) {
         console.error('OAuth web callback failed:', error);
         await this.handleOAuthError('OAuth authentication failed');
         return true;
@@ -139,35 +145,5 @@ export class OAuthService {
     }
     
     return false;
-  }
-
-  /**
-   * Initialize OAuth service for the current platform
-   */
-  static initialize(router: Router): OAuthService {
-    const service = new OAuthService(router);
-    
-    // Set up mobile deep link handling if on native platform
-    if (Capacitor.isNativePlatform()) {
-      service.setupMobileDeepLinks();
-    }
-    
-    return service;
-  }
-
-  /**
-   * Set up mobile deep link listeners
-   */
-  private async setupMobileDeepLinks(): Promise<void> {
-    const { App: CapacitorApp } = await import('@capacitor/app');
-    
-    CapacitorApp.addListener('appUrlOpen', async (event) => {
-      try {
-        await this.handleMobileCallback(event.url);
-      } catch (error) {
-        console.error('Mobile OAuth callback failed:', error);
-        await this.handleOAuthError('OAuth authentication failed');
-      }
-    });
   }
 }
