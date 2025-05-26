@@ -6,6 +6,14 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https'
+  },
+  plugins: {
+    App: {
+      appUrlOpen: {
+        enabled: true,
+        url: "enterlist"
+      }
+    }
   }
 };
 

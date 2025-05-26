@@ -233,14 +233,35 @@ router.beforeEach(async (to, from, next) => {
     const isOAuthRedirect = to.query.provider && to.query.status === 'success';
     
     if (isOAuthRedirect) {
-        // For OAuth redirects, check if we have a token (from cookies)
-        // and allow navigation to role-selection or dashboard
-        if (authStore.isAuthenticated) {
-            // Let the OAuth redirect proceed
-            next();
-            return;
+        // For OAuth redirects, check if we have tokens in the URL parameters
+        const accessToken = to.query.access_token as string;
+        const userData = to.query.user as string;
+        const isNewUser = to.query.isNewUser === 'true';
+        const needsRoleSelection = to.query.needsRoleSelection === 'true';
+        
+        if (accessToken && userData) {
+            // Store the token and user data in the auth store
+            try {
+                const user = JSON.parse(userData);
+                authStore.setAuthData(accessToken, user);
+                
+                // Redirect based on user state
+                if (isNewUser || needsRoleSelection) {
+                    // Clear the URL parameters and go to role selection
+                    next({ name: 'RoleSelection', replace: true });
+                    return;
+                } else {
+                    // Clear the URL parameters and go to dashboard
+                    next({ name: 'Dashboard', replace: true });
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to parse OAuth user data:', error);
+                next({ name: 'Login', query: { error: 'OAuth authentication failed' } });
+                return;
+            }
         } else {
-            // If no token found, something went wrong, redirect to login
+            // If no token found in URL, something went wrong
             next({ name: 'Login', query: { error: 'OAuth authentication failed' } });
             return;
         }

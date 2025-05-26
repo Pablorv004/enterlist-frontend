@@ -2,60 +2,48 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { User, UserRole, AuthResponse } from '@/types';
 import { AuthService } from '@/services/AuthService';
+import { Capacitor } from '@capacitor/core';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const token = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  // Initialize from local storage
-  const initializeFromStorage = () => {
-    // First check localStorage
-    const storedUser = localStorage.getItem('enterlist_user');
-    const storedToken = localStorage.getItem('enterlist_token');
+    // Initialize from storage (mobile-aware)
+  const initializeFromStorage = async () => {
+    if (Capacitor.isNativePlatform()) {
+      // Use Capacitor Preferences for mobile
+      const { Preferences } = await import('@capacitor/preferences');
+      
+      const { value: tokenValue } = await Preferences.get({ key: 'enterlist_token' });
+      const { value: userValue } = await Preferences.get({ key: 'enterlist_user' });
+      
+      if (tokenValue) {
+        token.value = tokenValue;
+      }
+      if (userValue) {
+        user.value = JSON.parse(userValue);
+      }
+    } else {
+      // Web platform - use localStorage only
+      const storedUser = localStorage.getItem('enterlist_user');
+      const storedToken = localStorage.getItem('enterlist_token');
 
-    if (storedUser) {
-      user.value = JSON.parse(storedUser);
-    }
-
-    if (storedToken) {
-      token.value = storedToken;
-    }
-
-    // If no data in localStorage, check cookies (for OAuth redirects)
-    if (!user.value || !token.value) {
-      const cookieToken = getCookie('enterlist_token');
-      const cookieUser = getCookie('enterlist_user');
-
-      if (cookieToken) {
-        token.value = cookieToken;
-        localStorage.setItem('enterlist_token', cookieToken);
-        // Clear the cookie after moving to localStorage
-        document.cookie = 'enterlist_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      if (storedUser) {
+        user.value = JSON.parse(storedUser);
       }
 
-      if (cookieUser) {
-        user.value = JSON.parse(cookieUser);
-        localStorage.setItem('enterlist_user', cookieUser);
-        // Clear the cookie after moving to localStorage
-        document.cookie = 'enterlist_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      if (storedToken) {
+        token.value = storedToken;
       }
     }
   };
-
-  // Helper function to get cookie value
-  const getCookie = (name: string): string | null => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-    return null;
-  };// Computed properties
+  // Computed properties
   const isAuthenticated = computed(() => !!token.value);
   const isArtist = computed(() => user.value?.role === UserRole.ARTIST);
   const isPlaylistMaker = computed(() => user.value?.role === UserRole.PLAYLIST_MAKER);
   const isAdmin = computed(() => user.value?.role === UserRole.ADMIN);
   const hasRole = computed(() => !!user.value?.role);
-
   // Actions
   const login = async (email: string, password: string): Promise<void> => {
     loading.value = true;
@@ -66,9 +54,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.user;
       token.value = response.access_token;
 
-      // Store in localStorage
-      localStorage.setItem('enterlist_user', JSON.stringify(response.user));
-      localStorage.setItem('enterlist_token', response.access_token);
+      // Store in appropriate storage
+      await storeAuthData(response.user, response.access_token);
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to login';
       throw err;
@@ -98,16 +85,56 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const logout = (): void => {
+  const logout = async (): Promise<void> => {
     user.value = null;
     token.value = null;
-    localStorage.removeItem('enterlist_user');
-    localStorage.removeItem('enterlist_token');
+    
+    if (Capacitor.isNativePlatform()) {
+      // Clear mobile storage
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.remove({ key: 'enterlist_user' });
+      await Preferences.remove({ key: 'enterlist_token' });
+    } else {
+      // Clear web storage
+      localStorage.removeItem('enterlist_user');
+      localStorage.removeItem('enterlist_token');
+    }
   };
 
-  const updateProfile = (updatedUser: User): void => {
+  const updateProfile = async (updatedUser: User): Promise<void> => {
     user.value = updatedUser;
-    localStorage.setItem('enterlist_user', JSON.stringify(updatedUser));
+    await storeUserData(updatedUser);
+  };
+
+  // Helper function to store auth data
+  const storeAuthData = async (userData: User, authToken: string): Promise<void> => {
+    if (Capacitor.isNativePlatform()) {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({
+        key: 'enterlist_user',
+        value: JSON.stringify(userData)
+      });
+      await Preferences.set({
+        key: 'enterlist_token',
+        value: authToken
+      });
+    } else {
+      localStorage.setItem('enterlist_user', JSON.stringify(userData));
+      localStorage.setItem('enterlist_token', authToken);
+    }
+  };
+
+  // Helper function to store user data only
+  const storeUserData = async (userData: User): Promise<void> => {
+    if (Capacitor.isNativePlatform()) {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({
+        key: 'enterlist_user',
+        value: JSON.stringify(userData)
+      });
+    } else {
+      localStorage.setItem('enterlist_user', JSON.stringify(userData));
+    }
   };
 
   const checkAuth = async (): Promise<void> => {
@@ -118,10 +145,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const userData = await AuthService.getProfile();
       user.value = userData;
-      localStorage.setItem('enterlist_user', JSON.stringify(userData));
+      await storeUserData(userData);
     } catch (err) {
       // If token is invalid, logout
-      logout();
+      await logout();
     } finally {
       loading.value = false;
     }  };
@@ -163,7 +190,14 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loading.value = false;
     }
-  };  return {
+  };  // Helper method to set auth data (for OAuth flow)
+  const setAuthData = async (authToken: string, userData: User): Promise<void> => {
+    user.value = userData;
+    token.value = authToken;
+    await storeAuthData(userData, authToken);
+  };
+
+  return {
     user,
     token,
     loading,
@@ -180,6 +214,7 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfile,
     checkAuth,
     spotifyAuth,
-    youtubeAuth
+    youtubeAuth,
+    setAuthData
   };
 });
