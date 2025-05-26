@@ -195,11 +195,18 @@
                                             <p v-if="selectedSong.artist_name_on_platform">{{
                                                 selectedSong.artist_name_on_platform }}</p>
                                             <p v-if="selectedSong.album_name">{{ selectedSong.album_name }}</p>
-                                            <ion-button v-if="selectedSong.url" fill="clear" size="small"
-                                                color="primary" @click="previewSong(selectedSong.url)">
-                                                <ion-icon :icon="playIcon" slot="start"></ion-icon>
-                                                Preview
-                                            </ion-button>
+                                            <div class="summary-actions">
+                                                <ion-button v-if="selectedSong.url" fill="clear" size="small"
+                                                    color="primary" @click="previewSong(selectedSong.url)">
+                                                    <ion-icon :icon="playIcon" slot="start"></ion-icon>
+                                                    Preview
+                                                </ion-button>
+                                                <ion-button fill="clear" size="small" color="primary"
+                                                    @click="showSongDetails(selectedSong)">
+                                                    <ion-icon :icon="informationIcon" slot="start"></ion-icon>
+                                                    View Details
+                                                </ion-button>
+                                            </div>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -217,8 +224,15 @@
                                                 :alt="selectedPlaylist.name" />
                                         </ion-thumbnail>
                                         <div class="summary-details">
-                                            <h3>{{ selectedPlaylist.name }}</h3>                                            <p v-if="selectedPlaylist.genre">{{ formatGenre(selectedPlaylist.genre) }}
-                                            </p>
+                                            <h3>{{ selectedPlaylist.name }}</h3>
+                                            <p v-if="selectedPlaylist.genre">{{ formatGenre(selectedPlaylist.genre) }}</p>
+                                            <div class="summary-actions">
+                                                <ion-button fill="clear" size="small" color="primary"
+                                                    @click="showPlaylistDetailsInReview(selectedPlaylist)">
+                                                    <ion-icon :icon="informationIcon" slot="start"></ion-icon>
+                                                    View Details
+                                                </ion-button>
+                                            </div>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -348,7 +362,18 @@
                     </div>
                 </div>
             </div>
-        </ion-content>        <!-- Playlist Details Modal -->
+        </ion-content>
+
+        <!-- Song Details Modal -->
+        <ion-modal :is-open="showSongModal" @didDismiss="showSongModal = false">
+            <song-details-modal
+                v-if="selectedModalSong"
+                :song="selectedModalSong"
+                :show-edit-buttons="false"
+            />
+        </ion-modal>
+
+        <!-- Playlist Details Modal -->
         <ion-modal :is-open="showPlaylistModal" @didDismiss="showPlaylistModal = false">
             <playlist-details-modal
                 v-if="selectedModalPlaylist"
@@ -385,14 +410,16 @@ import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { Song, Playlist, PaymentMethod, Submission } from '@/types';
 import { useAuthStore } from '@/store';
+import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
-    name: 'ArtistNewSubmission',    components: {
+    name: 'ArtistNewSubmission',
+    components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard, IonCardHeader,
         IonCardTitle, IonCardSubtitle, IonCardContent, IonSearchbar, IonList, IonItem,
         IonThumbnail, IonLabel, IonBadge, IonRadio, IonRadioGroup, IonSelect, IonSelectOption,
         IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
-        AppHeader, BottomNavigation, PlaylistDetailsModal
+        AppHeader, BottomNavigation, PlaylistDetailsModal, SongDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -430,6 +457,10 @@ export default defineComponent({
 
         // Submission Result - Success Step
         const submissionResult = ref<Submission | null>(null);
+
+        // Modal state
+        const showSongModal = ref(false);
+        const selectedModalSong = ref<Song | null>(null);
 
         // Initialize with pre-selected song if provided in query
         onMounted(async () => {
@@ -766,6 +797,18 @@ export default defineComponent({
             await alert.present();
         };
 
+        // Show song details modal
+        const showSongDetails = (song: Song) => {
+            selectedModalSong.value = song;
+            showSongModal.value = true;
+        };
+
+        // Show playlist details modal in review step
+        const showPlaylistDetailsInReview = (playlist: Playlist) => {
+            selectedModalPlaylist.value = playlist;
+            showPlaylistModal.value = true;
+        };
+
         return {
             // Step management
             steps,
@@ -804,6 +847,12 @@ export default defineComponent({
 
             // Success step
             submissionResult,
+
+            // Modal state
+            showSongModal,
+            showSongDetails,
+            showPlaylistDetailsInReview,
+            selectedModalSong,
 
             // Methods
             searchPlaylists,
@@ -1288,5 +1337,23 @@ export default defineComponent({
     display: flex;
     justify-content: flex-end;
     margin-top: 2rem;
+}
+
+.summary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.summary-actions ion-button {
+    flex: 1;
+    min-width: 100px;
+}
+
+@media (min-width: 576px) {
+    .summary-actions ion-button {
+        flex: initial;
+    }
 }
 </style>
