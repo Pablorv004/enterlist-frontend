@@ -369,13 +369,14 @@ export default defineComponent({
 
                 const skip = (currentPage.value - 1) * itemsPerPage.value;
                 let statusFilter = selectedStatus.value !== 'all' ? selectedStatus.value as SubmissionStatus : undefined;
-                let playlistId = selectedPlaylist.value !== 'all' ? selectedPlaylist.value : undefined;
+                let playlistFilter = selectedPlaylist.value !== 'all' ? selectedPlaylist.value : undefined;
 
                 const response = await SubmissionService.getSubmissionsByCreator(
                     userId.value,
                     skip,
                     itemsPerPage.value,
                     statusFilter,
+                    playlistFilter
                 );
 
                 submissions.value = response.data;

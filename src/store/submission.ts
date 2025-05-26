@@ -50,14 +50,14 @@ export const useSubmissionStore = defineStore('submission', () => {
     } finally {
       loading.value = false;
     }
-  };const fetchSubmissionsByCreator = async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<void> => {
+  };const fetchSubmissionsByCreator = async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus, playlistId?: string): Promise<void> => {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await SubmissionService.getSubmissionsByCreator(creatorId, skip, take, status);
-      submissions.value = response.data;
-      totalCount.value = response.data.length;
+        const response = await SubmissionService.getSubmissionsByCreator(creatorId, skip, take, status, playlistId);
+        submissions.value = response.data;
+        totalCount.value = response.total;
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch submissions';
       throw err;

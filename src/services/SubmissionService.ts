@@ -67,16 +67,19 @@ export const SubmissionService = {
     }
   },
   
-  getSubmissionsByCreator: async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus): Promise<PaginatedResponse<Submission>> => {
+  getSubmissionsByCreator: async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus, playlistId?: string): Promise<PaginatedResponse<Submission>> => {
     try {
-      let url = `/submissions/creator/${creatorId}?skip=${skip}&take=${take}`;
-      if (status) {
-        url += `&status=${status}`;
-      }
-      const response = await apiClient.get(url);
-      return response.data;
+        let url = `/submissions/creator/${creatorId}?skip=${skip}&take=${take}`;
+        if (status) {
+            url += `&status=${status}`;
+        }
+        if (playlistId) {
+            url += `&playlistId=${playlistId}`;
+        }
+        const response = await apiClient.get(url);
+        return response.data;
     } catch (error: unknown) {
-      return handleNotFoundPaginated<Submission>(error);
+        return handleNotFoundPaginated<Submission>(error);
     }
   },
 
