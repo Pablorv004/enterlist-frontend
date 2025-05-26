@@ -104,8 +104,8 @@
                             </ion-thumbnail>                            <div class="playlist-details">
                                 <h4>{{ submission.playlist?.name }}</h4>
                                 <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
-                                <ion-button size="small" fill="clear" color="primary" :href="submission.playlist?.url"
-                                    target="_blank">
+                                <ion-button size="small" fill="clear" color="primary" 
+                                    @click="openPlaylistModal" v-if="submission.playlist">
                                     <ion-icon :icon="openIcon" slot="start"></ion-icon>
                                     View Playlist
                                 </ion-button>
@@ -323,6 +323,18 @@
                 </ion-list>
             </ion-content>
         </ion-modal>
+
+        <!-- Playlist Details Modal -->
+        <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
+            <playlist-details-modal
+                v-if="submission?.playlist"
+                :playlist="submission.playlist"
+                :playlist-stats="playlistStatsMap"
+                :show-edit-buttons="true"
+                @playlist-updated="onPlaylistUpdated"
+                @view-submissions="onViewSubmissions"
+            />
+        </ion-modal>
         
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="submissions"></bottom-navigation>
@@ -345,8 +357,9 @@ import {
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
-import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
+import { Playlist, Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useToast } from '@/composables/useToast';
+import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 
 export default defineComponent({
     name: 'PlaylistMakerSubmissionDetail',
@@ -354,7 +367,7 @@ export default defineComponent({
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel,        IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
         IonItem, IonTextarea, IonNote, IonList,
-        AppHeader, BottomNavigation
+        AppHeader, BottomNavigation, PlaylistDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -371,6 +384,7 @@ export default defineComponent({
         const rejectModalOpen = ref(false);
         const editFeedbackModalOpen = ref(false);
         const artistHistoryModalOpen = ref(false);
+        const isPlaylistModalOpen = ref(false);
 
         // Form data
         const approvalFeedback = ref('');
@@ -381,6 +395,20 @@ export default defineComponent({
         // Artist history
         const artistHistory = ref<Submission[]>([]);
         const loadingHistory = ref(false);
+
+        // Playlist stats for modal
+        const playlistStatsMap = computed(() => {
+            if (!submission.value?.playlist) return {};
+            return {
+                [submission.value.playlist.playlist_id]: {
+                    submissions: 0,
+                    pending: 0,
+                    approved: 0,
+                    rejected: 0,
+                    earnings: 0
+                }
+            };
+        });
 
         const fetchSubmission = async () => {
             try {
@@ -519,6 +547,14 @@ export default defineComponent({
             editFeedbackModalOpen.value = true;
         };
 
+        const openPlaylistModal = () => {
+            isPlaylistModalOpen.value = true;
+        };
+
+        const closePlaylistModal = () => {
+            isPlaylistModalOpen.value = false;
+        };
+
         const markAsUnderReview = async () => {
             if (!submission.value) return;
 
@@ -616,6 +652,17 @@ export default defineComponent({
             }
         };
 
+        const onPlaylistUpdated = (updatedPlaylist: Playlist) => {
+            if (submission.value?.playlist) {
+                submission.value.playlist = updatedPlaylist;
+            }
+        };
+
+        const onViewSubmissions = () => {
+            closePlaylistModal();
+            router.push('/playlist-maker/submissions');
+        };
+
         return {
             submission,
             loading,
@@ -633,6 +680,7 @@ export default defineComponent({
             rejectModalOpen,
             editFeedbackModalOpen,
             artistHistoryModalOpen,
+            isPlaylistModalOpen,
             // Form data
             approvalFeedback,
             rejectionFeedback,
@@ -641,15 +689,21 @@ export default defineComponent({
             // Artist history
             artistHistory,
             loadingHistory,
+            // Playlist stats
+            playlistStatsMap,
             // Action handlers
             openApproveModal,
             openRejectModal,
             openEditFeedbackModal,
+            openPlaylistModal,
             markAsUnderReview,
             approveSubmission,
             rejectSubmission,
             updateFeedback,
             showArtistHistory,
+            closePlaylistModal,
+            onPlaylistUpdated,
+            onViewSubmissions,
             // Icons
             alertCircleIcon: alertCircle,
             checkmarkIcon: checkmark,

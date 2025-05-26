@@ -67,7 +67,7 @@
                                         <h4>{{ submission.playlist?.name }}</h4>
                                         <p v-if="submission.playlist?.genre">{{ submission.playlist?.genre }}</p>
                                         <ion-button size="small" fill="clear" color="primary"
-                                            :href="submission.playlist?.url" target="_blank">
+                                            @click="openPlaylistModal" v-if="submission.playlist">
                                             <ion-icon :icon="openIcon" slot="start"></ion-icon>
                                             View Playlist
                                         </ion-button>
@@ -146,8 +146,20 @@
                     </ion-button>
                 </div>
             </div>
-        </ion-content>    <!-- Bottom Navigation -->
-    <bottom-navigation active-tab="submissions"></bottom-navigation>
+        </ion-content>
+
+        <!-- Playlist Details Modal -->
+        <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
+            <playlist-details-modal
+                v-if="submission?.playlist"
+                :playlist="submission.playlist"
+                :playlist-stats="{}"
+                :show-edit-buttons="false"
+            />
+        </ion-modal>
+
+        <!-- Bottom Navigation -->
+        <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
 </template>
 
@@ -167,12 +179,14 @@ import BottomNavigation from '@/components/BottomNavigation.vue';
 import { SubmissionService } from '@/services/SubmissionService';
 import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useSubmissionStore } from '@/store';
+import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 
 export default defineComponent({
-    name: 'ArtistSubmissionDetail',    components: {
+    name: 'ArtistSubmissionDetail',
+    components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge,
-        AppHeader, BottomNavigation
+        AppHeader, BottomNavigation, PlaylistDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -301,6 +315,17 @@ export default defineComponent({
             }
         };
 
+        // Playlist modal state
+        const isPlaylistModalOpen = ref(false);
+
+        const openPlaylistModal = () => {
+            isPlaylistModalOpen.value = true;
+        };
+
+        const closePlaylistModal = () => {
+            isPlaylistModalOpen.value = false;
+        };
+
         return {
             submission,
             loading,            error,
@@ -312,6 +337,9 @@ export default defineComponent({
             getStatusIcon,
             formatCurrency,
             resubmitSong,
+            isPlaylistModalOpen,
+            openPlaylistModal,
+            closePlaylistModal,
             alertCircleIcon: alertCircle,
             playIcon: play,
             openIcon: open,

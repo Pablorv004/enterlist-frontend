@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <ion-item lines="none" class="playlist-visibility-toggle">
+            <ion-item lines="none" class="playlist-visibility-toggle" v-if="showEditButtons">
                 <ion-label>Active for Submissions</ion-label>
                 <ion-toggle v-model="playlist.is_visible"
                     @ionChange="updatePlaylistVisibility"></ion-toggle>
@@ -44,7 +44,7 @@
                         <div class="detail-label">Genre</div>
                         <div class="detail-value genre-edit">
                             <span>{{ playlist.genre || 'Not specified' }}</span>
-                            <ion-button fill="clear" size="small" @click="showGenreEditModal">
+                            <ion-button v-if="showEditButtons" fill="clear" size="small" @click="showGenreEditModal">
                                 <ion-icon :icon="pencilIcon" slot="icon-only"></ion-icon>
                             </ion-button>
                         </div>
@@ -59,7 +59,7 @@
                         <div class="detail-label">Submission Fee</div>
                         <div class="detail-value fee-edit">
                             <span>{{ playlist.submission_fee ? formatCurrency(playlist.submission_fee) : 'Free' }}</span>
-                            <ion-button fill="clear" size="small" @click="showFeeEditModal">
+                            <ion-button v-if="showEditButtons" fill="clear" size="small" @click="showFeeEditModal">
                                 <ion-icon :icon="pencilIcon" slot="icon-only"></ion-icon>
                             </ion-button>
                         </div>
@@ -218,7 +218,7 @@
                         <div class="earnings-value">{{ formatCurrency(getEarnings(playlist.playlist_id)) }}</div>
                     </div>
 
-                    <div class="submissions-link">
+                    <div class="submissions-link" v-if="showEditButtons">
                         <ion-button expand="block" @click="viewSubmissions(playlist)">
                             <ion-icon :icon="mailUnreadIcon" slot="start"></ion-icon>
                             View Submissions
@@ -230,7 +230,7 @@
     </ion-content>
 
     <!-- Submission Fee Edit Modal -->
-    <ion-modal :is-open="isFeeModalOpen" @didDismiss="closeFeeModal" class="fee-edit-modal">
+    <ion-modal v-if="showEditButtons" :is-open="isFeeModalOpen" @didDismiss="closeFeeModal" class="fee-edit-modal">
         <ion-header>
             <ion-toolbar>
                 <ion-title>Edit Submission Fee</ion-title>
@@ -267,7 +267,7 @@
     </ion-modal>
 
     <!-- Genre Edit Modal -->
-    <ion-modal :is-open="isGenreModalOpen" @didDismiss="closeGenreModal" class="genre-edit-modal">
+    <ion-modal v-if="showEditButtons" :is-open="isGenreModalOpen" @didDismiss="closeGenreModal" class="genre-edit-modal">
         <ion-header>
             <ion-toolbar>
                 <ion-title>Edit Genre</ion-title>
@@ -357,6 +357,10 @@ export default defineComponent({
         playlistStats: {
             type: Object as () => Record<string, PlaylistStats>,
             required: true
+        },
+        showEditButtons: {
+            type: Boolean,
+            default: true
         }
     },
     emits: ['playlistUpdated', 'viewSubmissions'],

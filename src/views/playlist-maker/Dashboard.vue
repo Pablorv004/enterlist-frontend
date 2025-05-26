@@ -184,7 +184,7 @@
                         <ion-row>
                             <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="playlist in recentPlaylists"
                                 :key="playlist.playlist_id">
-                                <ion-card button router-link="/playlist-maker/playlists" class="playlist-card">
+                                <ion-card button @click="openPlaylistModal(playlist)" class="playlist-card">
                                     <div class="playlist-img-container">
                                         <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
                                             :alt="playlist.name" class="playlist-img" />
@@ -213,45 +213,23 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
-                </div>                <!-- Earnings Chart (if they have earnings) -->
-                <div v-if="!loadingEarnings && earningsStats.length > 0" class="earnings-section"><div class="section-header">
-                        <h2>Recent Earnings</h2>
-                    </div>
-                    
-                    <ion-card class="earnings-card">
-                        <ion-card-header>
-                            <ion-card-title>Earnings Overview</ion-card-title>
-                            <ion-card-subtitle>Last 12 months</ion-card-subtitle>
-                        </ion-card-header>
-                        <ion-card-content>
-                            <div class="total-earnings">
-                                <h3>{{ formatCurrency(totalEarnings) }}</h3>
-                                <p>Total Earned</p>
-                            </div>
-                            
-                            <div class="chart-container">                                <div v-if="loadingEarnings" class="loading-container">
-                                    <ion-spinner name="crescent"></ion-spinner>
-                                    <p>Loading earnings data...</p>
-                                </div>
-                                <div v-else-if="!chartData" class="no-earnings-message">
-                                    <p>No earnings data available for the last 12 months</p>
-                                </div>
-                                <div v-else class="chart-wrapper">
-                                    <Bar 
-                                        :data="chartData" 
-                                        :options="chartOptions" 
-                                    />
-                                </div>
-                                />
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
                 </div>
             </div>
         </ion-content>
         
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="dashboard"></bottom-navigation>
+
+        <!-- Playlist Details Modal -->
+        <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
+            <playlist-details-modal
+                v-if="selectedPlaylist"
+                :playlist="selectedPlaylist"
+                :playlist-stats="playlistStatsMap"
+                @playlist-updated="onPlaylistUpdated"
+                @view-submissions="onViewSubmissions"
+            />
+        </ion-modal>
     </ion-page>
 </template>
 
@@ -279,12 +257,14 @@ import {
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
+import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
 import { useAuthStore } from '@/store';
 import { Playlist, Submission, SubmissionStatus } from '@/types';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
+import router from '@/router';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -294,7 +274,7 @@ export default defineComponent({
         IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
         IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
         IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner,
-        AppHeader, EmptyStateDisplay, BottomNavigation, Bar
+        AppHeader, EmptyStateDisplay, BottomNavigation, Bar, PlaylistDetailsModal
     },
     setup() {
         const authStore = useAuthStore();
@@ -554,6 +534,52 @@ export default defineComponent({
             console.log("Chart data is now:", chartData.value);
         });
 
+        // Playlist modal state
+        const isPlaylistModalOpen = ref(false);
+        const selectedPlaylist = ref<Playlist | null>(null);
+
+        // Convert playlist submissions to stats format for the modal
+        const playlistStatsMap = computed(() => {
+            const statsMap: Record<string, any> = {};
+            recentPlaylists.value.forEach(playlist => {
+                const submissionCount = getPlaylistSubmissionCount(playlist.playlist_id);
+                statsMap[playlist.playlist_id] = {
+                    submissions: submissionCount,
+                    pending: 0, // Would need to fetch this data
+                    approved: 0,
+                    rejected: 0,
+                    earnings: 0
+                };
+            });
+            return statsMap;
+        });
+
+        const openPlaylistModal = (playlist: Playlist) => {
+            selectedPlaylist.value = playlist;
+            isPlaylistModalOpen.value = true;
+        };
+
+        const closePlaylistModal = () => {
+            isPlaylistModalOpen.value = false;
+            selectedPlaylist.value = null;
+        };
+
+        const onPlaylistUpdated = (updatedPlaylist: Playlist) => {
+            // Update the playlist in the local array
+            const index = recentPlaylists.value.findIndex(p => p.playlist_id === updatedPlaylist.playlist_id);
+            if (index !== -1) {
+                recentPlaylists.value[index] = updatedPlaylist;
+            }
+        };
+
+        const onViewSubmissions = (playlist: Playlist) => {
+            closePlaylistModal();
+            router.push({
+                path: '/playlist-maker/submissions',
+                query: { playlistId: playlist.playlist_id }
+            });
+        };
+
         return {
             user,
             playlistsCount,
@@ -580,7 +606,14 @@ export default defineComponent({
             getStatusColor,
             formatCurrency,
             getPlatformIcon,
-            getPlaylistSubmissionCount
+            getPlaylistSubmissionCount,
+            isPlaylistModalOpen,
+            selectedPlaylist,
+            playlistStatsMap,
+            openPlaylistModal,
+            closePlaylistModal,
+            onPlaylistUpdated,
+            onViewSubmissions
         };
     }
 });
