@@ -33,10 +33,6 @@
                                     <div class="stats-icon">
                                         <ion-icon :icon="searchIcon"></ion-icon>
                                     </div>
-                                    <div class="stats-info">
-                                        <div class="stats-value">{{ stats.underReview || 0 }}</div>
-                                        <div class="stats-label">Under Review</div>
-                                    </div>
                                 </ion-card-content>
                             </ion-card>
                         </ion-col>
@@ -358,7 +354,6 @@ export default defineComponent({
         const songs = ref<Song[]>([]);
         const stats = ref({
             pending: 0,
-            underReview: 0,
             approved: 0,
             rejected: 0
         });
@@ -447,7 +442,6 @@ export default defineComponent({
                 // Calculate stats
                 stats.value = {
                     pending: submissionStore.pendingSubmissions.length,
-                    underReview: submissionStore.underReviewSubmissions.length,
                     approved: submissionStore.approvedSubmissions.length,
                     rejected: submissionStore.rejectedSubmissions.length
                 };
