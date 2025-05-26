@@ -48,7 +48,7 @@ export default defineComponent({
                     
                     // Clear the URL parameters
                     router.replace({ 
-                        name: 'dashboard',
+                        name: 'Dashboard',
                         query: {} 
                     });
                     
@@ -57,6 +57,7 @@ export default defineComponent({
                     error.value = 'Authentication failed. Please try again.';
                     // Redirect to login on error
                     router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                    return;
                 }
                 finally {
                     loading.value = false;
