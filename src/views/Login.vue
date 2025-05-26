@@ -122,8 +122,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { defineComponent, ref, computed, reactive, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import {
     IonPage,
     IonContent,
@@ -170,9 +170,9 @@ export default defineComponent({
         IonSelect,
         IonSelectOption,
         IonNote
-    },
-    setup() {
+    },    setup() {
         const router = useRouter();
+        const route = useRoute();
         const authStore = useAuthStore();
         const { errors, isDirty, validateField, validateForm, resetValidation } = useFormValidation();
 
@@ -189,7 +189,17 @@ export default defineComponent({
         const isLoginMode = ref(true);
         const showPassword = ref(false);
         const loading = computed(() => authStore.loading);
-        const error = computed(() => authStore.error);
+        const error = ref(authStore.error);
+
+        // Check for OAuth error in query parameters on mount
+        onMounted(() => {
+            if (route.query.error) {
+                const errorMessage = decodeURIComponent(route.query.error as string);
+                error.value = errorMessage;
+                // Clear the error from URL without triggering navigation
+                router.replace({ query: {} });
+            }
+        });
 
         // Validation rules
         const validationRules = reactive({
@@ -220,12 +230,12 @@ export default defineComponent({
 
         // Icons
         const spotifyIcon = logoSpotify;
-        const youtubeIcon = logoYoutube;
-
-        // Toggle login/register mode
+        const youtubeIcon = logoYoutube;        // Toggle login/register mode
         const toggleMode = () => {
             isLoginMode.value = !isLoginMode.value;
             resetValidation();
+            // Clear any OAuth error when switching modes
+            error.value = '';
         };
 
         // Toggle password visibility
@@ -370,6 +380,7 @@ export default defineComponent({
     text-align: center;
     overflow-y: auto;
     padding-top: 32px;
+    min-height: 100vh;
 }
 
 .logo-container {
@@ -379,6 +390,7 @@ export default defineComponent({
     margin-bottom: 24px;
     text-align: center;
     gap: 16px;
+    flex-shrink: 0;
 }
 
 .logo {
@@ -402,6 +414,7 @@ export default defineComponent({
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.95);
     margin-bottom: 32px;
+    flex-shrink: 0;
 }
 
 .card-title {
@@ -481,12 +494,19 @@ ion-card-subtitle {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 16px;
 }
 
 .oauth-button {
     width: 100%;
     --border-radius: 8px;
     height: 48px;
+    font-size: 14px;
+    text-transform: none;
+}
+
+.oauth-button ion-icon {
+    margin-right: 8px;
 }
 
 .spotify {
@@ -501,26 +521,80 @@ ion-card-subtitle {
 
 /* Media Queries */
 @media (max-width: 576px) {
+    .login-container {
+        padding: 12px;
+        padding-top: 16px;
+        min-height: calc(100vh - 20px);
+    }
+    
     .logo-container {
         flex-direction: column;
         gap: 8px;
+        margin-bottom: 16px;
     }
     
     .logo {
-        width: 90px;
-        height: 90px;
+        width: 70px;
+        height: 70px;
     }
 
     .title {
-        font-size: 28px;
+        font-size: 24px;
+        letter-spacing: 1px;
     }
 
     .card-title {
         font-size: 20px;
     }
     
+    .login-card {
+        margin-bottom: 20px;
+    }
+    
+    .form-input {
+        margin-bottom: 12px;
+    }
+    
+    .oauth-buttons {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .oauth-button {
+        height: 44px;
+        font-size: 13px;
+    }
+    
+    .separator {
+        margin: 12px 0;
+    }
+    
+    .mode-toggle {
+        margin: 16px 0;
+    }
+}
+
+@media (max-width: 380px) {
     .login-container {
-        padding-top: 16px;
+        padding: 8px;
+    }
+    
+    .logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .oauth-button {
+        height: 40px;
+        font-size: 12px;
+    }
+    
+    .oauth-button ion-icon {
+        margin-right: 6px;
     }
 }
 </style>
