@@ -11,9 +11,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import { IonPage, IonContent, IonSpinner } from '@ionic/vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/store';
 import AppHeader from '@/components/AppHeader.vue';
 
@@ -27,9 +27,36 @@ export default defineComponent({
     },
     setup() {
         const router = useRouter();
+        const route = useRoute();
         const authStore = useAuthStore();
+        const loading = ref(true);
 
         onMounted(async () => {
+            // Handle OAuth authentication if we have OAuth parameters
+            if (route.query.access_token && route.query.user && route.query.status === 'success') {
+                try {
+                    // Parse user data from query parameters
+                    const accessToken = route.query.access_token as string;
+                    const userDataStr = route.query.user as string;
+                    const userData = JSON.parse(decodeURIComponent(userDataStr));
+                    
+                    // Set authentication data in the store
+                    await authStore.setAuthData(accessToken, userData);
+                    
+                    // Clear the URL parameters
+                    await router.replace({ 
+                        path: '/dashboard',
+                        query: {} 
+                    });
+                    
+                } catch (err) {
+                    console.error('OAuth authentication failed:', err);
+                    authStore.logout();
+                    router.replace('/login');
+                    return;
+                }
+            }
+            
             // Check user role and redirect accordingly
             if (authStore.isArtist) {
                 router.replace('/artist/dashboard');
