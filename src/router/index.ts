@@ -261,8 +261,9 @@ router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     
     // Always initialize from storage before checking auth
-    authStore.initializeFromStorage();
-      // Handle OAuth redirects using the unified OAuth service for web platform
+    await authStore.initializeFromStorage();
+    
+    // Handle OAuth redirects using the unified OAuth service for web platform
     // Skip OAuth handling if we're going to RoleSelection or Dashboard with OAuth parameters (let the component handle it)
     if (!Capacitor.isNativePlatform() && 
         !((to.name === 'RoleSelection' && to.query.access_token) || 
@@ -280,6 +281,13 @@ router.beforeEach(async (to, from, next) => {
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRole = to.matched.find(record => record.meta.role)?.meta.role;
     const allowNoRole = to.matched.some(record => record.meta.allowNoRole);
+
+    // Special handling for Dashboard and RoleSelection with OAuth parameters
+    if ((to.name === 'Dashboard' || to.name === 'RoleSelection') && to.query.access_token) {
+        // Allow these routes to handle OAuth authentication themselves
+        next();
+        return;
+    }
 
     if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if user is not authenticated

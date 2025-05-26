@@ -33,6 +33,8 @@ export default defineComponent({
         const error = ref('');
 
         onMounted(async () => {
+            let shouldProceedWithRedirect = true;
+            
             // Handle OAuth authentication if we have OAuth parameters
             if (route.query.access_token && route.query.user && route.query.status === 'success') {
                 try {
@@ -47,7 +49,7 @@ export default defineComponent({
                     await authStore.setAuthData(accessToken, userData);
                     
                     // Clear the URL parameters
-                    router.replace({ 
+                    await router.replace({ 
                         name: 'Dashboard',
                         query: {} 
                     });
@@ -56,27 +58,38 @@ export default defineComponent({
                     console.error('OAuth authentication failed:', err);
                     error.value = 'Authentication failed. Please try again.';
                     // Redirect to login on error
-                    router.push({ name: 'Login', query: { error: 'Authentication failed' } });
-                    return;
+                    await router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                    shouldProceedWithRedirect = false;
                 }
                 finally {
                     loading.value = false;
                 }
             }
             
-            // Check user role and redirect accordingly
-            if (authStore.isArtist) {
-                router.replace('/artist/dashboard');
-            } else if (authStore.isPlaylistMaker) {
-                router.replace('/playlist-maker/dashboard');
-            } else if (authStore.isAdmin) {
-                router.replace('/admin/dashboard');
-            } else {
-                // If no valid role, logout and redirect to login
-                authStore.logout();
-                router.replace('/login');
+            // Only proceed with role-based redirection if OAuth handling was successful or not needed
+            if (shouldProceedWithRedirect) {
+                // Check user role and redirect accordingly
+                if (authStore.isArtist) {
+                    await router.replace('/artist/dashboard');
+                } else if (authStore.isPlaylistMaker) {
+                    await router.replace('/playlist-maker/dashboard');
+                } else if (authStore.isAdmin) {
+                    await router.replace('/admin/dashboard');
+                } else if (!authStore.hasRole) {
+                    // If user has no role, redirect to role selection
+                    await router.replace('/role-selection');
+                } else {
+                    // If no valid role, logout and redirect to login
+                    await authStore.logout();
+                    await router.replace('/login');
+                }
             }
         });
+
+        return {
+            loading,
+            error
+        };
     }
 });
 </script>

@@ -10,7 +10,9 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   // Initialize from storage (mobile-aware)
-  const initializeFromStorage = async () => {
+  const initializeFromStorage = async (): Promise<void> => {
+    if (loading.value) return; // Prevent multiple simultaneous initializations
+    
     loading.value = true;
     try {
       if (Capacitor.isNativePlatform()) {
