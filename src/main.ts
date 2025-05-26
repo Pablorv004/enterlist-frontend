@@ -9,8 +9,6 @@ window.process.env = window.process.env || {};
 window.process.env.BASE_URL = import.meta.env.BASE_URL;
 
 import { IonicVue } from '@ionic/vue';
-import { Capacitor } from '@capacitor/core';
-import { App as CapacitorApp } from '@capacitor/app';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -35,53 +33,6 @@ const app = createApp(App)
   .use(IonicVue)
   .use(pinia)
   .use(router);
-
-// Handle mobile OAuth callbacks
-if (Capacitor.isNativePlatform()) {
-  CapacitorApp.addListener('appUrlOpen', async (event) => {
-    const url = new URL(event.url);
-    
-    if (url.pathname === '/oauth/callback') {
-      const params = new URLSearchParams(url.search);
-      const accessToken = params.get('access_token');
-      const userData = params.get('user');
-      const isNewUser = params.get('isNewUser') === 'true';
-      const needsRoleSelection = params.get('needsRoleSelection') === 'true';
-      const provider = params.get('provider');
-      
-      if (accessToken && userData) {
-        // Store in Capacitor Preferences for mobile
-        const { Preferences } = await import('@capacitor/preferences');
-        
-        await Preferences.set({
-          key: 'enterlist_token',
-          value: accessToken
-        });
-        
-        await Preferences.set({
-          key: 'enterlist_user',
-          value: userData
-        });
-        
-        // Navigate based on user state
-        await router.isReady();
-        
-        if (isNewUser || needsRoleSelection) {
-          router.push(`/role-selection?provider=${provider}&status=success`);
-        } else {
-          router.push('/dashboard?status=success');
-        }
-      }
-    } else if (url.pathname === '/oauth/error') {
-      const params = new URLSearchParams(url.search);
-      const error = params.get('error');
-      
-      // Navigate to login with error
-      await router.isReady();
-      router.push(`/login?error=${encodeURIComponent(error || 'OAuth authentication failed')}`);
-    }
-  });
-}
 
 router.isReady().then(() => {
   app.mount('#app');

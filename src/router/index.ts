@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/store';
+import { OAuthService } from '@/services/OAuthService';
+import { Capacitor } from '@capacitor/core';
 
 // Lazy load views for better performance
 const Home = () => import('@/views/Home.vue');
@@ -39,6 +41,7 @@ const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedA
 
 // OAuth callback routes
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
+const OAuthHandler = () => import('@/views/OAuthHandler.vue');
 
 const routes: Array<RouteRecordRaw> = [    {
         path: '/',
@@ -204,8 +207,14 @@ const routes: Array<RouteRecordRaw> = [    {
     {
         path: '/oauth/callback',
         name: 'OAuthCallback',
-        component: OAuthCallback,
+        component: OAuthHandler,
         meta: { requiresAuth: false }
+    },
+    {
+        path: '/oauth/link-callback',
+        name: 'OAuthLinkCallback',
+        component: OAuthCallback,
+        meta: { requiresAuth: true }
     },
     // 404 Not Found route
     {
@@ -221,48 +230,20 @@ const router = createRouter({
     routes
 });
 
+// Initialize OAuth service for handling both mobile and web OAuth flows
+const oauthService = OAuthService.initialize(router);
+
 // Navigation guards
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     
-    // Always initialize from storage (including cookies) before checking auth
+    // Always initialize from storage before checking auth
     authStore.initializeFromStorage();
-    
-    // Special handling for OAuth redirect URLs with provider and status params
-    // These indicate the user is coming back from OAuth flow
-    const isOAuthRedirect = to.query.provider && to.query.status === 'success';
-    
-    if (isOAuthRedirect) {
-        // For OAuth redirects, check if we have tokens in the URL parameters
-        const accessToken = to.query.access_token as string;
-        const userData = to.query.user as string;
-        const isNewUser = to.query.isNewUser === 'true';
-        const needsRoleSelection = to.query.needsRoleSelection === 'true';
-        
-        if (accessToken && userData) {
-            // Store the token and user data in the auth store
-            try {
-                const user = JSON.parse(userData);
-                authStore.setAuthData(accessToken, user);
-                
-                // Redirect based on user state
-                if (isNewUser || needsRoleSelection) {
-                    // Clear the URL parameters and go to role selection
-                    next({ name: 'RoleSelection', replace: true });
-                    return;
-                } else {
-                    // Clear the URL parameters and go to dashboard
-                    next({ name: 'Dashboard', replace: true });
-                    return;
-                }
-            } catch (error) {
-                console.error('Failed to parse OAuth user data:', error);
-                next({ name: 'Login', query: { error: 'OAuth authentication failed' } });
-                return;
-            }
-        } else {
-            // If no token found in URL, something went wrong
-            next({ name: 'Login', query: { error: 'OAuth authentication failed' } });
+      // Handle OAuth redirects using the unified OAuth service for web platform
+    if (!Capacitor.isNativePlatform()) {
+        const isOAuthHandled = await oauthService.handleWebCallback(to.query);
+        if (isOAuthHandled) {
+            // OAuth service handled the redirect, don't proceed with normal routing
             return;
         }
     }
