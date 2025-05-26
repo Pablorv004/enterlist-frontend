@@ -8,7 +8,6 @@ export enum UserRole {
 // Submission status enum
 export enum SubmissionStatus {
   PENDING = 'pending',
-  UNDER_REVIEW = 'under_review',
   APPROVED = 'approved',
   REJECTED = 'rejected'
 }

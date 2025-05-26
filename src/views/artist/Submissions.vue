@@ -9,7 +9,6 @@
                     <ion-segment v-model="selectedFilter" @ionChange="handleFilterChange" class="filter-segment">
                         <ion-segment-button value="all">All</ion-segment-button>
                         <ion-segment-button value="pending">Pending</ion-segment-button>
-                        <ion-segment-button value="under_review">In Review</ion-segment-button>
                         <ion-segment-button value="approved">Approved</ion-segment-button>
                         <ion-segment-button value="rejected">Rejected</ion-segment-button>
                     </ion-segment>
@@ -181,7 +180,7 @@ export default defineComponent({
             if (selectedFilter.value === 'all') {
                 return submissionStore.submissions;
             } else {
-                return submissionStore.submissions.filter(s => s.status === selectedFilter.value);
+                return submissionStore.submissions.filter((s: { status: string; }) => s.status === selectedFilter.value);
             }
         });
 
@@ -200,8 +199,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'warning';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'tertiary';
                 case SubmissionStatus.APPROVED:
                     return 'success';
                 case SubmissionStatus.REJECTED:

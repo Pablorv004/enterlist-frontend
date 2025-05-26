@@ -24,7 +24,6 @@
                     <div class="status-info">
                         <h3>{{ formatStatus(submission.status) }}</h3>
                         <p v-if="submission.status === 'pending'">This submission is waiting for your review</p>
-                        <p v-if="submission.status === 'under_review'">You're currently reviewing this submission</p>
                         <p v-if="submission.status === 'approved'">You've approved this song for your playlist</p>
                         <p v-if="submission.status === 'rejected'">You've decided not to add this song to your playlist
                         </p>
@@ -32,7 +31,7 @@
                 </div>
 
                 <!-- Action Buttons for Curator -->
-                <div v-if="submission.status === 'pending' || submission.status === 'under_review'"
+                <div v-if="submission.status === 'pending'"
                     class="curator-actions">
                     <ion-button color="success" @click="openApproveModal">
                         <ion-icon :icon="checkmarkIcon" slot="start"></ion-icon>
@@ -41,10 +40,6 @@
                     <ion-button color="danger" @click="openRejectModal">
                         <ion-icon :icon="closeIcon" slot="start"></ion-icon>
                         Decline Submission
-                    </ion-button>
-                    <ion-button color="warning" @click="markAsUnderReview" v-if="submission.status === 'pending'">
-                        <ion-icon :icon="timerIcon" slot="start"></ion-icon>
-                        Mark as "In Review"
                     </ion-button>
                 </div>
 
@@ -421,8 +416,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'Pending Review';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'In Review';
                 case SubmissionStatus.APPROVED:
                     return 'Approved';
                 case SubmissionStatus.REJECTED:
@@ -436,8 +429,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'status-pending';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'status-review';
                 case SubmissionStatus.APPROVED:
                     return 'status-approved';
                 case SubmissionStatus.REJECTED:
@@ -451,8 +442,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'warning';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'tertiary';
                 case SubmissionStatus.APPROVED:
                     return 'success';
                 case SubmissionStatus.REJECTED:
@@ -465,8 +454,6 @@ export default defineComponent({
         const getStatusIcon = (status: SubmissionStatus) => {
             switch (status) {
                 case SubmissionStatus.PENDING:
-                    return timerOutline;
-                case SubmissionStatus.UNDER_REVIEW:
                     return timerOutline;
                 case SubmissionStatus.APPROVED:
                     return checkmarkCircle;
@@ -534,23 +521,6 @@ export default defineComponent({
 
         const closePlaylistModal = () => {
             isPlaylistModalOpen.value = false;
-        };
-
-        const markAsUnderReview = async () => {
-            if (!submission.value) return;
-
-            try {
-                const updatedSubmission = await SubmissionService.updateSubmissionStatus(
-                    submission.value.submission_id,
-                    SubmissionStatus.UNDER_REVIEW
-                );
-
-                submission.value = updatedSubmission;
-                showToast('Submission marked as "In Review"', 'success');
-            } catch (err) {
-                showToast('Failed to update submission status', 'danger');
-                console.error(err);
-            }
         };
 
         const approveSubmission = async () => {
@@ -673,7 +643,6 @@ export default defineComponent({
             openRejectModal,
             openEditFeedbackModal,
             openPlaylistModal,
-            markAsUnderReview,
             approveSubmission,
             rejectSubmission,
             updateFeedback,

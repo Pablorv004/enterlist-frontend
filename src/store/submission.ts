@@ -192,10 +192,6 @@ export const useSubmissionStore = defineStore('submission', () => {
     return submissions.value.filter(s => s.status === SubmissionStatus.PENDING);
   });
 
-  const underReviewSubmissions = computed(() => {
-    return submissions.value.filter(s => s.status === SubmissionStatus.UNDER_REVIEW);
-  });
-
   const approvedSubmissions = computed(() => {
     return submissions.value.filter(s => s.status === SubmissionStatus.APPROVED);
   });
@@ -215,7 +211,6 @@ export const useSubmissionStore = defineStore('submission', () => {
     error,
     totalCount,
     pendingSubmissions,
-    underReviewSubmissions,
     approvedSubmissions,
     rejectedSubmissions,
     fetchSubmissions,

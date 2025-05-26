@@ -15,7 +15,6 @@
                         <ion-segment v-model="selectedStatus" @ionChange="handleStatusChange" class="status-segment">
                             <ion-segment-button value="all">All</ion-segment-button>
                             <ion-segment-button value="pending">Pending</ion-segment-button>
-                            <ion-segment-button value="under_review">In Review</ion-segment-button>
                             <ion-segment-button value="approved">Approved</ion-segment-button>
                             <ion-segment-button value="rejected">Rejected</ion-segment-button>
                         </ion-segment>
@@ -85,26 +84,6 @@
                                     {{ formatStatus(submission.status) }}
                                 </ion-badge>
                             </ion-item>
-
-                            <ion-item-options side="end">
-                                <ion-item-option color="warning" @click="markAsInReview(submission)"
-                                    v-if="submission.status === 'pending'">
-                                    <ion-icon :icon="eyeIcon" slot="icon-only"></ion-icon>
-                                    Review
-                                </ion-item-option>
-
-                                <ion-item-option color="success" @click="approveSubmission(submission)"
-                                    v-if="submission.status === 'pending' || submission.status === 'under_review'">
-                                    <ion-icon :icon="checkmarkIcon" slot="icon-only"></ion-icon>
-                                    Approve
-                                </ion-item-option>
-
-                                <ion-item-option color="medium" @click="rejectSubmission(submission)"
-                                    v-if="submission.status === 'pending' || submission.status === 'under_review'">
-                                    <ion-icon :icon="closeIcon" slot="icon-only"></ion-icon>
-                                    Reject
-                                </ion-item-option>
-                            </ion-item-options>
                         </ion-item-sliding>
                     </ion-list>
 
@@ -364,8 +343,6 @@ export default defineComponent({
             switch (status) {
                 case 'pending':
                     return 'Pending';
-                case 'under_review':
-                    return 'In Review';
                 case 'approved':
                     return 'Approved';
                 case 'rejected':
@@ -391,8 +368,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'warning';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'secondary';
                 case SubmissionStatus.APPROVED:
                     return 'success';
                 case SubmissionStatus.REJECTED:
@@ -400,11 +375,6 @@ export default defineComponent({
                 default:
                     return 'medium';
             }
-        };
-
-        // Submission Actions
-        const markAsInReview = (submission: Submission) => {
-            openFeedbackModal(submission, SubmissionStatus.UNDER_REVIEW);
         };
 
         const approveSubmission = (submission: Submission) => {
@@ -433,8 +403,6 @@ export default defineComponent({
             if (!feedbackAction.value) return 'Review Submission';
 
             switch (feedbackAction.value) {
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'Mark as In Review';
                 case SubmissionStatus.APPROVED:
                     return 'Approve Submission';
                 case SubmissionStatus.REJECTED:
@@ -448,8 +416,6 @@ export default defineComponent({
             if (!feedbackAction.value) return 'primary';
 
             switch (feedbackAction.value) {
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'secondary';
                 case SubmissionStatus.APPROVED:
                     return 'success';
                 case SubmissionStatus.REJECTED:
@@ -463,8 +429,6 @@ export default defineComponent({
             if (!feedbackAction.value) return 'Submit';
 
             switch (feedbackAction.value) {
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'Mark as In Review';
                 case SubmissionStatus.APPROVED:
                     return 'Approve';
                 case SubmissionStatus.REJECTED:
@@ -504,8 +468,6 @@ export default defineComponent({
 
         const formatAction = (action: SubmissionStatus): string => {
             switch (action) {
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'marked as in review';
                 case SubmissionStatus.APPROVED:
                     return 'approved';
                 case SubmissionStatus.REJECTED:
@@ -557,7 +519,6 @@ export default defineComponent({
             formatStatus,
             getEmptyStateMessage,
             getStatusColor,
-            markAsInReview,
             approveSubmission,
             rejectSubmission,
             closeModal,

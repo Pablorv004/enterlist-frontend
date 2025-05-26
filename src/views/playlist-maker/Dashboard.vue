@@ -520,8 +520,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'Pending';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'In Review';
                 case SubmissionStatus.APPROVED:
                     return 'Approved';
                 case SubmissionStatus.REJECTED:
@@ -535,8 +533,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'warning';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'secondary';
                 case SubmissionStatus.APPROVED:
                     return 'success';
                 case SubmissionStatus.REJECTED:

@@ -24,8 +24,6 @@
                     <div class="status-info">
                         <h3>{{ formatStatus(submission.status) }}</h3>
                         <p v-if="submission.status === 'pending'">Your submission is waiting to be reviewed</p>
-                        <p v-if="submission.status === 'under_review'">The playlist curator is currently reviewing your
-                            submission</p>
                         <p v-if="submission.status === 'approved'">Congratulations! Your song has been approved for the
                             playlist</p>
                         <p v-if="submission.status === 'rejected'">Your submission was not selected for the playlist</p>
@@ -250,8 +248,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'Pending Review';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'In Review';
                 case SubmissionStatus.APPROVED:
                     return 'Approved';
                 case SubmissionStatus.REJECTED:
@@ -265,8 +261,6 @@ export default defineComponent({
             switch (status) {
                 case SubmissionStatus.PENDING:
                     return 'status-pending';
-                case SubmissionStatus.UNDER_REVIEW:
-                    return 'status-review';
                 case SubmissionStatus.APPROVED:
                     return 'status-approved';
                 case SubmissionStatus.REJECTED:
@@ -279,8 +273,6 @@ export default defineComponent({
         const getStatusIcon = (status: SubmissionStatus) => {
             switch (status) {
                 case SubmissionStatus.PENDING:
-                    return timerOutline;
-                case SubmissionStatus.UNDER_REVIEW:
                     return timerOutline;
                 case SubmissionStatus.APPROVED:
                     return checkmarkCircle;
