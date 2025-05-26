@@ -148,7 +148,7 @@ export default defineComponent({
 .hero-section {
     background: url('@/assets/blurred-blue-red-purple-bg.webp') no-repeat center center;
     background-size: cover;
-    min-height: 80vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
