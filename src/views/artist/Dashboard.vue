@@ -213,6 +213,12 @@
                                         <div class="song-platform">
                                             <ion-icon :icon="getPlatformIcon(song.platform_id)" class="platform-icon"></ion-icon>
                                         </div>
+                                        <div class="song-overlay">
+                                            <ion-button fill="clear" color="light" size="small"
+                                                @click.stop="openSongModal(song)">
+                                                <ion-icon :icon="informationIcon" slot="icon-only"></ion-icon>
+                                            </ion-button>
+                                        </div>
                                     </div>
 
                                     <ion-card-content>
@@ -248,6 +254,25 @@
             </div>
         </ion-content>
         
+        <!-- Song Details Modal -->
+        <ion-modal :is-open="isSongModalOpen" @didDismiss="closeSongModal">
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>Song Details</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closeSongModal">Close</ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <song-details-modal
+                    v-if="selectedModalSong"
+                    :song="selectedModalSong"
+                    :show-edit-buttons="false"
+                />
+            </ion-content>
+        </ion-modal>
+        
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="dashboard"></bottom-navigation>
     </ion-page>
@@ -270,7 +295,12 @@ import {
     IonThumbnail,
     IonLabel,
     IonBadge,
-    IonSpinner
+    IonSpinner,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons
 } from '@ionic/vue';
 import {
     add as addIcon,
@@ -285,13 +315,15 @@ import {
     arrowForward as arrowForwardIcon,
     helpCircle as helpCircleIcon,
     calendar as calendarIcon,
-    link as linkIcon
+    link as linkIcon,
+    informationCircle as informationIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
 import { SubmissionStatus, Song, Submission } from '@/types';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
+import SongDetailsModal from '@/components/SongDetailsModal.vue';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
 
@@ -310,11 +342,18 @@ export default defineComponent({
         IonIcon,
         IonList,
         IonItem,
-        IonThumbnail,        IonLabel,
+        IonThumbnail,
+        IonLabel,
         IonBadge,
         IonSpinner,
+        IonModal,
+        IonHeader,
+        IonToolbar,
+        IonTitle,
+        IonButtons,
         EmptyStateDisplay,
-        BottomNavigation
+        BottomNavigation,
+        SongDetailsModal
     },
     setup() {
         const authStore = useAuthStore();
@@ -336,6 +375,20 @@ export default defineComponent({
             songs: true,
             stats: true
         });
+
+        // Modal states
+        const isSongModalOpen = ref(false);
+        const selectedModalSong = ref<Song | null>(null);
+
+        const openSongModal = (song: Song) => {
+            selectedModalSong.value = song;
+            isSongModalOpen.value = true;
+        };
+
+        const closeSongModal = () => {
+            isSongModalOpen.value = false;
+            selectedModalSong.value = null;
+        };
 
         // Format date to a readable format
         const formatDate = (dateString: string) => {
@@ -440,7 +493,12 @@ export default defineComponent({
             getStatusColor,
             formatStatus,
             getPlatformIcon,
-            getPlatformName,            // Icons
+            getPlatformName,
+            isSongModalOpen,
+            selectedModalSong,
+            openSongModal,
+            closeSongModal,
+            // Icons
             addIcon,
             homeIcon,
             documentTextIcon,
@@ -453,7 +511,8 @@ export default defineComponent({
             arrowForwardIcon,
             helpCircleIcon,
             calendarIcon,
-            linkIcon
+            linkIcon,
+            informationIcon
         };
     }
 });
@@ -724,21 +783,9 @@ export default defineComponent({
     object-fit: cover;
 }
 
-.song-platform {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .platform-icon {
-    font-size: 16px;
+    width: 16px;
+    height: 16px;
     color: white;
 }
 

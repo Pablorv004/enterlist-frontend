@@ -48,6 +48,11 @@
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
                                         <ion-button size="small" fill="clear" color="primary"
+                                            @click="openSongModal">
+                                            <ion-icon :icon="informationIcon" slot="start"></ion-icon>
+                                            View Details
+                                        </ion-button>
+                                        <ion-button size="small" fill="clear" color="primary"
                                             :href="submission.song?.url" target="_blank">
                                             <ion-icon :icon="playIcon" slot="start"></ion-icon>
                                             Listen on {{ submission.song?.platform?.name }}
@@ -146,13 +151,42 @@
                     </ion-button>
                 </div>
             </div>
-        </ion-content>        <!-- Playlist Details Modal -->
+        </ion-content>        <!-- Song Details Modal -->
+        <ion-modal :is-open="isSongModalOpen" @didDismiss="closeSongModal">
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>Song Details</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closeSongModal">Close</ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <song-details-modal
+                    v-if="submission?.song"
+                    :song="submission.song"
+                    :show-edit-buttons="false"
+                />
+            </ion-content>
+        </ion-modal>
+
+        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
-            <playlist-details-modal
-                v-if="submission?.playlist"
-                :playlist="submission.playlist"
-                :show-edit-buttons="false"
-            />
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>Playlist Details</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closePlaylistModal">Close</ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <playlist-details-modal
+                    v-if="submission?.playlist"
+                    :playlist="submission.playlist"
+                    :show-edit-buttons="false"
+                />
+            </ion-content>
         </ion-modal>
 
         <!-- Bottom Navigation -->
@@ -165,11 +199,12 @@ import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
     IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
-    IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge
+    IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge,
+    IonModal, IonHeader, IonToolbar, IonTitle, IonButtons
 } from '@ionic/vue';
 import {
     alertCircle, checkmarkCircle, closeCircle, timerOutline,
-    play, open, refreshOutline
+    play, open, refreshOutline, informationCircle
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
@@ -177,13 +212,15 @@ import { SubmissionService } from '@/services/SubmissionService';
 import { Submission, SubmissionStatus, TransactionStatus } from '@/types';
 import { useSubmissionStore } from '@/store';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
+import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
     name: 'ArtistSubmissionDetail',
     components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge,
-        AppHeader, BottomNavigation, PlaylistDetailsModal
+        IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
+        AppHeader, BottomNavigation, PlaylistDetailsModal, SongDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -312,8 +349,9 @@ export default defineComponent({
             }
         };
 
-        // Playlist modal state
+        // Modal states
         const isPlaylistModalOpen = ref(false);
+        const isSongModalOpen = ref(false);
 
         const openPlaylistModal = () => {
             isPlaylistModalOpen.value = true;
@@ -321,6 +359,14 @@ export default defineComponent({
 
         const closePlaylistModal = () => {
             isPlaylistModalOpen.value = false;
+        };
+
+        const openSongModal = () => {
+            isSongModalOpen.value = true;
+        };
+
+        const closeSongModal = () => {
+            isSongModalOpen.value = false;
         };
 
         return {
@@ -335,12 +381,16 @@ export default defineComponent({
             formatCurrency,
             resubmitSong,
             isPlaylistModalOpen,
+            isSongModalOpen,
             openPlaylistModal,
             closePlaylistModal,
+            openSongModal,
+            closeSongModal,
             alertCircleIcon: alertCircle,
             playIcon: play,
             openIcon: open,
-            refreshIcon: refreshOutline
+            refreshIcon: refreshOutline,
+            informationIcon: informationCircle
         };
     }
 });
