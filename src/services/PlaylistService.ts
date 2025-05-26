@@ -70,9 +70,9 @@ export const PlaylistService = {
     const response = await apiClient.put(`/playlists/${id}`, playlistData);
     return response.data;
   },
-
-  deletePlaylist: async (id: string): Promise<void> => {
-    await apiClient.delete(`/playlists/${id}`);
+  deletePlaylist: async (id: string): Promise<Playlist> => {
+    const response = await apiClient.put(`/playlists/${id}`, { deleted: true });
+    return response.data;
   },
   
   // Method to import playlists from connected platform

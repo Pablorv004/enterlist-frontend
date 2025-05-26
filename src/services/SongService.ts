@@ -89,9 +89,8 @@ export const SongService = {
     const response = await apiClient.put(`/songs/${id}`, songData);
     return response.data;
   },
-
   deleteSong: async (id: string): Promise<void> => {
-    await apiClient.delete(`/songs/${id}`);
+    await apiClient.put(`/songs/${id}`, { deleted: true });
   },
   // Method to import songs from connected platform
   importSongs: async (platformId: number): Promise<Song[]> => {
