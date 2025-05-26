@@ -17,10 +17,8 @@
                 </ion-button>
             </div>
 
-            <div v-else class="submission-detail-container">
-                <!-- Status Banner -->
+            <div v-else class="submission-detail-container">                <!-- Status Banner -->
                 <div :class="['status-banner', getStatusClass(submission.status)]">
-                    <ion-icon :icon="getStatusIcon(submission.status)" class="status-icon"></ion-icon>
                     <div class="status-info">
                         <h3>{{ formatStatus(submission.status) }}</h3>
                         <p v-if="submission.status === 'pending'">Your submission is waiting to be reviewed</p>
@@ -43,20 +41,21 @@
                                     <ion-thumbnail class="song-thumbnail">
                                         <img :src="submission.song?.cover_image_url || '/assets/default-album-cover.png'"
                                             :alt="submission.song?.title" />
-                                    </ion-thumbnail>
-                                    <div class="song-text">
+                                    </ion-thumbnail>                                    <div class="song-text">
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
-                                        <ion-button size="small" fill="clear" color="primary"
-                                            @click="openSongModal">
-                                            <ion-icon :icon="informationIcon" slot="start"></ion-icon>
-                                            View Details
-                                        </ion-button>
-                                        <ion-button size="small" fill="clear" color="primary"
-                                            :href="submission.song?.url" target="_blank">
-                                            <ion-icon :icon="playIcon" slot="start"></ion-icon>
-                                            Listen on {{ submission.song?.platform?.name }}
-                                        </ion-button>
+                                        <div class="song-actions">
+                                            <ion-button size="small" fill="clear" color="primary"
+                                                @click="openSongModal">
+                                                <ion-icon :icon="informationIcon" slot="start"></ion-icon>
+                                                View Details
+                                            </ion-button>
+                                            <ion-button size="small" fill="clear" color="primary"
+                                                :href="submission.song?.url" target="_blank">
+                                                <ion-icon :icon="playIcon" slot="start"></ion-icon>
+                                                Listen on {{ submission.song?.platform?.name }}
+                                            </ion-button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -504,6 +503,13 @@ export default defineComponent({
 .playlist-text p {
     margin: 0 0 0.25rem;
     color: var(--ion-color-medium);
+}
+
+.song-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
 }
 
 .details-card,

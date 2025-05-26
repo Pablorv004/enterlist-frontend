@@ -51,15 +51,10 @@
                             Reset Filters
                         </ion-button>
                     </template>
-                </empty-state-display>
-
-                <div v-else class="submissions-list-container">
+                </empty-state-display>                <div v-else class="submissions-list-container">
                     <div class="submissions-count">
                         <span>{{ filteredSubmissions.length }} submission{{ filteredSubmissions.length !== 1 ? 's' : ''
                         }}</span>
-                        <ion-button size="small" fill="clear" @click="batchProcess" v-if="canBatchProcess">
-                            Batch Process
-                        </ion-button>
                     </div>
 
                     <ion-list class="submissions-list">
@@ -197,80 +192,6 @@
                 </div>
             </ion-content>
         </ion-modal>
-
-        <!-- Batch Processing Modal -->
-        <ion-modal :is-open="isBatchModalOpen" @didDismiss="closeBatchModal" class="batch-modal">
-            <ion-header>
-                <ion-toolbar>
-                    <ion-title>Batch Process Submissions</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button @click="closeBatchModal">
-                            <ion-icon :icon="closeCircleIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
-                </ion-toolbar>
-            </ion-header>
-
-            <ion-content class="ion-padding">
-                <div class="batch-content">
-                    <h3 class="batch-subtitle">Select Action</h3>
-
-                    <ion-radio-group v-model="batchAction">
-                        <ion-item>
-                            <ion-label>Mark as In Review</ion-label>
-                            <ion-radio slot="start" value="under_review"></ion-radio>
-                        </ion-item>
-
-                        <ion-item>
-                            <ion-label>Approve Submissions</ion-label>
-                            <ion-radio slot="start" value="approved"></ion-radio>
-                        </ion-item>
-
-                        <ion-item>
-                            <ion-label>Reject Submissions</ion-label>
-                            <ion-radio slot="start" value="rejected"></ion-radio>
-                        </ion-item>
-                    </ion-radio-group>
-
-                    <h3 class="batch-subtitle">Select Submissions</h3>
-
-                    <ion-list class="batch-submission-list">
-                        <ion-item v-for="submission in pendingSubmissions" :key="submission.submission_id">
-                            <ion-checkbox slot="start" v-model="submission.selected"></ion-checkbox>
-                            <ion-thumbnail class="batch-thumbnail">
-                                <img :src="submission.song?.cover_image_url || '/assets/default-album-cover.png'"
-                                    :alt="submission.song?.title" />
-                            </ion-thumbnail>
-                            <ion-label>
-                                <h2>{{ submission.song?.title }}</h2>
-                                <p>{{ submission.song?.artist_name_on_platform }}</p>
-                                <p class="batch-playlist-name">{{ submission.playlist?.name }}</p>
-                            </ion-label>
-                        </ion-item>
-                    </ion-list>
-
-                    <div v-if="pendingSubmissions.length === 0" class="no-pending-submissions">
-                        <p>No pending submissions to process</p>
-                    </div>
-
-                    <ion-item lines="none" class="batch-feedback-item">
-                        <ion-label position="stacked">Feedback (will be sent to all selected artists)</ion-label>
-                        <ion-textarea v-model="batchFeedbackText"
-                            placeholder="Add feedback for all selected submissions..." :rows="3"></ion-textarea>
-                    </ion-item>
-
-                    <div class="batch-actions">
-                        <ion-button expand="block" @click="processBatch" :disabled="!canSubmitBatch || processingBatch">
-                            <ion-spinner v-if="processingBatch" name="crescent"></ion-spinner>
-                            <span v-else>
-                                Process {{ selectedSubmissionsCount }} Submission{{ selectedSubmissionsCount !== 1 ? 's'
-                                    : '' }}
-                            </span>
-                        </ion-button>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-modal>
         
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="submissions"></bottom-navigation>
@@ -331,21 +252,12 @@ export default defineComponent({
         const totalItems = ref(0);
         
         // Alias for consistency with the rest of the code
-        const goToPage = changePage;
-
-        // Feedback Modal
+        const goToPage = changePage;        // Feedback Modal
         const isModalOpen = ref(false);
         const feedbackText = ref('');
         const currentSubmission = ref<Submission | null>(null);
         const feedbackAction = ref<SubmissionStatus | null>(null);
         const processingFeedback = ref(false);
-
-        // Batch Processing Modal
-        const isBatchModalOpen = ref(false);
-        const batchAction = ref<SubmissionStatus>(SubmissionStatus.UNDER_REVIEW);
-        const batchFeedbackText = ref('');
-        const pendingSubmissions = ref<SelectableSubmission[]>([]);
-        const processingBatch = ref(false);
 
         onMounted(async () => {
             if (userId.value) {
@@ -601,83 +513,8 @@ export default defineComponent({
                 default:
                     return 'updated';
             }
-        };
-
-        const useTemplate = (template: string) => {
+        };        const useTemplate = (template: string) => {
             feedbackText.value = template;
-        };
-
-        // Batch Processing
-        const canBatchProcess = computed(() => {
-            return submissions.value.some(s =>
-                s.status === SubmissionStatus.PENDING || s.status === SubmissionStatus.UNDER_REVIEW
-            );
-        });
-
-        const batchProcess = async () => {
-            // Prepare pendingSubmissions
-            pendingSubmissions.value = submissions.value
-                .filter(s => s.status === SubmissionStatus.PENDING || s.status === SubmissionStatus.UNDER_REVIEW)
-                .map(s => ({ ...s, selected: false }));
-
-            batchAction.value = SubmissionStatus.UNDER_REVIEW;
-            batchFeedbackText.value = '';
-            isBatchModalOpen.value = true;
-        };
-
-        const closeBatchModal = () => {
-            isBatchModalOpen.value = false;
-            pendingSubmissions.value = [];
-            batchFeedbackText.value = '';
-        };
-
-        const selectedSubmissionsCount = computed(() => {
-            return pendingSubmissions.value.filter(s => s.selected).length;
-        });
-
-        const canSubmitBatch = computed(() => {
-            return selectedSubmissionsCount.value > 0;
-        });
-
-        const processBatch = async () => {
-            const selectedSubmissions = pendingSubmissions.value.filter(s => s.selected);
-
-            if (selectedSubmissions.length === 0) {
-                showToast('Please select at least one submission', 'warning');
-                return;
-            }
-
-            try {
-                processingBatch.value = true;
-
-                // In a real implementation, we would use a batch endpoint
-                // For this demo, we'll process them one by one
-                const promises = selectedSubmissions.map(submission =>
-                    SubmissionService.updateSubmissionStatus(
-                        submission.submission_id,
-                        batchAction.value,
-                        batchFeedbackText.value || undefined
-                    )
-                );
-
-                const updatedSubmissions = await Promise.all(promises);
-
-                // Update submissions in the list
-                updatedSubmissions.forEach(updated => {
-                    const index = submissions.value.findIndex(s => s.submission_id === updated.submission_id);
-                    if (index !== -1) {
-                        submissions.value[index] = updated;
-                    }
-                });
-
-                closeBatchModal();
-
-                showToast(`Successfully ${formatAction(batchAction.value)} ${updatedSubmissions.length} submissions`, 'success');
-            } catch (error) {
-                showToast('Failed to process submissions', 'danger');
-            } finally {
-                processingBatch.value = false;
-            }
         };
 
         const showToast = async (message: string, color: string = 'primary') => {
@@ -688,9 +525,7 @@ export default defineComponent({
             });
 
             await toast.present();
-        };
-
-        return {
+        };        return {
             searchQuery,
             selectedStatus,
             selectedPlaylist,
@@ -705,14 +540,6 @@ export default defineComponent({
             currentSubmission,
             feedbackAction,
             processingFeedback,
-            isBatchModalOpen,
-            batchAction,
-            batchFeedbackText,
-            pendingSubmissions,
-            processingBatch,
-            canBatchProcess,
-            selectedSubmissionsCount,
-            canSubmitBatch,
             documentTextIcon: documentText,
             musicalNotesIcon: musicalNotes,
             calendarIcon: calendar,
@@ -725,7 +552,8 @@ export default defineComponent({
             handleSearch,
             handleStatusChange,
             handlePlaylistChange,
-            resetFilters,            formatDate,
+            resetFilters,
+            formatDate,
             formatStatus,
             getEmptyStateMessage,
             getStatusColor,
@@ -738,9 +566,6 @@ export default defineComponent({
             feedbackActionText,
             submitFeedback,
             useTemplate,
-            batchProcess,
-            closeBatchModal,
-            processBatch,
             prevPage,
             nextPage
         };
