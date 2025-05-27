@@ -192,12 +192,6 @@
                                         <div class="song-platform">
                                             <ion-icon :icon="getPlatformIcon(song.platform_id)" class="platform-icon"></ion-icon>
                                         </div>
-                                        <div class="song-overlay">
-                                            <ion-button fill="clear" color="light" size="small"
-                                                @click.stop="openSongModal(song)">
-                                                <ion-icon :icon="informationIcon" slot="icon-only"></ion-icon>
-                                            </ion-button>
-                                        </div>
                                     </div>
 
                                     <ion-card-content>
@@ -267,7 +261,6 @@ import {
     helpCircle as helpCircleIcon,
     calendar as calendarIcon,
     link as linkIcon,
-    informationCircle as informationIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
 import { SubmissionStatus, Song, Submission, Platform } from '@/types';
@@ -471,7 +464,6 @@ export default defineComponent({
             helpCircleIcon,
             calendarIcon,
             linkIcon,
-            informationIcon
         };
     }
 });
