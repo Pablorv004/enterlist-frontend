@@ -180,8 +180,7 @@
                         </template>
                     </empty-state-display>
 
-                    <!-- Desktop Grid View -->
-                    <ion-grid v-else class="playlists-grid desktop-only">
+                    <ion-grid v-else class="playlists-grid">
                         <ion-row>
                             <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="playlist in recentPlaylists"
                                 :key="playlist.playlist_id">
@@ -212,35 +211,6 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
-
-                    <!-- Mobile List View -->
-                    <ion-list v-else class="playlists-list mobile-only">
-                        <ion-item v-for="playlist in recentPlaylists" :key="playlist.playlist_id"
-                            class="playlist-item" @click="openPlaylistModal(playlist)">
-                            <ion-thumbnail slot="start" class="playlist-thumbnail">
-                                <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
-                                    :alt="playlist.name" />
-                                <div class="playlist-platform-overlay">
-                                    <img :src="getPlatformIcon(playlist.platform?.name)"
-                                        :alt="playlist.platform?.name" class="platform-icon-small" />
-                                </div>
-                            </ion-thumbnail>
-
-                            <ion-label>
-                                <h3 class="playlist-name">{{ playlist.name }}</h3>
-                                <p v-if="playlist.genre" class="playlist-genre">{{ playlist.genre }}</p>
-                                <div class="playlist-meta">
-                                    <span class="playlist-submissions-count">
-                                        {{ getPlaylistSubmissionCount(playlist.playlist_id) }} submissions
-                                    </span>
-                                </div>
-                            </ion-label>
-
-                            <ion-button fill="clear" slot="end" @click.stop="openPlaylistModal(playlist)">
-                                <ion-icon :icon="chevronForwardIcon" slot="icon-only"></ion-icon>
-                            </ion-button>
-                        </ion-item>
-                    </ion-list>
                 </div>
 
                 <!-- Earnings Chart (if they have earnings) -->
@@ -306,7 +276,7 @@ import {
 } from '@ionic/vue';
 import {
     mailUnread, musicalNotes, checkmarkCircle, listOutline, linkOutline,
-    personOutline, arrowForward, calendarOutline, chevronForward
+    personOutline, arrowForward, calendarOutline
 } from 'ionicons/icons';
 import { Bar } from 'vue-chartjs';
 import {
@@ -663,9 +633,7 @@ export default defineComponent({
             listIcon: listOutline,
             linkIcon: linkOutline,
             personIcon: personOutline,
-            arrowForwardIcon: arrowForward,
-            calendarIcon: calendarOutline,
-            chevronForwardIcon: chevronForward,
+            arrowForwardIcon: arrowForward,            calendarIcon: calendarOutline,
             formatDate,
             formatStatus,
             getStatusColor,
@@ -1039,103 +1007,6 @@ export default defineComponent({
 }
 
 .chart-bar {
-    color: var(--ion-color-medium);
-    font-size: 0.75rem;
-}
-
-.playlist-submissions-count {
-    color: var(--ion-color-medium);
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-}
-
-.playlist-meta {
-    height: 12px;
-    width: 12px;
-}
-
-.platform-icon-small {
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.7);
-    right: 4px;
-    top: 4px;
-    position: absolute;
-}
-
-.playlist-platform-overlay {
-    position: relative;
-    height: 60px;
-    width: 60px;
-    --border-radius: 8px;
-}
-
-.playlist-thumbnail {
-    --border-width: 0;
-}
-
-.playlist-item:last-child {
-    --border-color: var(--ion-color-light);
-    --inner-padding-end: 1rem;
-    --padding-start: 1rem;
-}
-
-.playlist-item {
-    margin-bottom: 2rem;
-    overflow: hidden;
-    border-radius: 12px;
-    background: white;
-}
-
-/* Mobile Playlists List */
-.mobile-only {
-    display: block;
-}
-
-.desktop-only {
-    display: none;
-}
-
-@media (max-width: 767px) {
-    .desktop-only {
-        display: none;
-    }
-
-    .mobile-only {
-        display: block;
-    }
-}
-
-.playlist-item {
-    pointer-events: none;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    border-radius: 4px;
-    padding: 0.5rem;
-    color: white;
-    background: rgba(0, 0, 0, 0.8);
-    transform: translateX(-50%);
-    left: 50%;
-    bottom: 100%;
-    position: absolute;
-}
-
-.chart-bar .chart-tooltip {
-    filter: brightness(1.1);
-}
-
-.chart-bar:hover {
-    overflow: hidden;
-    border-radius: 4px;
-    margin: 0 2px;
-    flex: 1;
-    position: relative;
-    height: 100%;
-    display: block;
     width: 6%;
     background: var(--ion-color-primary);
     border-radius: 4px 4px 0 0;
