@@ -24,8 +24,18 @@ export function useFormValidation() {
     delete errors.value[fieldName];
 
     // Apply validation rules
+    if (rules.email && !validateEmail(value)) {
+      errors.value[fieldName] = 'Please enter a valid email address';
+      return false;
+    }
+
+    if (rules.password && !validatePassword(value)) {
+      errors.value[fieldName] = 'Password must be at least 8 characters with at least one letter and one number';
+      return false;
+    }
+    
     if (rules.required && (!value || value.trim() === '')) {
-      errors.value[fieldName] = 'This field is required';
+      errors.value[fieldName] = 'Fields are required';
       return false;
     }
 
@@ -39,22 +49,10 @@ export function useFormValidation() {
       return false;
     }
 
-    if (rules.email && !validateEmail(value)) {
-      errors.value[fieldName] = 'Please enter a valid email address';
-      return false;
-    }
-
-    if (rules.password && !validatePassword(value)) {
-      errors.value[fieldName] = 'Password must be at least 8 characters with at least one letter and one number';
-      return false;
-    }
-
     if (rules.numeric && isNaN(Number(value))) {
       errors.value[fieldName] = 'Please enter a valid number';
       return false;
-    }
-
-    if (rules.match && value !== rules.match.value) {
+    }    if (rules.match && value !== (typeof rules.match.value === 'function' ? rules.match.value() : rules.match.value)) {
       errors.value[fieldName] = rules.match.message || 'Fields do not match';
       return false;
     }

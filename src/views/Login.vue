@@ -42,10 +42,9 @@
                                 <ion-input v-model="form.password" :type="showPassword ? 'text' : 'password'"
                                     @blur="validateField('password', form.password, validationRules.password)"
                                     :class="{ 'ion-invalid': isDirty.password && errors.password }"
-                                    :errorText="errors.password"></ion-input>
-                                <ion-button fill="clear" slot="end" @click="togglePasswordVisibility"
+                                    :errorText="errors.password"></ion-input>                                <ion-button fill="clear" slot="end" @click="togglePasswordVisibility"
                                     class="password-toggle">
-                                    <ion-icon :icon="showPassword ? 'eye-off' : 'eye'"></ion-icon>
+                                    <ion-icon :icon="showPassword ? eyeOff : eye"></ion-icon>
                                 </ion-button>
                                 <ion-note slot="error" v-if="isDirty.password && errors.password">{{ errors.password
                                     }}</ion-note>
@@ -58,11 +57,17 @@
                                     @blur="validateField('confirmPassword', form.confirmPassword, validationRules.confirmPassword)"
                                     :class="{ 'ion-invalid': isDirty.confirmPassword && errors.confirmPassword }"
                                     :errorText="errors.confirmPassword"></ion-input>
+                                <ion-button fill="clear" slot="end" @click="togglePasswordVisibility"
+                                    class="password-toggle">
+                                    <ion-icon :icon="showPassword ? eyeOff : eye"></ion-icon>
+                                </ion-button>
                                 <ion-note slot="error" v-if="isDirty.confirmPassword && errors.confirmPassword">{{
                                     errors.confirmPassword }}</ion-note>
-                            </ion-item>                            <!-- Error Message -->
-                            <div v-if="displayError" class="error-message">
-                                <ion-text color="danger">{{ displayError }}</ion-text>
+                            </ion-item>
+
+                            <!-- Error Message -->
+                            <div v-if="displayError || hasValidationErrors" class="error-message">
+                                <ion-text color="danger">{{ displayError || firstValidationError }}</ion-text>
                             </div>
 
                             <!-- Submit Button -->
@@ -188,7 +193,15 @@ export default defineComponent({
             return authStore.error || localError.value;
         });
 
-        // Validation rules
+        // Computed validation errors
+        const hasValidationErrors = computed(() => {
+            return Object.keys(errors.value).some(key => isDirty.value[key] && errors.value[key]);
+        });
+
+        const firstValidationError = computed(() => {
+            const errorKeys = Object.keys(errors.value).filter(key => isDirty.value[key] && errors.value[key]);
+            return errorKeys.length > 0 ? errors.value[errorKeys[0]] : '';
+        });        // Validation rules
         const validationRules = reactive({
             username: {
                 required: true,
@@ -202,16 +215,12 @@ export default defineComponent({
             password: {
                 required: true,
                 minLength: 8
-            },
-            confirmPassword: {
+            },            confirmPassword: {
                 required: true,
                 match: {
                     value: computed(() => form.password),
                     message: 'Passwords do not match'
                 }
-            },
-            role: {
-                required: true
             }
         });
 
@@ -333,11 +342,15 @@ export default defineComponent({
             showPassword,
             loading,
             displayError,
+            hasValidationErrors,
+            firstValidationError,
             errors,
             isDirty,
             validationRules,
             spotifyIcon,
             youtubeIcon,
+            eye,
+            eyeOff,
             toggleMode,
             togglePasswordVisibility,
             submitForm,
@@ -431,10 +444,20 @@ ion-card-subtitle {
 
 .password-toggle {
     margin: 0;
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
+    min-width: auto;
+    min-height: auto;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --color: var(--ion-color-medium);
+    z-index: 10;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle ion-icon {
+    font-size: 20px;
 }
 
 .mode-toggle {
