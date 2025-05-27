@@ -749,6 +749,8 @@ export default defineComponent({
 }
 
 .status-info h3 {
+    align-items: left;
+    text-align: left;
     margin: 0 0 0.25rem;
     font-weight: 600;
 }

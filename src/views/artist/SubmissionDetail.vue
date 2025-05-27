@@ -440,6 +440,8 @@ export default defineComponent({
 }
 
 .status-info h3 {
+    align-items: left;
+    text-align: left;
     margin: 0 0 0.25rem;
     font-weight: 600;
 }
@@ -472,6 +474,7 @@ export default defineComponent({
 
 .song-info h3,
 .playlist-info h3 {
+    text-align: left;
     font-size: 1.1rem;
     margin-bottom: 1rem;
     color: var(--ion-color-medium);
