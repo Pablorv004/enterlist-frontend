@@ -64,11 +64,12 @@
                 </empty-state-display>
 
                 <div v-else class="playlists-grid-container">
-                    <ion-grid class="playlists-grid">
+                    <!-- Desktop Grid View -->
+                    <ion-grid class="playlists-grid desktop-only">
                         <ion-row>
                             <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="playlist in filteredPlaylists"
                                 :key="playlist.playlist_id">
-                                <ion-card class="playlist-card" @click="showPlaylistDetails(playlist)">
+                                <ion-card class="playlist-card vertical" @click="showPlaylistDetails(playlist)">
                                     <div class="playlist-img-container">
                                         <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
                                             :alt="playlist.name" class="playlist-img" />
@@ -103,51 +104,85 @@
 
                                         <div class="playlist-stats">
                                             <div class="stat-item">
-                                                <span class="stat-value">{{ getSubmissionCount(playlist.playlist_id)
-                                                    }}</span>
+                                                <span class="stat-value">{{ getSubmissionCount(playlist.playlist_id) }}</span>
                                                 <span class="stat-label">Submissions</span>
                                             </div>
 
                                             <div class="stat-item">
-                                                <span class="stat-value">{{ getApprovedCount(playlist.playlist_id)
-                                                    }}</span>
+                                                <span class="stat-value">{{ getApprovedCount(playlist.playlist_id) }}</span>
                                                 <span class="stat-label">Approved</span>
                                             </div>
 
                                             <div class="stat-item">
-                                                <span class="stat-value">{{
-                                                    formatCurrency(getEarnings(playlist.playlist_id)) }}</span>
+                                                <span class="stat-value">{{ formatCurrency(getEarnings(playlist.playlist_id)) }}</span>
                                                 <span class="stat-label">Earned</span>
                                             </div>
                                         </div>
-                                          <div class="playlist-actions">
-                                            <ion-button fill="clear" size="small"
-                                                @click.stop="toggleVisibility(playlist)">
-                                                <ion-icon
-                                                    :icon="playlist.is_visible ? eyeOffOutlineIcon : eyeOutlineIcon"
-                                                    slot="icon-only"></ion-icon>
-                                            </ion-button>
-
-                                            <ion-button fill="clear" size="small"
-                                                @click.stop="viewSubmissions(playlist)">
-                                                <ion-icon :icon="mailUnreadIcon" slot="icon-only"></ion-icon>
-                                            </ion-button>
-
-                                            <ion-button fill="clear" size="small" :href="playlist.url" target="_blank"
-                                                @click.stop>
-                                                <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
-                                            </ion-button>
-
-                                            <ion-button fill="clear" size="small" color="danger"
-                                                @click.stop="confirmDeletePlaylist(playlist)">
-                                                <ion-icon :icon="trashIcon" slot="icon-only"></ion-icon>
-                                            </ion-button>
-                                        </div>
                                     </ion-card-content>
+
+                                    <div class="card-actions">
+                                        <ion-button fill="clear" size="small" @click.stop="toggleVisibility(playlist)">
+                                            <ion-icon :icon="playlist.is_visible ? eyeOffOutlineIcon : eyeOutlineIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" @click.stop="viewSubmissions(playlist)">
+                                            <ion-icon :icon="mailUnreadIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" :href="playlist.url" target="_blank" @click.stop>
+                                            <ion-icon :icon="openIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" color="danger" @click.stop="confirmDeletePlaylist(playlist)">
+                                            <ion-icon :icon="trashIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+                                    </div>
                                 </ion-card>
                             </ion-col>
                         </ion-row>
                     </ion-grid>
+
+                    <!-- Mobile List View -->
+                    <ion-list class="playlists-list mobile-only">
+                        <ion-item v-for="playlist in filteredPlaylists" :key="playlist.playlist_id"
+                            class="playlist-item" @click="showPlaylistDetails(playlist)">
+                            <ion-thumbnail slot="start" class="playlist-thumbnail">
+                                <img :src="playlist.cover_image_url || '/assets/default-playlist-cover.png'"
+                                    :alt="playlist.name" />
+                                <div class="playlist-platform-overlay">
+                                    <img :src="getPlatformIcon(playlist.platform?.name)"
+                                        :alt="playlist.platform?.name" class="platform-icon-small" />
+                                </div>
+                            </ion-thumbnail>
+
+                            <ion-label>
+                                <h3 class="playlist-name">{{ playlist.name }}</h3>
+                                <div class="playlist-meta">
+                                    <span class="playlist-tracks">
+                                        <ion-icon :icon="musicalNotesIcon" class="meta-icon"></ion-icon>
+                                        {{ playlist.track_count || 'Unknown' }} tracks
+                                    </span>
+                                    <span v-if="playlist.genre" class="playlist-genre">
+                                        <ion-icon :icon="pricetagIcon" class="meta-icon"></ion-icon>
+                                        {{ playlist.genre }}
+                                    </span>
+                                </div>
+                                <div class="playlist-stats-mobile">
+                                    <span class="stat-mobile">{{ getSubmissionCount(playlist.playlist_id) }} submissions</span>
+                                    <span class="stat-mobile">{{ formatCurrency(getEarnings(playlist.playlist_id)) }} earned</span>
+                                </div>
+                            </ion-label>
+
+                            <div slot="end" class="playlist-end-slot">
+                                <ion-badge :color="playlist.is_visible ? 'success' : 'medium'" class="status-badge">
+                                    {{ playlist.is_visible ? 'Active' : 'Inactive' }}
+                                </ion-badge>
+                                <ion-button fill="clear" @click.stop="showPlaylistOptions(playlist)">
+                                    <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
+                                </ion-button>
+                            </div>
+                        </ion-item>
+                    </ion-list>
 
                     <!-- Pagination -->
                     <div v-if="totalPages > 1" class="pagination">
@@ -184,15 +219,16 @@ import { useRouter } from 'vue-router';
 import {
     IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
     IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
-    IonModal, toastController, modalController, alertController
+    IonModal, IonItem, IonLabel, IonThumbnail, IonBadge, IonList,
+    toastController, modalController, alertController, actionSheetController
 } from '@ionic/vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
-    open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil, eyeOutline, eyeOffOutline, person, trash, sync
+    open as openIcon, chevronBack, chevronForward, closeOutline, linkOutline,
+    pencil, eyeOutline, eyeOffOutline, person, trash, sync, ellipsisVertical,
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -218,7 +254,7 @@ export default defineComponent({
         IonPage, IonContent, IonSearchbar, IonSegment, IonSegmentButton, IonGrid,
         IonRow, IonCol, IonCard, IonCardContent, IonButton, IonIcon, IonSpinner,
         IonModal, AppHeader, EmptyStateDisplay, BottomNavigation,
-        PlaylistDetailsModal
+        PlaylistDetailsModal, IonItem, IonLabel, IonThumbnail, IonBadge, IonList
     },
     setup() {
         const router = useRouter();
@@ -518,7 +554,52 @@ export default defineComponent({
                 console.error('Failed to delete playlist:', error);
                 showToast('Failed to delete playlist', 'danger');
             }
-        };        return {
+        };        // Add method for mobile playlist options
+        const showPlaylistOptions = async (playlist: Playlist) => {
+            const actionSheet = await actionSheetController.create({
+                header: playlist.name,
+                buttons: [
+                    {
+                        text: 'View Details',
+                        icon: 'information-circle-outline',
+                        handler: () => showPlaylistDetails(playlist)
+                    },
+                    {
+                        text: 'View Submissions',
+                        icon: mailUnread,
+                        handler: () => viewSubmissions(playlist)
+                    },
+                    {
+                        text: playlist.is_visible ? 'Make Inactive' : 'Make Active',
+                        icon: playlist.is_visible ? eyeOffOutline : eyeOutline,
+                        handler: () => toggleVisibility(playlist)
+                    },
+                    {
+                        text: 'Open in Platform',
+                        icon: openIcon,
+                        handler: () => {
+                            if (playlist.url) {
+                                window.open(playlist.url, '_blank');
+                            }
+                        }
+                    },
+                    {
+                        text: 'Delete',
+                        role: 'destructive',
+                        icon: trash,
+                        handler: () => confirmDeletePlaylist(playlist)
+                    },
+                    {
+                        text: 'Cancel',
+                        role: 'cancel'
+                    }
+                ]
+            });
+
+            await actionSheet.present();
+        };
+
+        return {
             searchQuery,
             selectedFilter,
             loading,
@@ -537,7 +618,7 @@ export default defineComponent({
             personIcon: person,
             pricetagIcon: pricetag,
             mailUnreadIcon: mailUnread,
-            openIcon: open,
+            openIcon: openIcon,
             chevronBackIcon: chevronBack,
             chevronForwardIcon: chevronForward,
             closeIcon: closeOutline,
@@ -547,6 +628,7 @@ export default defineComponent({
             eyeOffOutlineIcon: eyeOffOutline,
             trashIcon: trash,
             syncIcon: sync,
+            ellipsisVerticalIcon: ellipsisVertical,
             handleSearch,
             clearSearch,
             handleFilterChange,
@@ -569,7 +651,8 @@ export default defineComponent({
             prevPage,
             nextPage,
             importPlaylistsModal,
-            syncPlaylists
+            syncPlaylists,
+            showPlaylistOptions
         };
     }
 });
@@ -815,5 +898,132 @@ export default defineComponent({
     margin: 0 1rem;
     font-size: 0.9rem;
     color: var(--ion-color-medium);
+}
+
+/* Responsive Layout */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: block;
+    }
+}
+
+/* Desktop Grid Styles */
+.playlists-grid {
+    --ion-grid-padding: 0;
+}
+
+.playlist-card.vertical {
+    margin: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.playlist-card.vertical:hover {
+    transform: translateY(-4px);
+}
+
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-top: 1px solid var(--ion-color-light);
+}
+
+/* Mobile List Styles */
+.playlists-list {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.playlist-item {
+    --padding-start: 1rem;
+    --inner-padding-end: 1rem;
+    --border-color: var(--ion-color-light);
+}
+
+.playlist-item:last-child {
+    --border-width: 0;
+}
+
+.playlist-thumbnail {
+    --border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    position: relative;
+}
+
+.playlist-platform-overlay {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-icon-small {
+    width: 12px;
+    height: 12px;
+}
+
+.playlist-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+}
+
+.playlist-stats-mobile {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+}
+
+.meta-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.playlist-end-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+}
+
+/* Hide old playlist actions on mobile */
+@media (max-width: 767px) {
+    .playlist-actions {
+        display: none;
+    }
 }
 </style>

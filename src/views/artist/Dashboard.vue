@@ -181,7 +181,8 @@
                         </template>
                     </empty-state-display>
 
-                    <ion-grid v-else class="songs-grid">
+                    <!-- Desktop Grid View -->
+                    <ion-grid v-else class="songs-grid desktop-only">
                         <ion-row>
                             <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="song in songs"
                                 :key="song.song_id">
@@ -205,6 +206,34 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
+
+                    <!-- Mobile List View -->
+                    <ion-list v-else class="songs-list mobile-only">
+                        <ion-item v-for="song in songs" :key="song.song_id"
+                            class="song-item" @click="openSongModal(song)">
+                            <ion-thumbnail slot="start" class="song-thumbnail">
+                                <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
+                                    :alt="song.title" />
+                                <div class="song-platform-overlay">
+                                    <ion-icon :icon="getPlatformIcon(song.platform_id)" class="platform-icon-small"></ion-icon>
+                                </div>
+                            </ion-thumbnail>
+
+                            <ion-label>
+                                <h3 class="song-name">{{ song.title }}</h3>
+                                <p class="song-album">{{ song.album_name || 'Single' }}</p>
+                                <div class="song-meta">
+                                    <span class="song-platform-name">
+                                        {{ getPlatformName(song.platform_id) }}
+                                    </span>
+                                </div>
+                            </ion-label>
+
+                            <ion-button fill="clear" slot="end" @click.stop="openSongModal(song)">
+                                <ion-icon :icon="chevronForwardIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </ion-item>
+                    </ion-list>
                 </div>
             </div>
         </ion-content>
@@ -464,6 +493,7 @@ export default defineComponent({
             helpCircleIcon,
             calendarIcon,
             linkIcon,
+            chevronForwardIcon: arrowForwardIcon,
         };
     }
 });
@@ -783,6 +813,75 @@ export default defineComponent({
     color: var(--ion-color-medium);
 }
 
+/* Mobile Songs List */
+.songs-list {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+.song-item {
+    --padding-start: 1rem;
+    --inner-padding-end: 1rem;
+    --border-color: var(--ion-color-light);
+}
+
+.song-item:last-child {
+    --border-width: 0;
+}
+
+.song-thumbnail {
+    --border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    position: relative;
+}
+
+.song-platform-overlay {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-icon-small {
+    width: 12px;
+    height: 12px;
+    color: white;
+}
+
+.song-meta {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+}
+
+/* Responsive Layout */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: block;
+    }
+}
+
 /* Help Card */
 .help-card {
     border-radius: 12px;
@@ -824,5 +923,32 @@ export default defineComponent({
 
 .help-button {
     margin-left: 1rem;
+}
+
+.help-actions {
+    margin: 0;
+    color: var(--ion-color-dark);
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.help-actions ion-button {
+    margin-top: 0.5rem;
+    gap: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    font-size: 0.9rem;
+    --color: white;
+    --background: var(--ion-color-primary);
+    --border-radius: 20px;
+    --ion-padding-end: 0;
+    --ion-padding-start: 0;
+    flex: 1;
+}
+
+.help-actions ion-button:hover {
+    transition: background 0.2s;
 }
 </style>

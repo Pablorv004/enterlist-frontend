@@ -58,36 +58,35 @@
                 </empty-state-display>
 
                 <div v-else class="songs-list-container">
-                    <ion-grid class="songs-grid">
+                    <!-- Desktop Grid View -->
+                    <ion-grid class="songs-grid desktop-only">
                         <ion-row>
                             <ion-col size="12" size-md="6" size-lg="4" v-for="song in filteredSongs"
                                 :key="song.song_id">
-                                <ion-card class="song-card" @click="showSongDetails(song)">
-                                    <div class="song-card-content">
-                                        <ion-thumbnail class="song-thumbnail">
-                                            <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
-                                                :alt="song.title" />
-                                        </ion-thumbnail>
-
-                                        <div class="song-details">
-                                            <h3 class="song-title">{{ song.title }}</h3>
-                                            <p class="song-album">{{ song.album_name || 'Single' }}</p>
-
-                                            <div class="song-meta">
-                                                <div class="song-platform">
-                                                    <ion-icon :icon="getPlatformIcon(song.platform_id)"
-                                                        class="platform-icon"></ion-icon>
-                                                    <span>{{ getPlatformName(song.platform_id) }}</span>
-                                                </div>
-
-                                                <div class="song-visibility">
-                                                    <ion-icon :icon="song.is_visible ? eyeIcon : eyeOffIcon"
-                                                        :class="song.is_visible ? 'visible' : 'hidden'"></ion-icon>
-                                                </div>
-                                            </div>
+                                <ion-card class="song-card vertical" @click="showSongDetails(song)">
+                                    <div class="song-img-container">
+                                        <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
+                                            :alt="song.title" class="song-img" />
+                                        <div class="song-platform">
+                                            <ion-icon :icon="getPlatformIcon(song.platform_id)"
+                                                class="platform-icon"></ion-icon>
                                         </div>
+                                        <div class="song-visibility-overlay">
+                                            <ion-icon :icon="song.is_visible ? eyeIcon : eyeOffIcon"
+                                                :class="song.is_visible ? 'visible' : 'hidden'"></ion-icon>
+                                        </div>
+                                    </div>
 
-                                        <ion-button fill="clear" @click.stop="showOptions(song)" class="options-button">
+                                    <ion-card-content>
+                                        <h3 class="song-title">{{ song.title }}</h3>
+                                        <p class="song-album">{{ song.album_name || 'Single' }}</p>
+                                        <div class="song-platform-name">
+                                            <span>{{ getPlatformName(song.platform_id) }}</span>
+                                        </div>
+                                    </ion-card-content>
+
+                                    <div class="card-actions">
+                                        <ion-button fill="clear" size="small" @click.stop="showOptions(song)">
                                             <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
                                     </div>
@@ -96,18 +95,36 @@
                         </ion-row>
                     </ion-grid>
 
-                    <!-- Pagination -->
-                    <div v-if="totalPages > 1" class="pagination">
-                        <ion-button fill="clear" :disabled="currentPage === 1" @click="prevPage">
-                            <ion-icon :icon="chevronBackIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
+                    <!-- Mobile List View -->
+                    <ion-list class="songs-list mobile-only">
+                        <ion-item v-for="song in filteredSongs" :key="song.song_id"
+                            class="song-item" @click="showSongDetails(song)">
+                            <ion-thumbnail slot="start" class="song-thumbnail">
+                                <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
+                                    :alt="song.title" />
+                            </ion-thumbnail>
 
-                        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+                            <ion-label>
+                                <h3 class="song-title">{{ song.title }}</h3>
+                                <p class="song-album">{{ song.album_name || 'Single' }}</p>
+                                <div class="song-meta">
+                                    <span class="song-platform">
+                                        <ion-icon :icon="getPlatformIcon(song.platform_id)" class="meta-icon"></ion-icon>
+                                        {{ getPlatformName(song.platform_id) }}
+                                    </span>
+                                    <span class="song-visibility">
+                                        <ion-icon :icon="song.is_visible ? eyeIcon : eyeOffIcon"
+                                            :class="song.is_visible ? 'visible' : 'hidden'" class="meta-icon"></ion-icon>
+                                        {{ song.is_visible ? 'Visible' : 'Hidden' }}
+                                    </span>
+                                </div>
+                            </ion-label>
 
-                        <ion-button fill="clear" :disabled="currentPage === totalPages" @click="nextPage">
-                            <ion-icon :icon="chevronForwardIcon" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </div>
+                            <ion-button fill="clear" slot="end" @click.stop="showOptions(song)">
+                                <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </ion-item>
+                    </ion-list>
                 </div>
             </div>
         </ion-content>
@@ -134,6 +151,8 @@ import {
     IonLabel,
     IonSegment,
     IonSegmentButton,
+    IonList,
+    IonItem,
     actionSheetController,
     modalController,
     alertController,
@@ -605,86 +624,166 @@ export default defineComponent({
     margin-bottom: 24px;
 }
 
+/* Responsive Layout */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: block;
+    }
+}
+
+/* Desktop Grid Styles */
 .songs-grid {
     padding: 0;
 }
 
-.song-card {
+.song-card.vertical {
     margin: 0;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    height: 100%;
     cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.song-card:hover {
+.song-card.vertical:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-.song-card-content {
+.song-img-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+}
+
+.song-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.song-platform {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
     display: flex;
-    padding: 16px;
     align-items: center;
+    justify-content: center;
 }
 
-.song-thumbnail {
-    --border-radius: 8px;
-    width: 64px;
-    height: 64px;
-    margin-right: 16px;
+.song-visibility-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.song-details {
-    flex: 1;
-    min-width: 0;
+.song-visibility-overlay ion-icon {
+    font-size: 16px;
+}
+
+.platform-icon {
+    width: 16px;
+    height: 16px;
+    color: white;
+}
+
+.song-card.vertical ion-card-content {
+    padding: 1rem;
 }
 
 .song-title {
+    font-size: 1rem;
     font-weight: 600;
-    font-size: 16px;
-    margin: 0;
-    margin-bottom: 4px;
+    margin: 0 0 0.25rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .song-album {
-    font-size: 14px;
+    font-size: 0.8rem;
     color: var(--ion-color-medium);
-    margin: 0;
-    margin-bottom: 8px;
+    margin: 0 0 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.song-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.song-platform-name {
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+    text-align: center;
 }
 
-.song-platform {
+.card-actions {
+    padding: 0.5rem 1rem;
     display: flex;
-    align-items: center;
-    font-size: 13px;
+    justify-content: center;
+    border-top: 1px solid var(--ion-color-light);
+}
+
+/* Mobile List Styles */
+.songs-list {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.song-item {
+    --padding-start: 1rem;
+    --inner-padding-end: 1rem;
+    --border-color: var(--ion-color-light);
+}
+
+.song-item:last-child {
+    --border-width: 0;
+}
+
+.song-thumbnail {
+    --border-radius: 8px;
+    width: 60px;
+    height: 60px;
+}
+
+.song-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
     color: var(--ion-color-medium);
 }
 
-.platform-icon {
-    margin-right: 4px;
-    font-size: 16px;
-}
-
-.song-visibility {
-    display: flex;
-    align-items: center;
-}
-
-.song-visibility ion-icon {
-    font-size: 16px;
+.meta-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+    font-size: 0.9rem;
 }
 
 .visible {
@@ -695,40 +794,8 @@ export default defineComponent({
     color: var(--ion-color-medium);
 }
 
-.options-button {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    margin: 0;
-    height: auto;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 24px;
-}
-
-.page-info {
-    margin: 0 16px;
-    font-size: 14px;
-    color: var(--ion-color-medium);
-}
-
-/* Media queries */
-@media (max-width: 767px) {
-    .actions-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .actions-buttons {
-        width: 100%;
-    }
-
-    .import-btn,
-    .add-btn {
-        flex: 1;
-    }
+/* Remove old card styles */
+.song-card-content {
+    display: none;
 }
 </style>
