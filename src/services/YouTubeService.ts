@@ -19,7 +19,10 @@ export interface YouTubeChannel {
 }
 
 export interface YouTubeVideo {
-  id: string;
+  id: {
+    kind: string;
+    videoId: string;
+  };
   snippet: {
     title: string;
     description: string;
@@ -32,7 +35,7 @@ export interface YouTubeVideo {
       high: { url: string, width: number, height: number };
     };
   };
-  contentDetails: {
+  contentDetails?: {
     duration: string; // ISO 8601 duration format
     dimension: string;
     definition: string;

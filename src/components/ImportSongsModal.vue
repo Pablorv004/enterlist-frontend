@@ -84,8 +84,8 @@
             </ion-button>
           </ion-list-header>
 
-          <ion-item v-for="video in youtubeVideos" :key="video.id" class="video-item">
-            <ion-checkbox slot="start" v-model="selectedVideos[video.id]"></ion-checkbox>
+          <ion-item v-for="video in youtubeVideos" :key="video.id.videoId" class="video-item">
+            <ion-checkbox slot="start" v-model="selectedVideos[video.id.videoId]"></ion-checkbox>
             <ion-thumbnail slot="start">
               <img :src="video.snippet.thumbnails.medium.url || ''" alt="Video thumbnail" />
             </ion-thumbnail>
@@ -255,7 +255,7 @@ export default defineComponent({
 
     const allVideosSelected = computed(() => {
       return youtubeVideos.value.length > 0 && 
-        youtubeVideos.value.every(video => selectedVideos.value[video.id]);
+        youtubeVideos.value.every(video => selectedVideos.value[video.id.videoId]);
     });
 
     const canImport = computed(() => {
@@ -283,7 +283,7 @@ export default defineComponent({
     const toggleSelectAllVideos = () => {
       const newValue = !allVideosSelected.value;
       youtubeVideos.value.forEach(video => {
-        selectedVideos.value[video.id] = newValue;
+        selectedVideos.value[video.id.videoId] = newValue;
       });
     };    // Load platform data
     const loadPlatforms = async () => {
@@ -352,7 +352,7 @@ export default defineComponent({
 
         // Initialize selection object
         youtubeVideos.value.forEach(video => {
-          selectedVideos.value[video.id] = false;
+          selectedVideos.value[video.id.videoId] = false;
         });
       } catch (error) {
         if (!isComponentMounted.value) return;
