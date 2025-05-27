@@ -39,7 +39,7 @@ export function useFormValidation() {
       return false;
     }
 
-    if (rules.minLength && value.length < rules.minLength) {
+        if (rules.minLength && value.length < rules.minLength) {
       errors.value[fieldName] = `Minimum length is ${rules.minLength} characters`;
       return false;
     }
@@ -47,22 +47,6 @@ export function useFormValidation() {
     if (rules.maxLength && value.length > rules.maxLength) {
       errors.value[fieldName] = `Maximum length is ${rules.maxLength} characters`;
       return false;
-    }
-
-    if (rules.numeric && isNaN(Number(value))) {
-      errors.value[fieldName] = 'Please enter a valid number';
-      return false;
-    }    if (rules.match && value !== (typeof rules.match.value === 'function' ? rules.match.value() : rules.match.value)) {
-      errors.value[fieldName] = rules.match.message || 'Fields do not match';
-      return false;
-    }
-
-    if (rules.custom && typeof rules.custom === 'function') {
-      const customError = rules.custom(value);
-      if (customError) {
-        errors.value[fieldName] = customError;
-        return false;
-      }
     }
 
     return true;
@@ -73,7 +57,7 @@ export function useFormValidation() {
     
     // Validate each field in the form
     Object.keys(validationRules).forEach(fieldName => {
-      const fieldValid = validateField(fieldName, formData[fieldName], validationRules[fieldName]);
+      const fieldValid = validateField(fieldName.toLowerCase(), formData[fieldName], validationRules[fieldName]);
       if (!fieldValid) valid = false;
     });
     

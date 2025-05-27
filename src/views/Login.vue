@@ -10,9 +10,9 @@
                 <ion-card class="login-card">
                     <ion-card-header>
                         <ion-card-title class="card-title">{{ isLoginMode ? 'Sign In' : 'Create Account'
-                            }}</ion-card-title>
+                        }}</ion-card-title>
                         <ion-card-subtitle>{{ isLoginMode ? 'Welcome back!' : 'Join the network' }}</ion-card-subtitle>
-                    </ion-card-header>                    <ion-card-content>
+                    </ion-card-header> <ion-card-content>
                         <form @submit.prevent="submitForm" class="login-form">
                             <!-- Username for register mode -->
                             <ion-item v-if="!isLoginMode" class="form-input">
@@ -22,7 +22,7 @@
                                     :class="{ 'ion-invalid': isDirty.username && errors.username }"
                                     :errorText="errors.username"></ion-input>
                                 <ion-note slot="error" v-if="isDirty.username && errors.username">{{ errors.username
-                                    }}</ion-note>
+                                }}</ion-note>
                             </ion-item>
 
                             <!-- Email -->
@@ -33,7 +33,7 @@
                                     :class="{ 'ion-invalid': isDirty.email && errors.email }"
                                     :errorText="errors.email"></ion-input>
                                 <ion-note slot="error" v-if="isDirty.email && errors.email">{{ errors.email
-                                    }}</ion-note>
+                                }}</ion-note>
                             </ion-item>
 
                             <!-- Password -->
@@ -42,12 +42,12 @@
                                 <ion-input v-model="form.password" :type="showPassword ? 'text' : 'password'"
                                     @blur="validateField('password', form.password, validationRules.password)"
                                     :class="{ 'ion-invalid': isDirty.password && errors.password }"
-                                    :errorText="errors.password"></ion-input>                                <ion-button fill="clear" slot="end" @click="togglePasswordVisibility"
-                                    class="password-toggle">
+                                    :errorText="errors.password"></ion-input> <ion-button fill="clear" slot="end"
+                                    @click="togglePasswordVisibility" class="password-toggle">
                                     <ion-icon :icon="showPassword ? eyeOff : eye"></ion-icon>
                                 </ion-button>
                                 <ion-note slot="error" v-if="isDirty.password && errors.password">{{ errors.password
-                                    }}</ion-note>
+                                }}</ion-note>
                             </ion-item>
 
                             <!-- Confirm Password for register mode -->
@@ -161,7 +161,7 @@ export default defineComponent({
         IonSelect,
         IonSelectOption,
         IonNote
-    },    setup() {
+    }, setup() {
         const router = useRouter();
         const route = useRoute();
         const authStore = useAuthStore();
@@ -214,9 +214,9 @@ export default defineComponent({
             },
             password: {
                 required: true,
-                minLength: 8
-            },            confirmPassword: {
+            }, confirmPassword: {
                 required: true,
+                password: true,
                 match: {
                     value: computed(() => form.password),
                     message: 'Passwords do not match'
@@ -243,7 +243,7 @@ export default defineComponent({
             // Clear any previous errors
             localError.value = '';
             authStore.clearError();
-            
+
             if (isLoginMode.value) {
                 // Login validation
                 if (!validateForm({
@@ -271,7 +271,8 @@ export default defineComponent({
                 } catch (err: any) {
                     console.error('Login error:', err);
                     // Error will be handled by the watcher from auth store
-                }} else {
+                }
+            } else {
                 // Register validation
                 if (!validateForm({
                     username: form.username,
@@ -285,7 +286,7 @@ export default defineComponent({
                     confirmPassword: validationRules.confirmPassword
                 })) {
                     return;
-                }                try {
+                } try {
                     await authStore.register({
                         username: form.username,
                         email: form.email,
@@ -336,7 +337,7 @@ export default defineComponent({
                 });
                 await alert.present();
             }
-        };        return {
+        }; return {
             form,
             isLoginMode,
             showPassword,
@@ -532,13 +533,13 @@ ion-card-subtitle {
         padding-top: 16px;
         min-height: calc(100vh - 20px);
     }
-    
+
     .logo-container {
         flex-direction: column;
         gap: 8px;
         margin-bottom: 16px;
     }
-    
+
     .logo {
         width: 70px;
         height: 70px;
@@ -552,29 +553,29 @@ ion-card-subtitle {
     .card-title {
         font-size: 20px;
     }
-    
+
     .login-card {
         margin-bottom: 20px;
     }
-    
+
     .form-input {
         margin-bottom: 12px;
     }
-    
+
     .oauth-buttons {
         gap: 10px;
         margin-bottom: 12px;
     }
-    
+
     .oauth-button {
         height: 44px;
         font-size: 13px;
     }
-    
+
     .separator {
         margin: 12px 0;
     }
-    
+
     .mode-toggle {
         margin: 16px 0;
     }
@@ -584,7 +585,7 @@ ion-card-subtitle {
     .login-container {
         padding: 8px;
     }
-    
+
     .logo {
         width: 60px;
         height: 60px;
@@ -598,7 +599,7 @@ ion-card-subtitle {
         height: 40px;
         font-size: 12px;
     }
-    
+
     .oauth-button ion-icon {
         margin-right: 6px;
     }
