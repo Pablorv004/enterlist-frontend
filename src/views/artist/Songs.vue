@@ -10,7 +10,8 @@
                         class="song-search"></ion-searchbar>
 
                     <div class="filter-segment-container">
-                        <ion-segment v-model="selectedVisibilityFilter" @ionChange="handleVisibilityFilterChange" class="visibility-filter-segment">
+                        <ion-segment v-model="selectedVisibilityFilter" @ionChange="handleVisibilityFilterChange"
+                            class="visibility-filter-segment">
                             <ion-segment-button value="all">All</ion-segment-button>
                             <ion-segment-button value="visible">Visible</ion-segment-button>
                             <ion-segment-button value="hidden">Hidden</ion-segment-button>
@@ -23,7 +24,7 @@
                             <ion-icon v-else :icon="syncIcon" slot="start"></ion-icon>
                             {{ syncing ? 'Syncing...' : 'Sync' }}
                         </ion-button>
-                        
+
                         <ion-button @click="importSongsModal" class="import-btn">
                             <ion-icon :icon="cloudDownloadIcon" slot="start"></ion-icon>
                             Import Songs
@@ -37,11 +38,8 @@
                     <p>Loading your songs...</p>
                 </div>
 
-                <empty-state-display 
-                    v-else-if="filteredSongs.length === 0 && !searchQuery"
-                    :icon="musicalNotesIcon"
-                    title="No songs yet"
-                    message="Import your songs from connected platforms or add them manually"
+                <empty-state-display v-else-if="filteredSongs.length === 0 && !searchQuery" :icon="musicalNotesIcon"
+                    title="No songs yet" message="Import your songs from connected platforms or add them manually"
                     resource-type="songs">
                     <template #actions>
                         <ion-button @click="importSongsModal">
@@ -50,11 +48,8 @@
                     </template>
                 </empty-state-display>
 
-                <empty-state-display 
-                    v-else-if="filteredSongs.length === 0 && searchQuery"
-                    :icon="searchIcon"
-                    title="No results found"
-                    :message="`No songs matching '${searchQuery}'`">
+                <empty-state-display v-else-if="filteredSongs.length === 0 && searchQuery" :icon="searchIcon"
+                    title="No results found" :message="`No songs matching '${searchQuery}'`">
                     <template #actions>
                         <ion-button @click="clearSearch" fill="outline">
                             Clear Search
@@ -76,8 +71,7 @@
                                             <img :src="getPlatformIcon(song.platform_id)"
                                                 :alt="getPlatformName(song.platform_id)" class="platform-icon" />
                                         </div>
-                                        <div class="song-status"
-                                            :class="{ 'status-hidden': !song.is_visible }">
+                                        <div class="song-status" :class="{ 'status-hidden': !song.is_visible }">
                                             {{ song.is_visible ? 'Visible' : 'Hidden' }}
                                         </div>
                                     </div>
@@ -91,7 +85,8 @@
                                             </div>
 
                                             <div class="song-platform-name">
-                                                <img :src="getPlatformIcon(song.platform_id)" class="details-icon" :alt="getPlatformName(song.platform_id)" />
+                                                <img :src="getPlatformIcon(song.platform_id)" class="details-icon"
+                                                    :alt="getPlatformName(song.platform_id)" />
                                                 {{ getPlatformName(song.platform_id) }}
                                             </div>
                                         </div>
@@ -99,18 +94,21 @@
 
                                     <div class="card-actions">
                                         <ion-button fill="clear" size="small" @click.stop="toggleSongVisibility(song)">
-                                            <ion-icon :icon="song.is_visible ? eyeOffIcon : eyeIcon" slot="icon-only"></ion-icon>
+                                            <ion-icon :icon="song.is_visible ? eyeOffIcon : eyeIcon"
+                                                slot="icon-only"></ion-icon>
                                         </ion-button>
 
                                         <ion-button fill="clear" size="small" @click.stop="submitToPlaylist(song)">
                                             <ion-icon :icon="shareIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
 
-                                        <ion-button fill="clear" size="small" @click.stop="openInPlatform(song)" :disabled="!song.url">
+                                        <ion-button fill="clear" size="small" @click.stop="openInPlatform(song)"
+                                            :disabled="!song.url">
                                             <ion-icon :icon="openExternalIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
 
-                                        <ion-button fill="clear" size="small" color="danger" @click.stop="confirmDeleteSong(song)">
+                                        <ion-button fill="clear" size="small" color="danger"
+                                            @click.stop="confirmDeleteSong(song)">
                                             <ion-icon :icon="deleteIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
                                     </div>
@@ -121,23 +119,22 @@
 
                     <!-- Mobile List View -->
                     <ion-list class="songs-list mobile-only">
-                        <ion-item v-for="song in filteredSongs" :key="song.song_id"
-                            class="song-item" @click="showSongDetails(song)">
+                        <ion-item v-for="song in filteredSongs" :key="song.song_id" class="song-item"
+                            @click="showSongDetails(song)">
                             <ion-thumbnail slot="start" class="song-thumbnail">
                                 <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                     :alt="song.title" />
                             </ion-thumbnail>
-
+                            <div class="song-platform-overlay">
+                                <ion-icon :icon="getPlatformIcon(song.platform_id)"
+                                    class="platform-icon-small"></ion-icon>
+                            </div>
                             <ion-label>
                                 <h3 class="song-title">{{ song.title }}</h3>
                                 <div class="song-meta">
                                     <span class="song-album">
                                         <ion-icon :icon="musicalNotesIcon" class="meta-icon"></ion-icon>
                                         {{ song.album_name || 'Single' }}
-                                    </span>
-                                    <span class="song-platform">
-                                        <img :src="getPlatformIcon(song.platform_id)" class="meta-icon" :alt="getPlatformName(song.platform_id)" />
-                                        {{ getPlatformName(song.platform_id) }}
                                     </span>
                                 </div>
                             </ion-label>
@@ -155,7 +152,7 @@
                 </div>
             </div>
         </ion-content>
-        
+
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="content"></bottom-navigation>
     </ion-page>
@@ -247,7 +244,7 @@ export default defineComponent({
         IonItem,
         IonBadge
     },
-    setup() {        
+    setup() {
         const authStore = useAuthStore();
         const songStore = useSongStore();
         const loading = ref(true);
@@ -288,7 +285,7 @@ export default defineComponent({
         const getPlatformIcon = (platformId: number): string => {
             const platform = platforms.value.find(p => p.platform_id === platformId);
             const platformName = platform?.name?.toLowerCase() || '';
-            
+
             if (platformName.includes('spotify')) {
                 return spotifyLogo;
             } else if (platformName.includes('youtube')) {
@@ -400,15 +397,15 @@ export default defineComponent({
 
             try {
                 syncing.value = true;
-                
+
                 await SongService.syncSongs(user.value.user_id);
-                
+
                 // Show success toast
                 await showToast('Sync complete!', 'success');
-                
+
                 // Refresh songs to show updated data
                 await loadSongs();
-                
+
             } catch (error: any) {
                 console.error('Sync failed:', error);
                 await showToast('Failed to sync songs', 'danger');
@@ -417,23 +414,23 @@ export default defineComponent({
             }
         };
 
-    // Open import songs modal
-    const importSongsModal = async () => {
-        const modal = await modalController.create({
-            component: ImportSongsModal,
-            componentProps: {
-                userId: user.value?.user_id
+        // Open import songs modal
+        const importSongsModal = async () => {
+            const modal = await modalController.create({
+                component: ImportSongsModal,
+                componentProps: {
+                    userId: user.value?.user_id
+                }
+            });
+
+            await modal.present();
+
+            // Refresh songs list if data was imported
+            const { data } = await modal.onDidDismiss();
+            if (data && data.dataRefreshed) {
+                loadSongs();
             }
-        });
-
-        await modal.present();
-
-        // Refresh songs list if data was imported
-        const { data } = await modal.onDidDismiss();
-        if (data && data.dataRefreshed) {
-            loadSongs();
-        }
-    };
+        };
 
         // Toggle song visibility
         const toggleSongVisibility = async (song: Song) => {
@@ -531,7 +528,7 @@ export default defineComponent({
         // Watch for pagination changes
         watch([currentPage, itemsPerPage], () => {
             loadSongs();
-        });        onMounted(() => {
+        }); onMounted(() => {
             loadPlatforms();
             loadSongs();
         });
@@ -539,7 +536,7 @@ export default defineComponent({
         onUnmounted(() => {
             // Cancel any pending requests when component is unmounted
             songStore.cancelAllRequests();
-        });        return {
+        }); return {
             loading,
             syncing,
             searchQuery,
@@ -683,7 +680,7 @@ export default defineComponent({
     .desktop-only {
         display: none;
     }
-    
+
     .mobile-only {
         display: block;
     }
