@@ -86,8 +86,20 @@
                                     </ion-card-content>
 
                                     <div class="card-actions">
-                                        <ion-button fill="clear" size="small" @click.stop="showOptions(song)">
-                                            <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
+                                        <ion-button fill="clear" size="small" @click.stop="toggleSongVisibility(song)">
+                                            <ion-icon :icon="song.is_visible ? eyeOffIcon : eyeIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" @click.stop="submitToPlaylist(song)">
+                                            <ion-icon :icon="shareIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" @click.stop="openInPlatform(song)" :disabled="!song.url">
+                                            <ion-icon :icon="openExternalIcon" slot="icon-only"></ion-icon>
+                                        </ion-button>
+
+                                        <ion-button fill="clear" size="small" color="danger" @click.stop="confirmDeleteSong(song)">
+                                            <ion-icon :icon="deleteIcon" slot="icon-only"></ion-icon>
                                         </ion-button>
                                     </div>
                                 </ion-card>
@@ -189,6 +201,7 @@ import SongDetailsModal from '@/components/SongDetailsModal.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlatformService } from '@/services/PlatformService';
 import { SongService } from '@/services/SongService';
+import router from '@/router';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -474,6 +487,23 @@ export default defineComponent({
             }
         };
 
+        // Add methods for desktop card actions
+        const submitToPlaylist = (song: Song) => {
+            // Navigate to submission form with pre-selected song
+            router.push({
+                path: '/artist/submissions/new',
+                query: { songId: song.song_id }
+            });
+        };
+
+        const openInPlatform = (song: Song) => {
+            if (song.url) {
+                window.open(song.url, '_blank');
+            } else {
+                showToast('No external URL available for this song');
+            }
+        };
+
         // Watch for pagination changes
         watch([currentPage, itemsPerPage], () => {
             loadSongs();
@@ -505,6 +535,11 @@ export default defineComponent({
             syncSongs,
             prevPage,
             nextPage,
+            submitToPlaylist,
+            openInPlatform,
+            toggleSongVisibility,
+            confirmDeleteSong,
+            deleteSong,
             // Icons
             addIcon,
             cloudDownloadIcon,
@@ -518,6 +553,9 @@ export default defineComponent({
             chevronBackIcon,
             chevronForwardIcon,
             ellipsisVerticalIcon,
+            shareIcon,
+            openExternalIcon,
+            deleteIcon,
             syncIcon
         };
     }
@@ -690,27 +728,16 @@ export default defineComponent({
     justify-content: center;
 }
 
-.song-visibility-overlay {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.song-visibility-overlay ion-icon {
-    font-size: 16px;
-}
-
 .platform-icon {
     width: 16px;
     height: 16px;
     color: white;
+}
+
+.platform-icon img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
 }
 
 .song-card.vertical ion-card-content {
@@ -733,6 +760,7 @@ export default defineComponent({
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: center;
 }
 
 .song-platform-name {
