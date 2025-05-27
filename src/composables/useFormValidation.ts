@@ -12,7 +12,7 @@ export function useFormValidation() {
 
   const validatePassword = (password: string): boolean => {
     // Minimum 8 characters, at least one letter and one number
-    const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&\.]{8,}$/;
     return re.test(password);
   };
 
