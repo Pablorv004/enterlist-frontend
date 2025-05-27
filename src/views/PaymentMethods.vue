@@ -144,12 +144,10 @@
 
                 <ion-item lines="none">
                     <ion-checkbox v-model="newPaymentMethod.setAsDefault">Set as default payment method</ion-checkbox>
-                </ion-item>
-
-                <div class="submit-button">
+                </ion-item>                <div class="submit-button">
                     <ion-button expand="block" @click="addPaymentMethod" :disabled="addingPaymentMethod">
                         <ion-spinner v-if="addingPaymentMethod" name="crescent"></ion-spinner>
-                        <span v-else">Add PayPal Account</span>
+                        <span v-else>Add PayPal Account</span>
                     </ion-button>
                 </div>
             </ion-content>
@@ -245,9 +243,9 @@ export default defineComponent({
             }
         };        const getPaymentMethodIcon = (type: PaymentMethodType): string => {
             if (type === PaymentMethodType.PAYPAL) {
-                return '@/assets/paypal.png'; // Using an existing image
+                return '/src/assets/paypal.png'; // Using an existing image
             }
-            return '@/assets/paypal.png'; // Default to PayPal
+            return '/@/assets/logo.png'; // Default to logo
         };        const formatPaymentMethodName = (method: PaymentMethod): string => {
             if (method.type === PaymentMethodType.PAYPAL) {
                 const details = typeof method.details === 'string'
@@ -314,7 +312,7 @@ export default defineComponent({
             } finally {
                 addingPaymentMethod.value = false;
             }
-        };const setDefaultPaymentMethod = async (paymentMethodId: string) => {
+        };        const setDefaultPaymentMethod = async (paymentMethodId: string) => {
             try {
                 await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId);
 

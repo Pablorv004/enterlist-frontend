@@ -2,7 +2,8 @@ import apiClient from './api';
 import { PaymentMethod, PaymentMethodType } from '@/types';
 import { handleEmptyResponse } from '@/utils/apiHelpers';
 
-export const PaymentMethodService = {  getPaymentMethods: async (userId: string): Promise<PaymentMethod[]> => {
+export const PaymentMethodService = {
+  getPaymentMethods: async (userId: string): Promise<PaymentMethod[]> => {
     try {
       const response = await apiClient.get(`/payment-methods/user/${userId}`);
       return response.data.data || [];
