@@ -54,75 +54,11 @@
                                 </ion-card-content>
                             </ion-card>
                         </ion-col>
-                    </ion-row>
-                </ion-grid>
-
-                <!-- Balance Section -->
-                <div class="balance-section">
-                    <h2>Your Balance</h2>
-
-                    <ion-grid class="balance-grid">
-                        <ion-row>
-                            <ion-col size="12" size-md="4">
-                                <ion-card class="balance-card available">
-                                    <ion-card-content>
-                                        <div class="balance-icon">
-                                            <ion-icon :icon="walletIcon"></ion-icon>
-                                        </div>
-                                        <div class="balance-info">
-                                            <div class="balance-amount">{{ formatCurrency(balance.available) }}</div>
-                                            <div class="balance-label">Available</div>
-                                            <div class="balance-description">Ready to withdraw</div>
-                                        </div>
-                                    </ion-card-content>
-                                </ion-card>
-                            </ion-col>
-
-                            <ion-col size="12" size-md="4">
-                                <ion-card class="balance-card pending">
-                                    <ion-card-content>
-                                        <div class="balance-icon">
-                                            <ion-icon :icon="timeIcon"></ion-icon>
-                                        </div>
-                                        <div class="balance-info">
-                                            <div class="balance-amount">{{ formatCurrency(balance.pending) }}</div>
-                                            <div class="balance-label">Pending</div>
-                                            <div class="balance-description">Processing payments</div>
-                                        </div>
-                                    </ion-card-content>
-                                </ion-card>
-                            </ion-col>
-
-                            <ion-col size="12" size-md="4">
-                                <ion-card class="balance-card total">
-                                    <ion-card-content>
-                                        <div class="balance-icon">
-                                            <ion-icon :icon="cashIcon"></ion-icon>
-                                        </div>
-                                        <div class="balance-info">
-                                            <div class="balance-amount">{{ formatCurrency(balance.total) }}</div>
-                                            <div class="balance-label">Total Earned</div>
-                                            <div class="balance-description">All-time earnings</div>
-                                        </div>
-                                    </ion-card-content>
-                                </ion-card>
-                            </ion-col>
-                        </ion-row>
-                    </ion-grid>
-
-                    <div v-if="balance.available > 0" class="balance-actions">
-                        <ion-button color="primary" @click="withdrawBalance">
-                            <ion-icon :icon="downloadIcon" slot="start"></ion-icon>
-                            Withdraw Funds
-                        </ion-button>
-                    </div>
-                </div>
+                    </ion-row>                </ion-grid>
 
                 <!-- Quick Actions -->
                 <div class="quick-actions">
-                    <h2>Quick Actions</h2>
-
-                    <ion-grid class="actions-grid">
+                    <h2>Quick Actions</h2>                    <ion-grid class="actions-grid">
                         <ion-row>
                             <ion-col size="6" size-md="3">
                                 <ion-card button router-link="/playlist-maker/submissions" class="action-card">
@@ -143,6 +79,15 @@
                             </ion-col>
 
                             <ion-col size="6" size-md="3">
+                                <ion-card button router-link="/balance" class="action-card">
+                                    <ion-card-content>
+                                        <ion-icon :icon="walletIcon"></ion-icon>
+                                        <span>Balance & Payments</span>
+                                    </ion-card-content>
+                                </ion-card>
+                            </ion-col>
+
+                            <ion-col size="6" size-md="3">
                                 <ion-card button router-link="/playlist-maker/linked-accounts" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="linkIcon"></ion-icon>
@@ -150,7 +95,9 @@
                                     </ion-card-content>
                                 </ion-card>
                             </ion-col>
+                        </ion-row>
 
+                        <ion-row>
                             <ion-col size="6" size-md="3">
                                 <ion-card button router-link="/playlist-maker/profile" class="action-card">
                                     <ion-card-content>
@@ -337,7 +284,7 @@ import {
 } from '@ionic/vue';
 import {
     mailUnread, musicalNotes, checkmarkCircle, listOutline, linkOutline,
-    personOutline, arrowForward, calendarOutline, wallet, time, cash, download
+    personOutline, arrowForward, calendarOutline, wallet
 } from 'ionicons/icons';
 import { Bar } from 'vue-chartjs';
 import {
@@ -355,7 +302,6 @@ import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
-import { TransactionService } from '@/services/TransactionService';
 import { useAuthStore } from '@/store';
 import { Playlist, Submission, SubmissionStatus } from '@/types';
 import spotifyLogo from '@/assets/spotify.png';
@@ -367,9 +313,10 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default defineComponent({
     name: 'PlaylistMakerDashboard',
-    components: {        IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
+    components: {
+        IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent,
         IonIcon, IonButton, IonList, IonItem, IonThumbnail, IonLabel, IonBadge,
-        IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner, IonModal,
+        IonCardHeader, IonCardTitle, IonCardSubtitle, IonSpinner,
         AppHeader, EmptyStateDisplay, BottomNavigation, Bar, PlaylistDetailsModal
     },
     setup() {
@@ -386,15 +333,7 @@ export default defineComponent({
         const hasEarnings = ref(false);
         const totalEarnings = ref(0);
         const earningsStats = ref<Array<{month: string, amount: number}>>([]);
-        const loadingEarnings = ref(true);
-
-        // Balance data
-        const balance = ref({
-            available: 0,
-            pending: 0,
-            total: 0
-        });
-        const loadingBalance = ref(true);// Chart data and options
+        const loadingEarnings = ref(true);// Chart data and options
         const chartData = computed(() => {
             console.log("Computing chart data with earnings stats:", earningsStats.value);
             
@@ -470,8 +409,7 @@ export default defineComponent({
                 fetchStats(),
                 fetchRecentSubmissions(),
                 fetchPlaylists(),
-                fetchEarningsStats(),
-                loadBalance()
+                fetchEarningsStats()
             ]);
 
             // Add a delayed check to debug chart data
@@ -572,27 +510,7 @@ export default defineComponent({
                 hasEarnings.value = false;
                 earningsStats.value = [];            } finally {
                 loadingEarnings.value = false;
-            }
-        };
-
-        const loadBalance = async () => {
-            try {
-                loadingBalance.value = true;
-                const balanceData = await TransactionService.getPlaylistMakerBalance();
-                balance.value = balanceData;
-            } catch (error) {
-                console.error('Failed to fetch balance:', error);
-                balance.value = { available: 0, pending: 0, total: 0 };
-            } finally {
-                loadingBalance.value = false;
-            }
-        };
-
-        const withdrawBalance = async () => {
-            // TODO: Implement withdrawal functionality
-            // This would typically open a modal or navigate to a withdrawal page
-            console.log('Withdraw balance clicked - implement withdrawal flow');
-        };
+            }        };
 
         const formatDate = (dateString: string): string => {
             return new Date(dateString).toLocaleDateString('en-US', {
@@ -695,9 +613,7 @@ export default defineComponent({
                 path: '/playlist-maker/submissions',
                 query: { playlistId: playlist.playlist_id }
             });
-        };
-
-        return {
+        };        return {
             user,
             playlistsCount,
             pendingSubmissionsCount,
@@ -709,8 +625,6 @@ export default defineComponent({
             totalEarnings,
             earningsStats,
             loadingEarnings,
-            balance,
-            loadingBalance,
             chartData,
             chartOptions,
             mailUnreadIcon: mailUnread,
@@ -721,9 +635,7 @@ export default defineComponent({
             personIcon: personOutline,
             arrowForwardIcon: arrowForward,
             walletIcon: wallet,
-            timeIcon: time,
-            cashIcon: cash,
-            downloadIcon: download,calendarIcon: calendarOutline,
+            calendarIcon: calendarOutline,
             formatDate,
             formatStatus,
             getStatusColor,
@@ -736,7 +648,6 @@ export default defineComponent({
             closePlaylistModal,
             onPlaylistUpdated,
             onViewSubmissions,
-            withdrawBalance
         };
     }
 });

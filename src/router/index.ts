@@ -210,9 +210,24 @@ const routes: Array<RouteRecordRaw> = [    {
         path: '/admin/actions',
         name: 'AdminActions',
         component: AdminActions,
-        meta: { requiresAuth: true, role: 'admin' }
+        meta: { requiresAuth: true, role: 'admin' }    },
+    */
+    
+    // Shared routes for all authenticated users
+    {
+        path: '/payment-methods',
+        name: 'PaymentMethods',
+        component: ArtistPaymentMethods, // Reusing the same component as it's role-agnostic
+        meta: { requiresAuth: true }
     },
-    */    // OAuth callback routes
+    {
+        path: '/balance',
+        name: 'Balance',
+        component: () => import('@/views/Balance.vue'),
+        meta: { requiresAuth: true }
+    },
+
+    // OAuth callback routes
     {
         path: '/oauth/callback',
         name: 'OAuthCallback',
