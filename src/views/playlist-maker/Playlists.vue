@@ -429,24 +429,14 @@ export default defineComponent({
                 const result = await PlaylistService.syncPlaylists(userId.value);
                 
                 // Show success toast
-                if (result.totalUpdated > 0) {
-                    await showToast(
-                        `Successfully synced ${result.totalUpdated} playlist(s)`,
-                        'success'
-                    );
-                } else {
-                    await showToast(result.message || 'No playlists to sync', 'warning');
-                }
+                await showToast('Sync complete!', 'success');
                 
                 // Refresh playlists to show updated data
                 await fetchPlaylists();
                 
             } catch (error: any) {
                 console.error('Sync failed:', error);
-                await showToast(
-                    error.response?.data?.message || 'Failed to sync playlists',
-                    'danger'
-                );
+                await showToast('Failed to sync playlists', 'danger');
             } finally {
                 syncing.value = false;
             }

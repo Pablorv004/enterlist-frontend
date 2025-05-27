@@ -345,27 +345,17 @@ export default defineComponent({
             try {
                 syncing.value = true;
                 
-                const result = await SongService.syncSongs(user.value.user_id);
+                await SongService.syncSongs(user.value.user_id);
                 
                 // Show success toast
-                if (result.totalUpdated > 0) {
-                    await showToast(
-                        `Successfully synced ${result.totalUpdated} song(s)`,
-                        'success'
-                    );
-                } else {
-                    await showToast(result.message || 'No songs to sync', 'warning');
-                }
+                await showToast('Sync complete!', 'success');
                 
                 // Refresh songs to show updated data
                 await loadSongs();
                 
             } catch (error: any) {
                 console.error('Sync failed:', error);
-                await showToast(
-                    error.response?.data?.message || 'Failed to sync songs',
-                    'danger'
-                );
+                await showToast('Failed to sync songs', 'danger');
             } finally {
                 syncing.value = false;
             }
