@@ -101,5 +101,11 @@ export const PlaylistService = {
   getPlaylistTracks: async (playlistId: string): Promise<TrackResponse> => {
     const response = await apiClient.get(`/playlists/${playlistId}/tracks`);
     return response.data;
+  },
+
+  // Method to sync playlists - updates existing playlists with fresh platform data
+  syncPlaylists: async (userId: string): Promise<any> => {
+    const response = await apiClient.post(`/playlists/sync/${userId}`);
+    return response.data;
   }
 };

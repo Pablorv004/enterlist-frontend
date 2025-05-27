@@ -90,5 +90,12 @@ export const SongService = {
     return response.data;
   },
   deleteSong: async (id: string): Promise<void> => {
-    await apiClient.put(`/songs/${id}`, { deleted: true });  }
+    await apiClient.put(`/songs/${id}`, { deleted: true });
+  },
+
+  // Method to sync songs - updates existing songs with fresh platform data
+  syncSongs: async (artistId: string): Promise<any> => {
+    const response = await apiClient.post(`/songs/sync/${artistId}`);
+    return response.data;
+  }
 };

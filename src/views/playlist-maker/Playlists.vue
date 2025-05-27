@@ -15,12 +15,18 @@
                             <ion-segment-button value="active">Active</ion-segment-button>
                             <ion-segment-button value="inactive">Inactive</ion-segment-button>
                         </ion-segment>
+                    </div>                    <div class="action-buttons">
+                        <ion-button @click="syncPlaylists" class="sync-btn" :disabled="syncing">
+                            <ion-spinner v-if="syncing" name="crescent" slot="start"></ion-spinner>
+                            <ion-icon v-else :icon="syncIcon" slot="start"></ion-icon>
+                            {{ syncing ? 'Syncing...' : 'Sync' }}
+                        </ion-button>
+                        
+                        <ion-button @click="importPlaylistsModal" class="import-btn">
+                            <ion-icon :icon="cloudDownloadIcon" slot="start"></ion-icon>
+                            Import Playlists
+                        </ion-button>
                     </div>
-
-                    <ion-button @click="importPlaylistsModal" class="import-btn">
-                        <ion-icon :icon="cloudDownloadIcon" slot="start"></ion-icon>
-                        Import Playlists
-                    </ion-button>
                 </div>
 
                 <!-- Content -->
@@ -186,7 +192,7 @@ import ImportPlaylistsModal from '@/components/ImportPlaylistsModal.vue';
 import {
     cloudDownload, musicalNotes, search, people, pricetag, mailUnread,
     open, chevronBack, chevronForward, closeOutline, linkOutline,
-    pencil, eyeOutline, eyeOffOutline, person, trash
+    pencil, eyeOutline, eyeOffOutline, person, trash, sync
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
@@ -218,11 +224,10 @@ export default defineComponent({
         const router = useRouter();
         const authStore = useAuthStore();
         const playlistStore = usePlaylistStore();
-        const userId = computed(() => authStore.user?.user_id || '');
-
-        const searchQuery = ref('');
+        const userId = computed(() => authStore.user?.user_id || '');        const searchQuery = ref('');
         const selectedFilter = ref('all');
         const loading = ref(true);
+        const syncing = ref(false);
         const playlists = ref<Playlist[]>([]);
         const playlistStats = ref<Record<string, PlaylistStats>>({});
 
@@ -414,6 +419,39 @@ export default defineComponent({
             }
         };
 
+        // Sync playlists with platform data
+        const syncPlaylists = async () => {
+            if (!userId.value || syncing.value) return;
+
+            try {
+                syncing.value = true;
+                
+                const result = await PlaylistService.syncPlaylists(userId.value);
+                
+                // Show success toast
+                if (result.totalUpdated > 0) {
+                    await showToast(
+                        `Successfully synced ${result.totalUpdated} playlist(s)`,
+                        'success'
+                    );
+                } else {
+                    await showToast(result.message || 'No playlists to sync', 'warning');
+                }
+                
+                // Refresh playlists to show updated data
+                await fetchPlaylists();
+                
+            } catch (error: any) {
+                console.error('Sync failed:', error);
+                await showToast(
+                    error.response?.data?.message || 'Failed to sync playlists',
+                    'danger'
+                );
+            } finally {
+                syncing.value = false;
+            }
+        };
+
         const importPlaylistsModal = async () => {
             const modal = await modalController.create({
                 component: ImportPlaylistsModal,
@@ -490,12 +528,11 @@ export default defineComponent({
                 console.error('Failed to delete playlist:', error);
                 showToast('Failed to delete playlist', 'danger');
             }
-        };
-
-        return {
+        };        return {
             searchQuery,
             selectedFilter,
             loading,
+            syncing,
             playlists,
             filteredPlaylists,
             currentPage,
@@ -514,10 +551,12 @@ export default defineComponent({
             chevronBackIcon: chevronBack,
             chevronForwardIcon: chevronForward,
             closeIcon: closeOutline,
-            linkIcon: linkOutline,            pencilIcon: pencil,
+            linkIcon: linkOutline,
+            pencilIcon: pencil,
             eyeOutlineIcon: eyeOutline,
             eyeOffOutlineIcon: eyeOffOutline,
             trashIcon: trash,
+            syncIcon: sync,
             handleSearch,
             clearSearch,
             handleFilterChange,
@@ -539,7 +578,8 @@ export default defineComponent({
             deletePlaylist,
             prevPage,
             nextPage,
-            importPlaylistsModal
+            importPlaylistsModal,
+            syncPlaylists
         };
     }
 });
@@ -592,6 +632,23 @@ export default defineComponent({
     --background: var(--ion-color-light);
     border-radius: 8px;
     overflow: hidden;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.sync-btn {
+    --background: var(--ion-color-secondary);
+    --border-radius: 8px;
+    font-weight: 500;
+}
+
+.import-btn {
+    --background: var(--ion-color-primary);
+    --border-radius: 8px;
+    font-weight: 500;
 }
 
 /* Loading and Empty States */

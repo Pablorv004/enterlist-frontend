@@ -14,9 +14,13 @@
                             <ion-segment-button value="visible">Visible</ion-segment-button>
                             <ion-segment-button value="hidden">Hidden</ion-segment-button>
                         </ion-segment>
-                    </div>
-
-                    <div class="actions-buttons">
+                    </div>                    <div class="actions-buttons">
+                        <ion-button @click="syncSongs" class="sync-btn" :disabled="syncing">
+                            <ion-spinner v-if="syncing" name="crescent" slot="start"></ion-spinner>
+                            <ion-icon v-else :icon="syncIcon" slot="start"></ion-icon>
+                            {{ syncing ? 'Syncing...' : 'Sync' }}
+                        </ion-button>
+                        
                         <ion-button @click="importSongsModal" class="import-btn">
                             <ion-icon :icon="cloudDownloadIcon" slot="start"></ion-icon>
                             Import Songs
@@ -153,7 +157,8 @@ import {
     pencil as editIcon,
     trash as deleteIcon,
     open as openExternalIcon,
-    share as shareIcon
+    share as shareIcon,
+    sync as syncIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore } from '@/store';
 import { Song, Platform } from '@/types';
@@ -164,6 +169,7 @@ import ImportSongsModal from '@/components/ImportSongsModal.vue';
 import SongDetailsModal from '@/components/SongDetailsModal.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlatformService } from '@/services/PlatformService';
+import { SongService } from '@/services/SongService';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -186,10 +192,10 @@ export default defineComponent({
         IonSegment,
         IonSegmentButton
     },
-    setup() {
-        const authStore = useAuthStore();
+    setup() {        const authStore = useAuthStore();
         const songStore = useSongStore();
         const loading = ref(true);
+        const syncing = ref(false);
         const searchQuery = ref('');
         const selectedVisibilityFilter = ref('all');
         const totalSongs = ref(0);
@@ -320,9 +326,7 @@ export default defineComponent({
             });
 
             await actionSheet.present();
-        };
-
-        // Show toast message
+        };        // Show toast message
         const showToast = async (message: string, color: string = 'medium') => {
             const toast = await toastController.create({
                 message,
@@ -332,6 +336,39 @@ export default defineComponent({
             });
 
             await toast.present();
+        };
+
+        // Sync songs with platform data
+        const syncSongs = async () => {
+            if (!user.value?.user_id || syncing.value) return;
+
+            try {
+                syncing.value = true;
+                
+                const result = await SongService.syncSongs(user.value.user_id);
+                
+                // Show success toast
+                if (result.totalUpdated > 0) {
+                    await showToast(
+                        `Successfully synced ${result.totalUpdated} song(s)`,
+                        'success'
+                    );
+                } else {
+                    await showToast(result.message || 'No songs to sync', 'warning');
+                }
+                
+                // Refresh songs to show updated data
+                await loadSongs();
+                
+            } catch (error: any) {
+                console.error('Sync failed:', error);
+                await showToast(
+                    error.response?.data?.message || 'Failed to sync songs',
+                    'danger'
+                );
+            } finally {
+                syncing.value = false;
+            }
         };
 
     // Open import songs modal
@@ -439,8 +476,9 @@ export default defineComponent({
         onUnmounted(() => {
             // Cancel any pending requests when component is unmounted
             songStore.cancelAllRequests();
-        });return {
+        });        return {
             loading,
+            syncing,
             searchQuery,
             selectedVisibilityFilter,
             filteredSongs,
@@ -455,6 +493,7 @@ export default defineComponent({
             showSongDetails,
             showOptions,
             importSongsModal,
+            syncSongs,
             prevPage,
             nextPage,
             // Icons
@@ -469,7 +508,8 @@ export default defineComponent({
             searchIcon,
             chevronBackIcon,
             chevronForwardIcon,
-            ellipsisVerticalIcon
+            ellipsisVerticalIcon,
+            syncIcon
         };
     }
 });
@@ -515,6 +555,12 @@ export default defineComponent({
 .actions-buttons {
     display: flex;
     gap: 12px;
+}
+
+.sync-btn {
+    --background: var(--ion-color-secondary);
+    --border-radius: 8px;
+    font-weight: 500;
 }
 
 .import-btn {
