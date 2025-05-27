@@ -22,7 +22,7 @@ export const PaymentMethodService = {
   },
 
   createPaymentMethod: async (paymentMethodData: {
-    artist_id: string;
+    user_id: string;
     type: PaymentMethodType;
     provider_token: string;
     details: string;
@@ -49,7 +49,7 @@ export const PaymentMethodService = {
   },
 
   setDefaultPaymentMethod: async (id: string, userId: string): Promise<PaymentMethod> => {
-    const response = await apiClient.put(`/payment-methods/${id}/default`, { artist_id: userId });
+    const response = await apiClient.put(`/payment-methods/${id}/default`, { user_id: userId });
     return response.data;
   }
 };

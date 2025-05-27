@@ -293,7 +293,7 @@ export default defineComponent({
                 const paypalToken = paypalResponse.data.token;
 
                 await PaymentMethodService.createPaymentMethod({
-                    artist_id: userId.value,
+                    user_id: userId.value,
                     type: PaymentMethodType.PAYPAL,
                     provider_token: paypalToken,
                     details: JSON.stringify({
