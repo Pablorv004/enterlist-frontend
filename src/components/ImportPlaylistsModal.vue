@@ -324,15 +324,15 @@ export default defineComponent({
         spotifyPlaylists.value.forEach(playlist => {
           selectedSpotifyPlaylists.value[playlist.id] = false;
         });
+        
+        // Only set loading to false after data is fully processed
+        loading.value = false;
       } catch (error) {
         if (!isComponentMounted.value) return;
         
         console.error('Error loading Spotify playlists:', error);
         showToast('Failed to load your Spotify playlists', 'danger');
-      } finally {
-        if (isComponentMounted.value) {
-          loading.value = false;
-        }
+        loading.value = false;
       }
     };
 
@@ -353,15 +353,15 @@ export default defineComponent({
         youtubePlaylists.value.forEach(playlist => {
           selectedYoutubePlaylists.value[playlist.id] = false;
         });
+        
+        // Only set loading to false after data is fully processed
+        loading.value = false;
       } catch (error) {
         if (!isComponentMounted.value) return;
         
         console.error('Error loading YouTube playlists:', error);
         showToast('Failed to load your YouTube playlists', 'danger');
-      } finally {
-        if (isComponentMounted.value) {
-          loading.value = false;
-        }
+        loading.value = false;
       }
     };    // Import selected content
     const importSelected = async () => {
