@@ -124,11 +124,11 @@
                             <ion-thumbnail slot="start" class="song-thumbnail">
                                 <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                     :alt="song.title" />
+                                <div class="song-platform-overlay">
+                                    <img :src="getPlatformIcon(song.platform_id)"
+                                        :alt="getPlatformName(song.platform_id)" class="platform-icon-small" />
+                                </div>
                             </ion-thumbnail>
-                            <div class="song-platform-overlay">
-                                <ion-icon :icon="getPlatformIcon(song.platform_id)"
-                                    class="platform-icon-small"></ion-icon>
-                            </div>
                             <ion-label>
                                 <h3 class="song-title">{{ song.title }}</h3>
                                 <div class="song-meta">
@@ -826,10 +826,33 @@ export default defineComponent({
     position: relative;
 }
 
+.song-platform-overlay {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-icon-small {
+    width: 12px;
+    height: 12px;
+}
+
 .meta-icon {
     vertical-align: middle;
     margin-right: 0.25rem;
     font-size: 0.9rem;
+    width: 12px;
+    height: 12px;
+}
+
+.song-album .meta-icon {
     width: 12px;
     height: 12px;
 }
@@ -840,7 +863,7 @@ export default defineComponent({
 }
 
 /* Remove platform overlay on mobile */
-.song-platform-overlay {
+/* .song-platform-overlay {
     display: none;
-}
+} */
 </style>
