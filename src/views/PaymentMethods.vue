@@ -135,21 +135,23 @@
                         </ion-button>
                     </ion-buttons>
                 </ion-toolbar>
-            </ion-header>            <ion-content class="ion-padding">
-                <div class="paypal-form">
-                    <ion-item>
-                        <ion-label position="stacked">PayPal Email</ion-label>
-                        <ion-input v-model="newPaymentMethod.paypalEmail" placeholder="email@example.com"
-                            type="email"></ion-input>
-                    </ion-item>
+            </ion-header>            <ion-content class="ion-padding">                <div class="paypal-info">
+                    <div class="info-section">
+                        <ion-icon :icon="walletIcon" color="primary" size="large"></ion-icon>
+                        <h2>Connect PayPal Account</h2>
+                        <p>You'll be redirected to PayPal to securely connect your account. This allows you to:</p>
+                        <ul>
+                            <li>Submit songs to playlists</li>
+                            <li>Receive payments when withdrawing your balance</li>
+                            <li>Manage all transactions securely</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <ion-item lines="none">
-                    <ion-checkbox v-model="newPaymentMethod.setAsDefault">Set as default payment method</ion-checkbox>
-                </ion-item>                <div class="submit-button">
+                <div class="submit-button">
                     <ion-button expand="block" @click="addPaymentMethod" :disabled="addingPaymentMethod">
                         <ion-spinner v-if="addingPaymentMethod" name="crescent"></ion-spinner>
-                        <span v-else>Add PayPal Account</span>
+                        <span v-else>Connect PayPal Account</span>
                     </ion-button>
                 </div>
             </ion-content>
@@ -176,6 +178,7 @@ import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
+import PayPalService from '@/services/PayPalService';
 import { TransactionService } from '@/services/TransactionService';
 import apiClient from '@/services/api';
 import { useAuthStore } from '@/store';
@@ -279,41 +282,23 @@ export default defineComponent({
             try {
                 addingPaymentMethod.value = true;
 
-                if (!newPaymentMethod.paypalEmail) {
-                    showToast('Please enter your PayPal email', 'warning');
-                    return;
-                }
-
-                // Get PayPal token from backend using the provided email
-                const paypalResponse = await apiClient.post('/payment-methods/create-paypal-token', {
-                    email: newPaymentMethod.paypalEmail
-                });
+                // Use PayPal OAuth flow instead of just email input
+                const { url } = await PayPalService.getAuthUrl();
                 
-                const paypalToken = paypalResponse.data.token;
+                // Open PayPal OAuth in a new window or redirect
+                window.open(url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
 
-                await PaymentMethodService.createPaymentMethod({
-                    user_id: userId.value,
-                    type: PaymentMethodType.PAYPAL,
-                    provider_token: paypalToken,
-                    details: JSON.stringify({
-                        email: newPaymentMethod.paypalEmail
-                    }),
-                    is_default: newPaymentMethod.setAsDefault
-                });
-
-                // Refresh data
-                await fetchPaymentMethods();
-
-                // Close modal
+                // Close modal immediately since OAuth will handle the rest
                 closeModal();
 
-                showToast('PayPal account added successfully', 'success');
+                showToast('Redirecting to PayPal for authentication...', 'primary');
             } catch (error) {
-                showToast('Failed to add PayPal account', 'danger');
+                console.error('PayPal auth error:', error);
+                showToast(PayPalService.getPaymentErrorMessage(error), 'danger');
             } finally {
                 addingPaymentMethod.value = false;
             }
-        };        const setDefaultPaymentMethod = async (paymentMethodId: string) => {
+        };const setDefaultPaymentMethod = async (paymentMethodId: string) => {
             try {
                 await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId);
 
