@@ -270,7 +270,8 @@ import {
     informationCircle as informationIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore, useSubmissionStore } from '@/store';
-import { SubmissionStatus, Song, Submission } from '@/types';
+import { SubmissionStatus, Song, Submission, Platform } from '@/types';
+import { PlatformService } from '@/services/PlatformService';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
@@ -314,6 +315,7 @@ export default defineComponent({
         const user = computed(() => authStore.user);
         const submissions = ref<Submission[]>([]);
         const songs = ref<Song[]>([]);
+        const platforms = ref<Platform[]>([]);
         const stats = ref({
             pending: 0,
             approved: 0,
@@ -323,7 +325,8 @@ export default defineComponent({
         const loading = ref({
             submissions: true,
             songs: true,
-            stats: true
+            stats: true,
+            platforms: true
         });
 
         // Modal states
@@ -369,31 +372,39 @@ export default defineComponent({
             return status.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase());
         };        // Get platform icon based on platform ID
         const getPlatformIcon = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return spotifyLogo;
-                case 3:
-                    return youtubeLogo;
-                default:
-                    return musicalNotesIcon;
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            if (platform?.name.toLowerCase().includes('spotify')) {
+                return spotifyLogo;
+            } else if (platform?.name.toLowerCase().includes('youtube')) {
+                return youtubeLogo;
             }
+            return musicalNotesIcon;
         };
 
         // Get platform name based on platform ID
         const getPlatformName = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return 'Spotify';
-                case 3:
-                    return 'YouTube';
-                default:
-                    return 'Unknown Platform';
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            return platform?.name || 'Unknown Platform';
+        };
+
+        // Load platforms data
+        const loadPlatforms = async () => {
+            loading.value.platforms = true;
+            try {
+                platforms.value = await PlatformService.getPlatforms();
+            } catch (error) {
+                console.error('Failed to load platforms:', error);
+            } finally {
+                loading.value.platforms = false;
             }
         };
 
         // Load dashboard data
         const loadDashboardData = async () => {
             if (!user.value?.user_id) return;
+
+            // Load platforms first
+            await loadPlatforms();
 
             // Load submissions
             loading.value.submissions = true;
@@ -434,6 +445,7 @@ export default defineComponent({
             user,
             submissions,
             songs,
+            platforms,
             stats,
             loading,
             formatDate,
