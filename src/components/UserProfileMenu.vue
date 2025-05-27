@@ -15,12 +15,7 @@
                     <ion-icon :icon="personIcon" slot="start"></ion-icon>
                     <ion-label>My Profile</ion-label>
                 </ion-item>
-
-                <ion-item detail :router-link="settingsLink">
-                    <ion-icon :icon="settingsIcon" slot="start"></ion-icon>
-                    <ion-label>Settings</ion-label>
-                </ion-item>
-
+                
                 <ion-item button @click="logout()">
                     <ion-icon :icon="logOutIcon" slot="start"></ion-icon>
                     <ion-label>Log Out</ion-label>
@@ -44,7 +39,7 @@ import {
     IonIcon,
     IonLabel
 } from '@ionic/vue';
-import { person, settings, logOut, personCircleOutline } from 'ionicons/icons';
+import { person, logOut, personCircleOutline } from 'ionicons/icons';
 
 export default defineComponent({
     name: 'UserProfileMenu',
@@ -77,18 +72,6 @@ export default defineComponent({
             return '/';
         });
 
-        // Determine settings link based on user role
-        const settingsLink = computed(() => {
-            if (user.value?.role.toLowerCase() === 'artist') {
-                return '/artist/settings';
-            } else if (user.value?.role.toLowerCase() === 'playlist_maker') {
-                return '/playlist-maker/settings';
-            } else if (user.value?.role.toLowerCase() === 'admin') {
-                return '/admin/settings';
-            }
-            return '/';
-        });
-
         const presentPopover = (e: Event) => {
             event.value = e;
             isOpen.value = true;
@@ -105,11 +88,9 @@ export default defineComponent({
             event,
             user,
             profileLink,
-            settingsLink,
             presentPopover,
             logout,
             personIcon: person,
-            settingsIcon: settings,
             logOutIcon: logOut,
             personCircleOutline
         };
