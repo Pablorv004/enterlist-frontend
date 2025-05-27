@@ -3,7 +3,8 @@
         <app-header title="My Songs" :back-button="true" back-url="/artist/dashboard"></app-header>
 
         <ion-content :fullscreen="true" class="songs-content">
-            <div class="songs-container">                <!-- Actions Header -->
+            <div class="songs-container">
+                <!-- Actions Header -->
                 <div class="actions-header">
                     <ion-searchbar v-model="searchQuery" placeholder="Search your songs..." @ionInput="handleSearch"
                         class="song-search"></ion-searchbar>
@@ -14,7 +15,9 @@
                             <ion-segment-button value="visible">Visible</ion-segment-button>
                             <ion-segment-button value="hidden">Hidden</ion-segment-button>
                         </ion-segment>
-                    </div>                    <div class="actions-buttons">
+                    </div>
+
+                    <div class="action-buttons">
                         <ion-button @click="syncSongs" class="sync-btn" :disabled="syncing">
                             <ion-spinner v-if="syncing" name="crescent" slot="start"></ion-spinner>
                             <ion-icon v-else :icon="syncIcon" slot="start"></ion-icon>
@@ -26,7 +29,9 @@
                             Import Songs
                         </ion-button>
                     </div>
-                </div><!-- Content -->
+                </div>
+
+                <!-- Content -->
                 <div v-if="loading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
                     <p>Loading your songs...</p>
@@ -39,7 +44,7 @@
                     message="Import your songs from connected platforms or add them manually"
                     resource-type="songs">
                     <template #actions>
-                        <ion-button @click="importSongsModal" fill="outline">
+                        <ion-button @click="importSongsModal">
                             Import Songs
                         </ion-button>
                     </template>
@@ -57,11 +62,11 @@
                     </template>
                 </empty-state-display>
 
-                <div v-else class="songs-list-container">
+                <div v-else class="songs-grid-container">
                     <!-- Desktop Grid View -->
                     <ion-grid class="songs-grid desktop-only">
                         <ion-row>
-                            <ion-col size="12" size-md="6" size-lg="4" v-for="song in filteredSongs"
+                            <ion-col size="12" size-sm="6" size-md="4" size-lg="3" v-for="song in filteredSongs"
                                 :key="song.song_id">
                                 <ion-card class="song-card vertical" @click="showSongDetails(song)">
                                     <div class="song-img-container">
@@ -71,17 +76,24 @@
                                             <ion-icon :icon="getPlatformIcon(song.platform_id)"
                                                 class="platform-icon"></ion-icon>
                                         </div>
-                                        <div class="song-visibility-overlay">
-                                            <ion-icon :icon="song.is_visible ? eyeIcon : eyeOffIcon"
-                                                :class="song.is_visible ? 'visible' : 'hidden'"></ion-icon>
+                                        <div class="song-status"
+                                            :class="{ 'status-hidden': !song.is_visible }">
+                                            {{ song.is_visible ? 'Visible' : 'Hidden' }}
                                         </div>
                                     </div>
 
                                     <ion-card-content>
                                         <h3 class="song-title">{{ song.title }}</h3>
-                                        <p class="song-album">{{ song.album_name || 'Single' }}</p>
-                                        <div class="song-platform-name">
-                                            <span>{{ getPlatformName(song.platform_id) }}</span>
+                                        <div class="song-details">
+                                            <div class="song-album">
+                                                <ion-icon :icon="musicalNotesIcon" class="details-icon"></ion-icon>
+                                                {{ song.album_name || 'Single' }}
+                                            </div>
+
+                                            <div class="song-platform-name">
+                                                <ion-icon :icon="getPlatformIcon(song.platform_id)" class="details-icon"></ion-icon>
+                                                {{ getPlatformName(song.platform_id) }}
+                                            </div>
                                         </div>
                                     </ion-card-content>
 
@@ -114,27 +126,34 @@
                             <ion-thumbnail slot="start" class="song-thumbnail">
                                 <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                     :alt="song.title" />
+                                <div class="song-platform-overlay">
+                                    <ion-icon :icon="getPlatformIcon(song.platform_id)"
+                                        class="platform-icon-small"></ion-icon>
+                                </div>
                             </ion-thumbnail>
 
                             <ion-label>
                                 <h3 class="song-title">{{ song.title }}</h3>
-                                <p class="song-album">{{ song.album_name || 'Single' }}</p>
                                 <div class="song-meta">
+                                    <span class="song-album">
+                                        <ion-icon :icon="musicalNotesIcon" class="meta-icon"></ion-icon>
+                                        {{ song.album_name || 'Single' }}
+                                    </span>
                                     <span class="song-platform">
                                         <ion-icon :icon="getPlatformIcon(song.platform_id)" class="meta-icon"></ion-icon>
                                         {{ getPlatformName(song.platform_id) }}
                                     </span>
-                                    <span class="song-visibility">
-                                        <ion-icon :icon="song.is_visible ? eyeIcon : eyeOffIcon"
-                                            :class="song.is_visible ? 'visible' : 'hidden'" class="meta-icon"></ion-icon>
-                                        {{ song.is_visible ? 'Visible' : 'Hidden' }}
-                                    </span>
                                 </div>
                             </ion-label>
 
-                            <ion-button fill="clear" slot="end" @click.stop="showOptions(song)">
-                                <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
-                            </ion-button>
+                            <div slot="end" class="song-end-slot">
+                                <ion-badge :color="song.is_visible ? 'success' : 'medium'" class="status-badge">
+                                    {{ song.is_visible ? 'Visible' : 'Hidden' }}
+                                </ion-badge>
+                                <ion-button fill="clear" @click.stop="showOptions(song)">
+                                    <ion-icon :icon="ellipsisVerticalIcon" slot="icon-only"></ion-icon>
+                                </ion-button>
+                            </div>
                         </ion-item>
                     </ion-list>
                 </div>
@@ -158,6 +177,7 @@ import {
     IonRow,
     IonCol,
     IonCard,
+    IonCardContent,
     IonThumbnail,
     IonSpinner,
     IonLabel,
@@ -165,6 +185,7 @@ import {
     IonSegmentButton,
     IonList,
     IonItem,
+    IonBadge,
     actionSheetController,
     modalController,
     alertController,
@@ -218,11 +239,15 @@ export default defineComponent({
         IonRow,
         IonCol,
         IonCard,
+        IonCardContent,
         IonThumbnail,
         IonSpinner,
         IonLabel,
         IonSegment,
-        IonSegmentButton
+        IonSegmentButton,
+        IonList,
+        IonItem,
+        IonBadge
     },
     setup() {        const authStore = useAuthStore();
         const songStore = useSongStore();
@@ -568,29 +593,41 @@ export default defineComponent({
 }
 
 .songs-container {
-    padding: 16px;
+    padding: 1rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
+/* Actions Header */
 .actions-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .actions-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .song-search {
+        flex: 2;
+    }
+
+    .filter-segment-container {
+        flex: 2;
+    }
+
+    .action-buttons {
+        flex: 1;
+    }
 }
 
 .song-search {
-    flex-grow: 1;
-    --background: white;
+    --box-shadow: none;
     --border-radius: 8px;
-    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.filter-segment-container {
-    flex-shrink: 0;
 }
 
 .visibility-filter-segment {
@@ -599,9 +636,9 @@ export default defineComponent({
     overflow: hidden;
 }
 
-.actions-buttons {
+.action-buttons {
     display: flex;
-    gap: 12px;
+    gap: 1rem;
 }
 
 .sync-btn {
@@ -616,50 +653,22 @@ export default defineComponent({
     font-weight: 500;
 }
 
-.add-btn {
-    --border-radius: 8px;
-    font-weight: 500;
-}
-
+/* Loading and Empty States */
 .loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 64px 0;
-}
-
-.loading-container p {
-    margin-top: 16px;
-    color: var(--ion-color-medium);
-}
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px 0;
+    padding: 3rem 1rem;
     text-align: center;
-    background-color: white;
+    background: white;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.empty-icon {
-    font-size: 48px;
+.loading-container p {
+    margin-top: 1rem;
     color: var(--ion-color-medium);
-    margin-bottom: 16px;
-}
-
-.empty-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-}
-
-.songs-list-container {
-    margin-bottom: 24px;
 }
 
 /* Responsive Layout */
@@ -683,7 +692,7 @@ export default defineComponent({
 
 /* Desktop Grid Styles */
 .songs-grid {
-    padding: 0;
+    --ion-grid-padding: 0;
 }
 
 .song-card.vertical {
@@ -692,18 +701,18 @@ export default defineComponent({
     overflow: hidden;
     height: 100%;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s;
 }
 
 .song-card.vertical:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .song-img-container {
     position: relative;
     width: 100%;
     padding-top: 100%;
+    /* 1:1 Aspect Ratio */
 }
 
 .song-img {
@@ -719,7 +728,7 @@ export default defineComponent({
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.5);
     border-radius: 50%;
     width: 28px;
     height: 28px;
@@ -729,15 +738,25 @@ export default defineComponent({
 }
 
 .platform-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: white;
 }
 
-.platform-icon img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
+.song-status {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--ion-color-success);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.status-hidden {
+    background: var(--ion-color-medium);
 }
 
 .song-card.vertical ion-card-content {
@@ -747,32 +766,37 @@ export default defineComponent({
 .song-title {
     font-size: 1rem;
     font-weight: 600;
-    margin: 0 0 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.song-album {
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
     margin: 0 0 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center;
 }
 
-.song-platform-name {
-    font-size: 0.75rem;
+.song-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
     color: var(--ion-color-medium);
-    text-align: center;
+    justify-content: center;
+}
+
+.details-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+.song-album,
+.song-platform-name {
+    display: flex;
+    align-items: center;
 }
 
 .card-actions {
-    padding: 0.5rem 1rem;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    padding: 0.5rem;
     border-top: 1px solid var(--ion-color-light);
 }
 
@@ -798,6 +822,26 @@ export default defineComponent({
     --border-radius: 8px;
     width: 60px;
     height: 60px;
+    position: relative;
+}
+
+.song-platform-overlay {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-icon-small {
+    width: 12px;
+    height: 12px;
+    color: white;
 }
 
 .song-meta {
@@ -814,16 +858,14 @@ export default defineComponent({
     font-size: 0.9rem;
 }
 
-.visible {
-    color: var(--ion-color-success);
+.song-end-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.hidden {
-    color: var(--ion-color-medium);
-}
-
-/* Remove old card styles */
-.song-card-content {
-    display: none;
+.status-badge {
+    font-size: 0.7rem;
 }
 </style>
