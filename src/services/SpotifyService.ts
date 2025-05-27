@@ -105,6 +105,7 @@ export const SpotifyService = {  // Get user playlists with tracks
 
   // Import tracks to the platform
   importTracks: async (trackIds: string[]): Promise<any> => {
+    console.log('Importing track IDs:', trackIds); // Add logging to debug
     const response = await apiClient.post('/auth/spotify/import/tracks', { trackIds });
     return response.data;
   }

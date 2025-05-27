@@ -70,30 +70,6 @@
         <h2>No Tracks Found</h2>
         <p>We couldn't find any tracks in your Spotify account.</p>
       </div>
-
-      <!-- Albums Section -->
-      <div v-if="spotifyAlbums.length > 0" class="albums-container">
-        <ion-list>
-          <ion-list-header>
-            <ion-label>Select Albums to Import</ion-label>
-            <ion-button fill="clear" size="small" @click="toggleSelectAllAlbums">
-              {{ allAlbumsSelected ? 'Deselect All' : 'Select All' }}
-            </ion-button>
-          </ion-list-header>
-
-          <ion-item v-for="album in spotifyAlbums" :key="album.id" class="album-item">
-            <ion-checkbox slot="start" v-model="selectedAlbums[album.id]"></ion-checkbox>
-            <ion-thumbnail slot="start">
-              <img :src="album.images[0]?.url || ''" alt="Album cover" />
-            </ion-thumbnail>
-            <ion-label>
-              <h2>{{ album.name }}</h2>
-              <p>{{ album.artists.map(artist => artist.name).join(', ') }}</p>
-              <p>{{ album.release_date }}</p>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </div>
     </div>
 
     <!-- YouTube Content -->
@@ -136,7 +112,7 @@
       <div class="footer-content">
         <div class="selected-count">
           <span v-if="selectedPlatform === 'spotify'">
-            {{ selectedTrackCount }} tracks & {{ selectedAlbumCount }} albums selected
+            {{ selectedTrackCount }} tracks selected
           </span>
           <span v-else-if="selectedPlatform === 'youtube'">
             {{ selectedVideoCount }} videos selected
@@ -180,7 +156,7 @@ import {
   musicalNotes as musicalNotesIcon,
   videocam as videocamIcon
 } from 'ionicons/icons';
-import { SpotifyService, SpotifyTrack, SpotifyAlbum } from '@/services/SpotifyService';
+import { SpotifyService, SpotifyTrack } from '@/services/SpotifyService';
 import { YouTubeService, YouTubeVideo } from '@/services/YouTubeService';
 import { PlatformService } from '@/services/PlatformService';
 import { useAuthStore } from '@/store';
@@ -223,9 +199,7 @@ export default defineComponent({
     
     // Spotify data
     const spotifyTracks = ref<SpotifyTrack[]>([]);
-    const spotifyAlbums = ref<SpotifyAlbum[]>([]);
     const selectedTracks = ref<Record<string, boolean>>({});
-    const selectedAlbums = ref<Record<string, boolean>>({});
 
     // YouTube data
     const youtubeVideos = ref<YouTubeVideo[]>([]);
@@ -270,10 +244,6 @@ export default defineComponent({
       return Object.values(selectedTracks.value).filter(selected => selected).length;
     });
 
-    const selectedAlbumCount = computed(() => {
-      return Object.values(selectedAlbums.value).filter(selected => selected).length;
-    });
-
     const selectedVideoCount = computed(() => {
       return Object.values(selectedVideos.value).filter(selected => selected).length;
     });
@@ -283,18 +253,13 @@ export default defineComponent({
         spotifyTracks.value.every(track => selectedTracks.value[track.id]);
     });
 
-    const allAlbumsSelected = computed(() => {
-      return spotifyAlbums.value.length > 0 && 
-        spotifyAlbums.value.every(album => selectedAlbums.value[album.id]);
-    });
-
     const allVideosSelected = computed(() => {
       return youtubeVideos.value.length > 0 && 
         youtubeVideos.value.every(video => selectedVideos.value[video.id]);
     });
 
     const canImport = computed(() => {
-      return (selectedPlatform.value === 'spotify' && (selectedTrackCount.value > 0 || selectedAlbumCount.value > 0)) ||
+      return (selectedPlatform.value === 'spotify' && selectedTrackCount.value > 0) ||
         (selectedPlatform.value === 'youtube' && selectedVideoCount.value > 0);
     });
 
@@ -312,13 +277,6 @@ export default defineComponent({
       const newValue = !allTracksSelected.value;
       spotifyTracks.value.forEach(track => {
         selectedTracks.value[track.id] = newValue;
-      });
-    };
-
-    const toggleSelectAllAlbums = () => {
-      const newValue = !allAlbumsSelected.value;
-      spotifyAlbums.value.forEach(album => {
-        selectedAlbums.value[album.id] = newValue;
       });
     };
 
@@ -357,9 +315,7 @@ export default defineComponent({
       loadingMessage.value = 'Loading your Spotify content...';
 
       try {
-        const [tracks] = await Promise.all([
-          SpotifyService.getTracks(),
-        ]);
+        const tracks = await SpotifyService.getTracks();
 
         if (!isComponentMounted.value) return; // Check again after async operation
 
@@ -368,9 +324,6 @@ export default defineComponent({
         // Initialize selection objects
         spotifyTracks.value.forEach(track => {
           selectedTracks.value[track.id] = false;
-        });
-        spotifyAlbums.value.forEach(album => {
-          selectedAlbums.value[album.id] = false;
         });
       } catch (error) {
         if (!isComponentMounted.value) return;
@@ -422,29 +375,23 @@ export default defineComponent({
           loadingMessage.value = 'Importing your Spotify content...';
           
           const selectedTrackIds = Object.keys(selectedTracks.value)
-            .filter(id => selectedTracks.value[id]);
-          
-          const selectedAlbumIds = Object.keys(selectedAlbums.value)
-            .filter(id => selectedAlbums.value[id]);
+            .filter(id => selectedTracks.value[id])
+            .map(id => id.toString());
           
           if (selectedTrackIds.length > 0) {
             await SpotifyService.importTracks(selectedTrackIds);
           }
           
-          if (selectedAlbumIds.length > 0) {
-            // In a real implementation, you might have a separate endpoint for albums
-            // or handle them on the backend after receiving the IDs
-          }
-          
           if (isComponentMounted.value) {
-            showToast(`Successfully imported ${selectedTrackIds.length} tracks and ${selectedAlbumIds.length} albums from Spotify`, 'success');
+            showToast(`Successfully imported ${selectedTrackIds.length} tracks from Spotify`, 'success');
           }
         } 
         else if (selectedPlatform.value === 'youtube') {
           loadingMessage.value = 'Importing your YouTube content...';
           
           const selectedVideoIds = Object.keys(selectedVideos.value)
-            .filter(id => selectedVideos.value[id]);
+            .filter(id => selectedVideos.value[id])
+            .map(id => id.toString());
           
           if (selectedVideoIds.length > 0) {
             await YouTubeService.importVideos(selectedVideoIds);
@@ -517,24 +464,19 @@ export default defineComponent({
       loadingMessage,
       selectedPlatform,
       spotifyTracks,
-      spotifyAlbums,
       youtubeVideos,
       selectedTracks,
-      selectedAlbums,
       selectedVideos,
       hasSpotifyAccount,
       hasYouTubeAccount,
       selectedTrackCount,
-      selectedAlbumCount,
       selectedVideoCount,
       allTracksSelected,
-      allAlbumsSelected,
       allVideosSelected,
       canImport,
       // Methods
       handlePlatformChange,
       toggleSelectAllTracks,
-      toggleSelectAllAlbums,
       toggleSelectAllVideos,
       importSelected,
       dismiss,
@@ -591,13 +533,11 @@ export default defineComponent({
 }
 
 .tracks-container,
-.albums-container,
 .videos-container {
   margin-bottom: 1rem;
 }
 
 .track-item,
-.album-item,
 .video-item {
   --padding-start: 0;
 }
