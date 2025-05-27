@@ -763,6 +763,7 @@ export default defineComponent({
     font-weight: 600;
     margin: 0 0 0.5rem;
     white-space: nowrap;
+    text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
 }

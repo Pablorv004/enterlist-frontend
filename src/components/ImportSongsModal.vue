@@ -196,6 +196,9 @@ export default defineComponent({
     
     // Component state tracking
     const isComponentMounted = ref(false);
+    const dataLoaded = ref(false);
+    const spotifyDataLoaded = ref(false);
+    const youtubeDataLoaded = ref(false);
     
     // Spotify data
     const spotifyTracks = ref<SpotifyTrack[]>([]);
@@ -222,18 +225,31 @@ export default defineComponent({
           p.name.toLowerCase().includes('youtube')
         )
       );
-    });    // Set default platform based on available accounts
+    });
+
+    // Computed property to determine if we should show loading
+    const shouldShowLoading = computed(() => {
+      // Always show loading if initial data isn't loaded
+      if (!dataLoaded.value) return true;
+      
+      // Show loading if platform is selected but data isn't loaded for that platform
+      if (selectedPlatform.value === 'spotify' && !spotifyDataLoaded.value) return true;
+      if (selectedPlatform.value === 'youtube' && !youtubeDataLoaded.value) return true;
+      
+      // Show loading during import process
+      return loading.value;
+    });
+
+    // Set default platform based on available accounts
     const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount], () => {
-      if (!isComponentMounted.value) return;
+      if (!isComponentMounted.value || !dataLoaded.value) return;
       
       if (selectedPlatform.value === '') {
         if (hasSpotifyAccount.value) {
           selectedPlatform.value = 'spotify';
-          // Auto-load content for the default platform
           loadSpotifyContent();
         } else if (hasYouTubeAccount.value) {
           selectedPlatform.value = 'youtube';
-          // Auto-load content for the default platform
           loadYoutubeContent();
         }
       }
@@ -265,9 +281,9 @@ export default defineComponent({
 
     // Handle platform change
     const handlePlatformChange = () => {
-      if (selectedPlatform.value === 'spotify' && spotifyTracks.value.length === 0) {
+      if (selectedPlatform.value === 'spotify' && !spotifyDataLoaded.value) {
         loadSpotifyContent();
-      } else if (selectedPlatform.value === 'youtube' && youtubeVideos.value.length === 0) {
+      } else if (selectedPlatform.value === 'youtube' && !youtubeDataLoaded.value) {
         loadYoutubeContent();
       }
     };
@@ -311,13 +327,12 @@ export default defineComponent({
     };const loadSpotifyContent = async () => {
       if (!isComponentMounted.value) return;
       
-      loading.value = true;
       loadingMessage.value = 'Loading your Spotify content...';
 
       try {
         const tracks = await SpotifyService.getTracks();
 
-        if (!isComponentMounted.value) return; // Check again after async operation
+        if (!isComponentMounted.value) return;
 
         spotifyTracks.value = tracks;
 
@@ -326,27 +341,24 @@ export default defineComponent({
           selectedTracks.value[track.id] = false;
         });
         
-        // Only set loading to false after data is fully processed
-        loading.value = false;
+        spotifyDataLoaded.value = true;
       } catch (error) {
         if (!isComponentMounted.value) return;
         
         console.error('Error loading Spotify content:', error);
         showToast('Failed to load your Spotify content', 'danger');
-        loading.value = false;
       }
     };
 
     const loadYoutubeContent = async () => {
       if (!isComponentMounted.value) return;
       
-      loading.value = true;
       loadingMessage.value = 'Loading your YouTube content...';
 
       try {
         const videos = await YouTubeService.getVideos();
         
-        if (!isComponentMounted.value) return; // Check again after async operation
+        if (!isComponentMounted.value) return;
         
         youtubeVideos.value = videos;
 
@@ -355,14 +367,12 @@ export default defineComponent({
           selectedVideos.value[video.id.videoId] = false;
         });
         
-        // Only set loading to false after data is fully processed
-        loading.value = false;
+        youtubeDataLoaded.value = true;
       } catch (error) {
         if (!isComponentMounted.value) return;
         
         console.error('Error loading YouTube content:', error);
         showToast('Failed to load your YouTube videos', 'danger');
-        loading.value = false;
       }
     };    // Import selected content
     const importSelected = async () => {
@@ -437,17 +447,17 @@ export default defineComponent({
       });
     };    onMounted(async () => {
       isComponentMounted.value = true;
-      loading.value = true;
+      loadingMessage.value = 'Loading your content...';
       
       try {
         await Promise.all([
           loadPlatforms(),
           loadLinkedAccounts()
         ]);
+        
+        dataLoaded.value = true;
       } finally {
-        if (isComponentMounted.value) {
-          loading.value = false;
-        }
+        // Don't set loading to false here - let shouldShowLoading handle it
       }
     });
 
@@ -460,7 +470,7 @@ export default defineComponent({
     });
 
     return {
-      loading,
+      loading: shouldShowLoading,
       loadingMessage,
       selectedPlatform,
       spotifyTracks,

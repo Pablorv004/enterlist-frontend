@@ -11,7 +11,7 @@
     <ion-popover :is-open="isOpen" :event="event" @didDismiss="isOpen = false" class="profile-popover">
         <ion-content>
             <ion-list lines="none">
-                <ion-item detail :router-link="profileLink">
+                <ion-item detail :router-link="profileLink" @click="closePopover">
                     <ion-icon :icon="personIcon" slot="start"></ion-icon>
                     <ion-label>My Profile</ion-label>
                 </ion-item>
@@ -83,6 +83,10 @@ export default defineComponent({
             router.push('/login');
         };
 
+        const closePopover = () => {
+            isOpen.value = false;
+        };
+
         return {
             isOpen,
             event,
@@ -90,6 +94,7 @@ export default defineComponent({
             profileLink,
             presentPopover,
             logout,
+            closePopover,
             personIcon: person,
             logOutIcon: logOut,
             personCircleOutline
