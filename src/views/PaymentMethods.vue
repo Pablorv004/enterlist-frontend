@@ -27,39 +27,41 @@
                     <ion-card>                        <ion-card-header>
                             <ion-card-title>Your PayPal Accounts</ion-card-title>
                             <ion-card-subtitle>Manage your PayPal accounts for song submissions</ion-card-subtitle>
-                        </ion-card-header>
-
-                        <ion-card-content>
+                        </ion-card-header>                        <ion-card-content>
                             <ion-list>
-                                <ion-item-sliding v-for="method in paymentMethods" :key="method.payment_method_id">
-                                    <ion-item class="payment-method-item">
-                                        <ion-thumbnail slot="start" class="payment-method-icon">
-                                            <img :src="getPaymentMethodIcon(method.type)" :alt="method.type">
-                                        </ion-thumbnail>
+                                <ion-item v-for="method in paymentMethods" :key="method.payment_method_id" class="payment-method-item">
+                                    <ion-thumbnail slot="start" class="payment-method-icon">
+                                        <img :src="getPaymentMethodIcon(method.type)" :alt="method.type">
+                                    </ion-thumbnail>
 
-                                        <ion-label>
-                                            <h3>{{ formatPaymentMethodName(method) }}</h3>
-                                            <p>{{ formatPaymentMethodDetails(method) }}</p>
-                                        </ion-label>
+                                    <ion-label>
+                                        <h3>{{ formatPaymentMethodName(method) }}</h3>
+                                        <p>{{ formatPaymentMethodDetails(method) }}</p>
+                                    </ion-label>
 
-                                        <ion-badge v-if="method.is_default" color="success"
-                                            slot="end">Default</ion-badge>
-                                    </ion-item>
-
-                                    <ion-item-options side="end">
-                                        <ion-item-option v-if="!method.is_default" color="success"
-                                            @click="setDefaultPaymentMethod(method.payment_method_id)">
+                                    <div slot="end" class="payment-method-actions">
+                                        <ion-badge v-if="method.is_default" color="success" class="default-badge">
+                                            Default
+                                        </ion-badge>
+                                        
+                                        <ion-button v-if="!method.is_default" 
+                                            fill="clear" 
+                                            size="small" 
+                                            color="success"
+                                            @click="setDefaultPaymentMethod(method.payment_method_id)"
+                                            class="action-button">
                                             <ion-icon :icon="checkmarkIcon" slot="icon-only"></ion-icon>
-                                            Set Default
-                                        </ion-item-option>
+                                        </ion-button>
 
-                                        <ion-item-option color="danger"
-                                            @click="confirmDeletePaymentMethod(method.payment_method_id)">
+                                        <ion-button fill="clear" 
+                                            size="small" 
+                                            color="danger"
+                                            @click="confirmDeletePaymentMethod(method.payment_method_id)"
+                                            class="action-button">
                                             <ion-icon :icon="trashIcon" slot="icon-only"></ion-icon>
-                                            Delete
-                                        </ion-item-option>
-                                    </ion-item-options>
-                                </ion-item-sliding>
+                                        </ion-button>
+                                    </div>
+                                </ion-item>
                             </ion-list>
                         </ion-card-content>
                     </ion-card>
@@ -162,10 +164,9 @@
 import { defineComponent, ref, reactive, onMounted, computed } from 'vue';
 import {
     IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle,
-    IonCardContent, IonList, IonItem, IonItemSliding, IonItemOption, IonItemOptions,
-    IonThumbnail, IonLabel, IonBadge, IonButton, IonIcon, IonSpinner, IonModal,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonRadioGroup, IonRadio, IonListHeader,
-    IonInput, IonCheckbox, alertController, toastController
+    IonCardContent, IonList, IonItem, IonThumbnail, IonLabel, IonBadge, IonButton, 
+    IonIcon, IonSpinner, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, 
+    IonRadioGroup, IonRadio, IonListHeader, IonInput, IonCheckbox, alertController, toastController
 } from '@ionic/vue';
 import {
     cardOutline, addOutline, checkmarkOutline, trashOutline, closeOutline,
@@ -181,13 +182,13 @@ import { useAuthStore } from '@/store';
 import { PaymentMethod, Transaction, PaymentMethodType, TransactionStatus } from '@/types';
 
 export default defineComponent({
-    name: 'ArtistPaymentMethods',
-    components: {
+    name: 'ArtistPaymentMethods',    components: {
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle,
-        IonCardContent, IonList, IonItem, IonItemSliding, IonItemOption, IonItemOptions,        IonThumbnail, IonLabel, IonBadge, IonButton, IonIcon, IonSpinner, IonModal,
-        IonHeader, IonToolbar, IonTitle, IonButtons, IonRadioGroup, IonRadio, IonListHeader,
-        IonInput, IonCheckbox, AppHeader, EmptyStateDisplay, BottomNavigation
-    },    setup() {
+        IonCardContent, IonList, IonItem, IonThumbnail, IonLabel, IonBadge, IonButton, 
+        IonIcon, IonSpinner, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, 
+        IonRadioGroup, IonRadio, IonListHeader, IonInput, IonCheckbox, AppHeader, 
+        EmptyStateDisplay, BottomNavigation
+    },setup() {
         const authStore = useAuthStore();
         const userId = computed(() => authStore.user?.user_id || '');
         
@@ -498,6 +499,23 @@ export default defineComponent({
 .payment-method-icon {
     width: 40px;
     height: 40px;
+}
+
+.payment-method-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.default-badge {
+    margin-right: 0.5rem;
+}
+
+.action-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+    width: 32px;
 }
 
 .add-payment-method-btn {
