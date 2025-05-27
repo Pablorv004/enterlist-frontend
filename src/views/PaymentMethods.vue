@@ -1,6 +1,5 @@
-<template>
-    <ion-page>
-        <app-header title="Payment Methods" :back-button="true" back-url="/artist/dashboard"></app-header>
+<template>    <ion-page>
+        <app-header title="Payment Methods" :back-button="true" :back-url="backUrl"></app-header>
 
         <ion-content :fullscreen="true" class="payment-methods-content">
             <div class="payment-methods-container">
@@ -190,10 +189,18 @@ export default defineComponent({
         IonCardContent, IonList, IonItem, IonItemSliding, IonItemOption, IonItemOptions,        IonThumbnail, IonLabel, IonBadge, IonButton, IonIcon, IonSpinner, IonModal,
         IonHeader, IonToolbar, IonTitle, IonButtons, IonRadioGroup, IonRadio, IonListHeader,
         IonInput, IonCheckbox, AppHeader, EmptyStateDisplay, BottomNavigation
-    },
-    setup() {
+    },    setup() {
         const authStore = useAuthStore();
         const userId = computed(() => authStore.user?.user_id || '');
+        
+        const backUrl = computed(() => {
+            if (authStore.isArtist) {
+                return '/artist/dashboard';
+            } else if (authStore.isPlaylistMaker) {
+                return '/playlist-maker/dashboard';
+            }
+            return '/dashboard';
+        });
 
         const paymentMethods = ref<PaymentMethod[]>([]);
         const transactions = ref<Transaction[]>([]);
@@ -417,6 +424,7 @@ export default defineComponent({
 
             await toast.present();
         };        return {
+            backUrl,
             paymentMethods,
             transactions,
             loading,

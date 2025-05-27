@@ -43,6 +43,9 @@ const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedA
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
 const OAuthHandler = () => import('@/views/OAuthHandler.vue');
 
+// Payment callback routes
+const PaymentSuccess = () => import('@/views/PaymentSuccess.vue');
+
 const routes: Array<RouteRecordRaw> = [    {
         path: '/',
         name: 'Home',
@@ -214,6 +217,13 @@ const routes: Array<RouteRecordRaw> = [    {
         path: '/oauth/link-callback',
         name: 'OAuthLinkCallback',
         component: OAuthCallback,
+        meta: { requiresAuth: true }
+    },
+    // Payment callback routes
+    {
+        path: '/payment/success',
+        name: 'PaymentSuccess',
+        component: PaymentSuccess,
         meta: { requiresAuth: true }
     },
     // 404 Not Found route

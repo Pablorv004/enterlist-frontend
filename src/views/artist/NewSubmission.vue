@@ -403,6 +403,7 @@ import AppHeader from '@/components/AppHeader.vue';
 import { SongService } from '@/services/SongService';
 import { PlaylistService } from '@/services/PlaylistService';
 import { SubmissionService } from '@/services/SubmissionService';
+import { TransactionService } from '@/services/TransactionService';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
@@ -682,9 +683,7 @@ export default defineComponent({
         // Calculate total payment
         const calculateTotal = (submissionFee: number): number => {
             return submissionFee + calculatePlatformFee(submissionFee);
-        };
-
-        // Submit song to playlist
+        };        // Submit song to playlist
         const submitSong = async () => {
             if (!canSubmit.value) {
                 return;
@@ -697,28 +696,52 @@ export default defineComponent({
                     throw new Error('User not authenticated');
                 }
 
-                // Create submission
-                const submission = await SubmissionService.createSubmission({
+                if (!selectedPlaylist.value?.submission_fee) {
+                    throw new Error('Playlist submission fee not found');
+                }
+
+                if (!selectedPaymentMethodId.value) {
+                    throw new Error('Please select a payment method');
+                }
+
+                // First, create a draft submission to get the submissionId
+                const draftSubmission = await SubmissionService.createSubmission({
                     artist_id: authStore.user.user_id,
                     playlist_id: selectedPlaylistId.value!,
                     song_id: selectedSongId.value!,
-                    submission_message: submissionMessage.value.trim()
+                    submission_message: submissionMessage.value.trim() || undefined,
+                    payment_method_id: selectedPaymentMethodId.value
                 });
 
-                submissionResult.value = submission;
+                // Create PayPal payment using submissionId and paymentMethodId
+                const paymentData = await TransactionService.createPayPalPayment(
+                    draftSubmission.submission_id,
+                    selectedPaymentMethodId.value
+                );
 
-                // Move to success step
-                currentStep.value = 3;
+                // Store submission data in sessionStorage to retrieve after payment
+                const submissionData = {
+                    submissionId: draftSubmission.submission_id,
+                    paymentId: paymentData.paymentId,
+                    paymentMethodId: selectedPaymentMethodId.value
+                };
+                sessionStorage.setItem('enterlist_submission_data', JSON.stringify(submissionData));
 
-                showToast('Submission successful!', 'success');
+                // Redirect to PayPal for payment approval
+                if (paymentData.approvalUrl) {
+                    window.location.href = paymentData.approvalUrl;
+                } else {
+                    throw new Error('PayPal payment creation failed - no approval URL received');
+                }
+
             } catch (err) {
-                let errorMessage = 'Failed to submit song';
+                let errorMessage = 'Failed to process payment';
 
                 if (err instanceof Error) {
                     errorMessage = err.message;
                 }
 
-                showErrorAlert('Submission Failed', errorMessage);
+                showErrorAlert('Payment Failed', errorMessage);
                 console.error(err);
             } finally {
                 isSubmitting.value = false;

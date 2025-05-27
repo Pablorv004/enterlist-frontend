@@ -204,3 +204,19 @@ export interface PaginatedResponse<T> {
   count: number;
   total: number;
 }
+
+// Balance response interface
+export interface BalanceResponse {
+  total: number;
+  available: number;
+  pending: number;
+  currency?: string;
+}
+
+// Earnings stats interface
+export interface EarningsStats {
+  period: string;
+  earnings: number;
+  transactionCount: number;
+  currency: string;
+}
