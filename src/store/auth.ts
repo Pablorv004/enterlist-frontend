@@ -111,10 +111,14 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('enterlist_token');
     }
   };
-
   const updateProfile = async (updatedUser: User): Promise<void> => {
     user.value = updatedUser;
     await storeUserData(updatedUser);
+  };
+
+  // Clear error messages
+  const clearError = (): void => {
+    error.value = null;
   };
 
   // Helper function to store auth data
@@ -180,7 +184,6 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = authToken;
     await storeAuthData(userData, authToken);
   };
-
   return {
     user,
     token,
@@ -197,6 +200,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     updateProfile,
     checkAuth,
-    setAuthData
+    setAuthData,
+    clearError
   };
 });

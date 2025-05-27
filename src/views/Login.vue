@@ -60,11 +60,9 @@
                                     :errorText="errors.confirmPassword"></ion-input>
                                 <ion-note slot="error" v-if="isDirty.confirmPassword && errors.confirmPassword">{{
                                     errors.confirmPassword }}</ion-note>
-                            </ion-item>
-
-                            <!-- Error Message -->
-                            <div v-if="error" class="error-message">
-                                <ion-text color="danger">{{ error }}</ion-text>
+                            </ion-item>                            <!-- Error Message -->
+                            <div v-if="displayError" class="error-message">
+                                <ion-text color="danger">{{ displayError }}</ion-text>
                             </div>
 
                             <!-- Submit Button -->
@@ -110,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, reactive, onMounted } from 'vue';
+import { defineComponent, ref, computed, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
     IonPage,
@@ -168,22 +166,26 @@ export default defineComponent({
             email: '',
             password: '',
             confirmPassword: ''
-        });
-
-        // UI state
+        });        // UI state
         const isLoginMode = ref(true);
         const showPassword = ref(false);
         const loading = computed(() => authStore.loading);
-        const error = ref(authStore.error);
+        const error = computed(() => authStore.error || '');
+        const localError = ref('');
 
         // Check for OAuth error in query parameters on mount
         onMounted(() => {
             if (route.query.error) {
                 const errorMessage = decodeURIComponent(route.query.error as string);
-                error.value = errorMessage;
+                localError.value = errorMessage;
                 // Clear the error from URL without triggering navigation
                 router.replace({ query: {} });
             }
+        });
+
+        // Computed error that combines both auth store errors and local errors
+        const displayError = computed(() => {
+            return authStore.error || localError.value;
         });
 
         // Validation rules
@@ -220,16 +222,19 @@ export default defineComponent({
             isLoginMode.value = !isLoginMode.value;
             resetValidation();
             // Clear any OAuth error when switching modes
-            error.value = '';
+            localError.value = '';
+            authStore.clearError();
         };
 
         // Toggle password visibility
         const togglePasswordVisibility = () => {
             showPassword.value = !showPassword.value;
-        };
-
-        // Submit form handler
+        };        // Submit form handler
         const submitForm = async () => {
+            // Clear any previous errors
+            localError.value = '';
+            authStore.clearError();
+            
             if (isLoginMode.value) {
                 // Login validation
                 if (!validateForm({
@@ -255,8 +260,9 @@ export default defineComponent({
                     });
                     toast.present();
                 } catch (err: any) {
-                    // Error is handled in the store and displayed in the template
-                }            } else {
+                    console.error('Login error:', err);
+                    // Error will be handled by the watcher from auth store
+                }} else {
                 // Register validation
                 if (!validateForm({
                     username: form.username,
@@ -270,9 +276,7 @@ export default defineComponent({
                     confirmPassword: validationRules.confirmPassword
                 })) {
                     return;
-                }
-
-                try {
+                }                try {
                     await authStore.register({
                         username: form.username,
                         email: form.email,
@@ -288,7 +292,8 @@ export default defineComponent({
                     });
                     toast.present();
                 } catch (err: any) {
-                    // Error is handled in the store and displayed in the template
+                    console.error('Registration error:', err);
+                    // Error will be handled by the watcher from auth store
                 }
             }
         };
@@ -322,14 +327,12 @@ export default defineComponent({
                 });
                 await alert.present();
             }
-        };
-
-        return {
+        };        return {
             form,
             isLoginMode,
             showPassword,
             loading,
-            error,
+            displayError,
             errors,
             isDirty,
             validationRules,
