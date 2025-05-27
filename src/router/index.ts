@@ -21,7 +21,7 @@ const ArtistSubmissions = () => import('@/views/artist/Submissions.vue');
 const ArtistSubmissionDetail = () => import('@/views/artist/SubmissionDetail.vue');
 const ArtistNewSubmission = () => import('@/views/artist/NewSubmission.vue');
 const ArtistProfile = () => import('@/views/artist/Profile.vue');
-const ArtistPaymentMethods = () => import('@/views/artist/PaymentMethods.vue');
+const ArtistPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const ArtistLinkedAccounts = () => import('@/views/artist/LinkedAccounts.vue');
 
 // Playlist maker routes
@@ -29,6 +29,7 @@ const PlaylistMakerPlaylists = () => import('@/views/playlist-maker/Playlists.vu
 const PlaylistMakerSubmissions = () => import('@/views/playlist-maker/Submissions.vue');
 const PlaylistMakerSubmissionDetail = () => import('@/views/playlist-maker/SubmissionDetail.vue');
 const PlaylistMakerProfile = () => import('@/views/playlist-maker/Profile.vue');
+const PlaylistMakerPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedAccounts.vue');
 
 //Admin routes
@@ -150,11 +151,16 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'PlaylistMakerSubmissionDetail',
         component: PlaylistMakerSubmissionDetail,
         meta: { requiresAuth: true, role: 'playlist_maker' }
-    },
-    {
+    },    {
         path: '/playlist-maker/profile',
         name: 'PlaylistMakerProfile',
         component: PlaylistMakerProfile,
+        meta: { requiresAuth: true, role: 'playlist_maker' }
+    },
+    {
+        path: '/playlist-maker/payment-methods',
+        name: 'PlaylistMakerPaymentMethods',
+        component: PlaylistMakerPaymentMethods,
         meta: { requiresAuth: true, role: 'playlist_maker' }
     },
     {
@@ -162,7 +168,7 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'PlaylistMakerLinkedAccounts',
         component: PlaylistMakerLinkedAccounts,
         meta: { requiresAuth: true, role: 'playlist_maker' }
-    },    // Admin routes
+    },// Admin routes
     /*
     {
         path: '/admin/dashboard',
