@@ -2,10 +2,9 @@ import apiClient from './api';
 import { PaymentMethod, PaymentMethodType } from '@/types';
 import { handleEmptyResponse } from '@/utils/apiHelpers';
 
-export const PaymentMethodService = {
-  getPaymentMethods: async (userId: string): Promise<PaymentMethod[]> => {
+export const PaymentMethodService = {  getPaymentMethods: async (userId: string): Promise<PaymentMethod[]> => {
     try {
-      const response = await apiClient.get(`/payment-methods/artist/${userId}`);
+      const response = await apiClient.get(`/payment-methods/user/${userId}`);
       return response.data.data || [];
     } catch (error) {
       return handleEmptyResponse(error, []);
@@ -47,9 +46,8 @@ export const PaymentMethodService = {
   deletePaymentMethod: async (id: string): Promise<void> => {
     await apiClient.delete(`/payment-methods/${id}`);
   },
-
-  setDefaultPaymentMethod: async (id: string, userId: string): Promise<PaymentMethod> => {
-    const response = await apiClient.put(`/payment-methods/${id}/default`, { user_id: userId });
+  setDefaultPaymentMethod: async (id: string): Promise<PaymentMethod> => {
+    const response = await apiClient.put(`/payment-methods/${id}`, { is_default: true });
     return response.data;
   }
 };

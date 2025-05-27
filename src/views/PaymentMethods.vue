@@ -316,7 +316,7 @@ export default defineComponent({
             }
         };const setDefaultPaymentMethod = async (paymentMethodId: string) => {
             try {
-                await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId, userId.value);
+                await PaymentMethodService.setDefaultPaymentMethod(paymentMethodId);
 
                 // Update local data
                 paymentMethods.value = paymentMethods.value.map(method => ({
