@@ -145,7 +145,7 @@
                                     </ion-card-subtitle>
                                 </ion-card-header>                                <ion-card-content>                                    <div class="submission-fee">
                                         <ion-badge color="primary">
-                                            ${{ playlist.submission_fee!.toFixed(2) }} submission fee
+                                            ${{ playlist.submission_fee! }} submission fee
                                         </ion-badge>
                                     </div>
                                 </ion-card-content>
@@ -301,18 +301,18 @@
                             </ion-card-header>
                             <ion-card-content>                                <div class="summary-item">
                                     <span>Submission Fee</span>
-                                    <span>${{ selectedPlaylist.submission_fee!.toFixed(2) }}</span>
+                                    <span>${{ selectedPlaylist.submission_fee!}}</span>
                                 </div>
 
                                 <div class="summary-item">
                                     <span>Platform Fee</span>
-                                    <span>${{ calculatePlatformFee(selectedPlaylist.submission_fee!).toFixed(2)
+                                    <span>${{ calculatePlatformFee(selectedPlaylist.submission_fee!)
                                         }}</span>
                                 </div>
 
                                 <div class="summary-item total">
                                     <span>Total</span>
-                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!).toFixed(2)
+                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!)
                                         }}</span>
                                 </div>
                             </ion-card-content>
