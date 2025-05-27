@@ -241,7 +241,7 @@ export default defineComponent({
     });
 
     // Set default platform based on available accounts
-    const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount], () => {
+    const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount, dataLoaded], () => {
       if (!isComponentMounted.value || !dataLoaded.value) return;
       
       if (selectedPlatform.value === '') {
@@ -253,7 +253,7 @@ export default defineComponent({
           loadYoutubeContent();
         }
       }
-    });
+    }, { immediate: true });
 
     // Computed properties for selection counts
     const selectedTrackCount = computed(() => {
@@ -456,6 +456,17 @@ export default defineComponent({
         ]);
         
         dataLoaded.value = true;
+        
+        // Trigger platform selection immediately after data is loaded
+        if (selectedPlatform.value === '') {
+          if (hasSpotifyAccount.value) {
+            selectedPlatform.value = 'spotify';
+            loadSpotifyContent();
+          } else if (hasYouTubeAccount.value) {
+            selectedPlatform.value = 'youtube';
+            loadYoutubeContent();
+          }
+        }
       } finally {
         // Don't set loading to false here - let shouldShowLoading handle it
       }

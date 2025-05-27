@@ -240,7 +240,7 @@ export default defineComponent({
     });
 
     // Set default platform based on available accounts
-    const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount], () => {
+    const stopWatcher = watch([hasSpotifyAccount, hasYouTubeAccount, dataLoaded], () => {
       if (!isComponentMounted.value || !dataLoaded.value) return;
       
       if (selectedPlatform.value === '') {
@@ -252,7 +252,7 @@ export default defineComponent({
           loadYoutubePlaylists();
         }
       }
-    });
+    }, { immediate: true });
 
     // Computed properties for selection counts
     const selectedSpotifyPlaylistCount = computed(() => {
@@ -453,6 +453,17 @@ export default defineComponent({
         ]);
         
         dataLoaded.value = true;
+        
+        // Trigger platform selection immediately after data is loaded
+        if (selectedPlatform.value === '') {
+          if (hasSpotifyAccount.value) {
+            selectedPlatform.value = 'spotify';
+            loadSpotifyPlaylists();
+          } else if (hasYouTubeAccount.value) {
+            selectedPlatform.value = 'youtube';
+            loadYoutubePlaylists();
+          }
+        }
       } finally {
         // Don't set loading to false here - let shouldShowLoading handle it
       }
