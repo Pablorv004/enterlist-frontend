@@ -73,8 +73,8 @@
                                         <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                             :alt="song.title" class="song-img" />
                                         <div class="song-platform">
-                                            <ion-icon :icon="getPlatformIcon(song.platform_id)"
-                                                class="platform-icon"></ion-icon>
+                                            <img :src="getPlatformIcon(song.platform_id)"
+                                                :alt="getPlatformName(song.platform_id)" class="platform-icon" />
                                         </div>
                                         <div class="song-status"
                                             :class="{ 'status-hidden': !song.is_visible }">
@@ -91,7 +91,7 @@
                                             </div>
 
                                             <div class="song-platform-name">
-                                                <ion-icon :icon="getPlatformIcon(song.platform_id)" class="details-icon"></ion-icon>
+                                                <img :src="getPlatformIcon(song.platform_id)" class="details-icon" :alt="getPlatformName(song.platform_id)" />
                                                 {{ getPlatformName(song.platform_id) }}
                                             </div>
                                         </div>
@@ -126,10 +126,6 @@
                             <ion-thumbnail slot="start" class="song-thumbnail">
                                 <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                     :alt="song.title" />
-                                <div class="song-platform-overlay">
-                                    <ion-icon :icon="getPlatformIcon(song.platform_id)"
-                                        class="platform-icon-small"></ion-icon>
-                                </div>
                             </ion-thumbnail>
 
                             <ion-label>
@@ -140,7 +136,7 @@
                                         {{ song.album_name || 'Single' }}
                                     </span>
                                     <span class="song-platform">
-                                        <ion-icon :icon="getPlatformIcon(song.platform_id)" class="meta-icon"></ion-icon>
+                                        <img :src="getPlatformIcon(song.platform_id)" class="meta-icon" :alt="getPlatformName(song.platform_id)" />
                                         {{ getPlatformName(song.platform_id) }}
                                     </span>
                                 </div>
@@ -223,6 +219,8 @@ import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlatformService } from '@/services/PlatformService';
 import { SongService } from '@/services/SongService';
 import router from '@/router';
+import spotifyLogo from '@/assets/spotify.png';
+import youtubeLogo from '@/assets/youtube.png';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -249,7 +247,8 @@ export default defineComponent({
         IonItem,
         IonBadge
     },
-    setup() {        const authStore = useAuthStore();
+    setup() {        
+        const authStore = useAuthStore();
         const songStore = useSongStore();
         const loading = ref(true);
         const syncing = ref(false);
@@ -286,16 +285,16 @@ export default defineComponent({
         });
 
         // Get platform icon based on platform ID
-        const getPlatformIcon = (platformId: number) => {
+        const getPlatformIcon = (platformId: number): string => {
             const platform = platforms.value.find(p => p.platform_id === platformId);
             const platformName = platform?.name?.toLowerCase() || '';
             
             if (platformName.includes('spotify')) {
-                return logoSpotify;
+                return spotifyLogo;
             } else if (platformName.includes('youtube')) {
-                return logoYoutube;
+                return youtubeLogo;
             } else {
-                return musicalNotesIcon;
+                return '@/assets/logo.png';
             }
         };
 
@@ -740,7 +739,6 @@ export default defineComponent({
 .platform-icon {
     width: 18px;
     height: 18px;
-    color: white;
 }
 
 .song-status {
@@ -785,12 +783,18 @@ export default defineComponent({
 .details-icon {
     vertical-align: middle;
     margin-right: 0.25rem;
+    width: 12px;
+    height: 12px;
 }
 
-.song-album,
-.song-platform-name {
-    display: flex;
-    align-items: center;
+.song-album .details-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.song-platform-name .details-icon {
+    width: 12px;
+    height: 12px;
 }
 
 .card-actions {
@@ -825,47 +829,21 @@ export default defineComponent({
     position: relative;
 }
 
-.song-platform-overlay {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.platform-icon-small {
-    width: 12px;
-    height: 12px;
-    color: white;
-}
-
-.song-meta {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    color: var(--ion-color-medium);
-}
-
 .meta-icon {
     vertical-align: middle;
     margin-right: 0.25rem;
     font-size: 0.9rem;
+    width: 12px;
+    height: 12px;
 }
 
-.song-end-slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+.song-platform .meta-icon {
+    width: 12px;
+    height: 12px;
 }
 
-.status-badge {
-    font-size: 0.7rem;
+/* Remove platform overlay on mobile */
+.song-platform-overlay {
+    display: none;
 }
 </style>
