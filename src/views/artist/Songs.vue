@@ -156,13 +156,14 @@ import {
     share as shareIcon
 } from 'ionicons/icons';
 import { useAuthStore, useSongStore } from '@/store';
-import { Song } from '@/types';
+import { Song, Platform } from '@/types';
 import { usePagination } from '@/composables';
 import AppHeader from '@/components/AppHeader.vue';
 import EmptyStateDisplay from '@/components/EmptyStateDisplay.vue';
 import ImportSongsModal from '@/components/ImportSongsModal.vue';
 import SongDetailsModal from '@/components/SongDetailsModal.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
+import { PlatformService } from '@/services/PlatformService';
 
 export default defineComponent({
     name: 'ArtistSongs',
@@ -187,10 +188,12 @@ export default defineComponent({
     },
     setup() {
         const authStore = useAuthStore();
-        const songStore = useSongStore();        const loading = ref(true);
+        const songStore = useSongStore();
+        const loading = ref(true);
         const searchQuery = ref('');
         const selectedVisibilityFilter = ref('all');
         const totalSongs = ref(0);
+        const platforms = ref<Platform[]>([]);
 
         // Pagination
         const { currentPage, itemsPerPage, totalPages, skip, changePage, prevPage, nextPage } = usePagination(totalSongs, 12);
@@ -221,26 +224,22 @@ export default defineComponent({
 
         // Get platform icon based on platform ID
         const getPlatformIcon = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return logoSpotify;
-                case 3:
-                    return logoYoutube;
-                default:
-                    return musicalNotesIcon;
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            const platformName = platform?.name?.toLowerCase() || '';
+            
+            if (platformName.includes('spotify')) {
+                return logoSpotify;
+            } else if (platformName.includes('youtube')) {
+                return logoYoutube;
+            } else {
+                return musicalNotesIcon;
             }
         };
 
         // Get platform name based on platform ID
         const getPlatformName = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return 'Spotify';
-                case 3:
-                    return 'YouTube';
-                default:
-                    return 'Unknown Platform';
-            }
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            return platform?.name || 'Unknown Platform';
         };
 
         // Handle search input
@@ -402,6 +401,16 @@ export default defineComponent({
             }
         };
 
+        // Load platforms data
+        const loadPlatforms = async () => {
+            try {
+                platforms.value = await PlatformService.getPlatforms();
+            } catch (error) {
+                console.error('Failed to load platforms:', error);
+                showToast('Failed to load platforms', 'danger');
+            }
+        };
+
         // Load songs data
         const loadSongs = async () => {
             if (!user.value?.user_id) return;
@@ -423,6 +432,7 @@ export default defineComponent({
         watch([currentPage, itemsPerPage], () => {
             loadSongs();
         });        onMounted(() => {
+            loadPlatforms();
             loadSongs();
         });
 
@@ -436,6 +446,7 @@ export default defineComponent({
             filteredSongs,
             currentPage,
             totalPages,
+            platforms,
             getPlatformIcon,
             getPlatformName,
             handleSearch,

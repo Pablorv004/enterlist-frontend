@@ -134,9 +134,10 @@ import {
     open as openIcon,
     documentText as documentTextIcon
 } from 'ionicons/icons';
-import { Song } from '@/types';
+import { Song, Platform } from '@/types';
 import { SongService } from '@/services/SongService';
 import { SubmissionService } from '@/services/SubmissionService';
+import { PlatformService } from '@/services/PlatformService';
 import { useRouter } from 'vue-router';
 import spotifyLogo from '@/assets/spotify.png';
 import youtubeLogo from '@/assets/youtube.png';
@@ -169,9 +170,11 @@ export default defineComponent({
             approved: 0,
             rejected: 0
         });
+        const platforms = ref<Platform[]>([]);
 
         onMounted(() => {
             fetchSongStats();
+            fetchPlatforms();
         });
 
         const fetchSongStats = async () => {
@@ -187,6 +190,14 @@ export default defineComponent({
                 songStats.value = mockStats;
             } catch (error) {
                 console.error('Failed to fetch song stats:', error);
+            }
+        };
+
+        const fetchPlatforms = async () => {
+            try {
+                platforms.value = await PlatformService.getPlatforms();
+            } catch (error) {
+                console.error('Failed to fetch platforms:', error);
             }
         };
 
@@ -211,25 +222,21 @@ export default defineComponent({
         };
 
         const getPlatformIcon = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return spotifyLogo;
-                case 3:
-                    return youtubeLogo;
-                default:
-                    return '/assets/default-platform.png';
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            const platformName = platform?.name?.toLowerCase() || '';
+            
+            if (platformName.includes('spotify')) {
+                return spotifyLogo;
+            } else if (platformName.includes('youtube')) {
+                return youtubeLogo;
+            } else {
+                return '/assets/default-platform.png';
             }
         };
 
         const getPlatformName = (platformId: number) => {
-            switch (platformId) {
-                case 1:
-                    return 'Spotify';
-                case 3:
-                    return 'YouTube';
-                default:
-                    return 'Unknown Platform';
-            }
+            const platform = platforms.value.find(p => p.platform_id === platformId);
+            return platform?.name || 'Unknown Platform';
         };
 
         const updateSongVisibility = async () => {
@@ -266,6 +273,7 @@ export default defineComponent({
 
         return {
             songStats,
+            platforms,
             dismiss,
             formatDate,
             formatDuration,
