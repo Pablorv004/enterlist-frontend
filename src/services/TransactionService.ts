@@ -63,10 +63,20 @@ export const TransactionService = {
       pending: response.data.pendingEarnings || 0
     };
   },
-
   getEarningsStats: async (period?: 'week' | 'month' | 'year'): Promise<any> => {
     const params = period ? `?period=${period}` : '';
     const response = await apiClient.get(`/transactions/playlist-maker/earnings-stats${params}`);
+    return response.data;
+  },
+
+  // Withdrawal methods
+  withdrawFunds: async (amount: number): Promise<any> => {
+    const response = await apiClient.post('/transactions/playlist-maker/withdraw', { amount });
+    return response.data;
+  },
+
+  getWithdrawals: async (skip = 0, take = 10): Promise<PaginatedResponse<any>> => {
+    const response = await apiClient.get(`/transactions/playlist-maker/withdrawals?skip=${skip}&take=${take}`);
     return response.data;
   },
 

@@ -223,43 +223,28 @@ export default defineComponent({
         const getTransactionAmount = (transaction: Transaction): string => {
             const prefix = transaction.amount_total > 0 ? '+' : '';
             return prefix + formatCurrency(Math.abs(transaction.amount_total));
-        };
-
-        const loadBalance = async () => {
+        };        const loadBalance = async () => {
             try {
-                // TODO: Implement balance API call
-                // const balanceData = await TransactionService.getBalance(authStore.user?.user_id);
-                // balance.value = balanceData;
-                
-                // Mock data for now
-                balance.value = {
-                    available: 150.75,
-                    pending: 25.50,
-                    total: 1250.25
-                };
+                // Load real balance data from API
+                const balanceData = await TransactionService.getPlaylistMakerBalance();
+                balance.value = balanceData;
             } catch (error) {
                 console.error('Failed to load balance:', error);
                 showToast('Failed to load balance', 'danger');
             }
-        };
-
-        const loadTransactions = async () => {
+        };        const loadTransactions = async () => {
             try {
                 loadingTransactions.value = true;
-                // TODO: Implement transaction API call
-                // transactions.value = await TransactionService.getTransactions(authStore.user?.user_id);
-                
-                // Mock data for now
-                transactions.value = [];
+                // Load real transaction data from API
+                const transactionData = await TransactionService.getPlaylistMakerTransactions(0, 10);
+                transactions.value = transactionData.data || [];
             } catch (error) {
                 console.error('Failed to load transactions:', error);
                 showToast('Failed to load transactions', 'danger');
             } finally {
                 loadingTransactions.value = false;
             }
-        };
-
-        const withdrawBalance = async () => {
+        };        const withdrawBalance = async () => {
             if (balance.value.available <= 0) {
                 showToast('No funds available for withdrawal', 'warning');
                 return;
@@ -278,8 +263,8 @@ export default defineComponent({
                         handler: async () => {
                             try {
                                 loading.value = true;
-                                // TODO: Implement withdrawal API call
-                                // await TransactionService.withdrawFunds(authStore.user?.user_id, balance.value.available);
+                                // Implement real withdrawal API call
+                                await TransactionService.withdrawFunds(balance.value.available);
                                 
                                 showToast('Withdrawal initiated successfully', 'success');
                                 await loadBalance();
