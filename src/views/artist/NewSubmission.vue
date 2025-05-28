@@ -302,15 +302,13 @@
                                 <div class="summary-item">
                                     <span>Submission Fee</span>
                                     <span>${{ selectedPlaylist.submission_fee! }}</span>
-                                </div>
-
-                                <div class="summary-item note">
-                                    <small>Includes 5% platform fee ({{ '$' + calculatePlatformFee(selectedPlaylist.submission_fee!).toFixed(2) }}), {{ '$' + (selectedPlaylist.submission_fee! - calculatePlatformFee(selectedPlaylist.submission_fee!)).toFixed(2) }} goes to playlist curator</small>
+                                </div>                                <div class="summary-item note">
+                                    <small>Includes 5% platform fee (${{ calculatePlatformFee(selectedPlaylist.submission_fee!) }}), ${{ (selectedPlaylist.submission_fee! - calculatePlatformFee(selectedPlaylist.submission_fee!)) }} goes to playlist curator</small>
                                 </div>
 
                                 <div class="summary-item total">
                                     <span>Total to Pay</span>
-                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!).toFixed(2) }}</span>
+                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!) }}</span>
                                 </div>
                             </ion-card-content>
                         </ion-card>
@@ -674,11 +672,13 @@ export default defineComponent({
             }
         };        // Calculate platform fee (5% of submission fee)
         const calculatePlatformFee = (submissionFee: number): number => {
+            if (!submissionFee || typeof submissionFee !== 'number') return 0;
             return submissionFee * 0.05;
         };
 
         // Calculate total payment (submission fee IS the total)
         const calculateTotal = (submissionFee: number): number => {
+            if (!submissionFee || typeof submissionFee !== 'number') return 0;
             return submissionFee; // Artist pays the full submission fee
         };// Submit song to playlist
         const submitSong = async () => {

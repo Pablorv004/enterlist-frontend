@@ -111,13 +111,11 @@ export const useSubmissionStore = defineStore('submission', () => {
     } finally {
       loading.value = false;
     }
-  };
-  const createSubmission = async (submissionData: {
+  };  const createSubmission = async (submissionData: {
     artist_id: string;
     playlist_id: string;
     song_id: string;
     submission_message?: string;
-    payment_method_id?: string;
   }): Promise<Submission> => {
     loading.value = true;
     error.value = null;
