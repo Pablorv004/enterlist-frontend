@@ -36,7 +36,6 @@
 
                                     <ion-label>
                                         <h3>{{ formatPaymentMethodName(method) }}</h3>
-                                        <p>{{ formatPaymentMethodDetails(method) }}</p>
                                     </ion-label>
 
                                     <div slot="end" class="payment-method-actions">
@@ -490,6 +489,15 @@ export default defineComponent({
 .payment-method-icon {
     width: 40px;
     height: 40px;
+}
+
+.payment-method-item ion-label {
+    text-align: left;
+    margin-left: 0;
+}
+
+.payment-method-item ion-label h3 {
+    text-align: left;
 }
 
 .payment-method-actions {
