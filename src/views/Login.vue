@@ -96,7 +96,7 @@
                             <!-- OAuth Login Buttons -->
                             <div class="oauth-buttons">
                                 <ion-button fill="outline" class="oauth-button spotify" @click="oauthLogin('spotify')">
-                                    <ion-icon :icon="spotifyIcon" slot="start"></ion-icon>
+                                    <img class="spotify-icon" src="@/assets/spotify.png" alt="Spotify" />
                                     Continue with Spotify
                                 </ion-button>
                                 <ion-button fill="outline" class="oauth-button youtube" @click="oauthLogin('youtube')">
@@ -224,8 +224,6 @@ export default defineComponent({
             }
         });
 
-        // Icons
-        const spotifyIcon = logoSpotify;
         const youtubeIcon = logoYoutube;        // Toggle login/register mode
         const toggleMode = () => {
             isLoginMode.value = !isLoginMode.value;
@@ -348,7 +346,6 @@ export default defineComponent({
             errors,
             isDirty,
             validationRules,
-            spotifyIcon,
             youtubeIcon,
             eye,
             eyeOff,
@@ -519,6 +516,11 @@ ion-card-subtitle {
 .spotify {
     --border-color: #1DB954;
     --color: #1DB954;
+}
+.spotify-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
 }
 
 .youtube {
