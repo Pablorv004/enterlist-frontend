@@ -67,21 +67,68 @@ export const PayPalService = {
     const isMobile = Capacitor.isNativePlatform();
     const mobileParam = isMobile ? '?mobile=true' : '';
     
-    try {
-      // First try to get the URL from the authenticated API endpoint (for linking existing accounts)
-      const response = await apiClient.get('/auth/paypal/login-url');
-      if (response.data && response.data.url) {
-        return { url: response.data.url + mobileParam };
-      }
-    } catch (error) {
-      console.warn('Failed to get PayPal auth URL from authenticated API, user may not be logged in. Using register-or-login endpoint', error);
-      // If the authenticated endpoint fails (user not logged in), 
-      // use register-or-login endpoint which doesn't require authentication
-      return { url: `${apiClient.defaults.baseURL}/auth/paypal/register-or-login${mobileParam}` };
+    // Get the URL from the authenticated API endpoint (requires user to be logged in)
+    const response = await apiClient.get('/auth/paypal/login-url');
+    if (response.data && response.data.url) {
+      return { url: response.data.url + mobileParam };
     }
-      
-    // Use register-or-login endpoint as fallback
-    return { url: `${apiClient.defaults.baseURL}/auth/paypal/register-or-login${mobileParam}` };
+    
+    throw new Error('Failed to get PayPal authentication URL');
+  },
+
+  openAuthPopup: async (): Promise<boolean> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { url } = await PayPalService.getAuthUrl();
+        
+        // Add popup parameter to the URL
+        const authUrl = new URL(url);
+        authUrl.searchParams.set('popup', 'true');
+        
+        // Open popup window
+        const popup = window.open(
+          authUrl.toString(),
+          'paypal-auth',
+          'width=600,height=700,scrollbars=yes,resizable=yes,status=1'
+        );
+
+        if (!popup) {
+          reject(new Error('Popup was blocked. Please allow popups for this site.'));
+          return;
+        }
+
+        // Listen for messages from the popup
+        const messageListener = (event: MessageEvent) => {
+          // Ensure the message is from our domain
+          if (event.origin !== window.location.origin) {
+            return;
+          }
+
+          if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
+            window.removeEventListener('message', messageListener);
+            popup.close();
+            resolve(true);
+          } else if (event.data.type === 'PAYPAL_OAUTH_ERROR' && event.data.provider === 'paypal') {
+            window.removeEventListener('message', messageListener);
+            popup.close();
+            reject(new Error(event.data.error || 'PayPal authentication failed'));
+          }
+        };
+
+        window.addEventListener('message', messageListener);
+
+        // Handle popup being closed manually
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener('message', messageListener);
+            reject(new Error('Authentication was cancelled'));
+          }
+        }, 1000);
+      } catch (error) {
+        reject(error);
+      }
+    });
   },
 
   getUserPayPalEmail: async (): Promise<{ email: string }> => {
@@ -186,11 +233,10 @@ export const PayPalService = {
       note
     );
   },
-
   // Payment method token creation (for saved payment methods)
-  createPaymentMethodToken: async (email: string): Promise<{ token: string }> => {
-    const response = await apiClient.post('/payment-methods/create-paypal-token', {
-      email
+  createPaymentMethodToken: async (paymentMethodData: any): Promise<any> => {
+    const response = await apiClient.post('/auth/paypal/create-payment-method-token', {
+      ...paymentMethodData
     });
     return response.data;
   },
@@ -214,17 +260,20 @@ export const PayPalService = {
   },
 
   isPaymentFailed: (payment: PayPalPayment): boolean => {
-    return payment.state === 'failed' || payment.state === 'cancelled';
+    return payment.state === 'failed' || payment.state === 'canceled';
   },
 
   // Error handling
   getPaymentErrorMessage: (error: any): string => {
     if (error.response?.data?.message) {
       return error.response.data.message;
-    }    if (error.message) {
+    }
+    
+    if (error.message) {
       return error.message;
     }
-    return 'An error occurred while processing the PayPal payment';
+    
+    return 'An unexpected error occurred with PayPal payment processing';
   }
 };
 

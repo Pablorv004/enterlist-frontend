@@ -282,16 +282,14 @@ export default defineComponent({
             try {
                 addingPaymentMethod.value = true;
 
-                // Use PayPal OAuth flow instead of just email input
-                const { url } = await PayPalService.getAuthUrl();
+                // Use PayPal OAuth popup flow
+                await PayPalService.openAuthPopup();
                 
-                // Open PayPal OAuth in a new window or redirect
-                window.open(url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+                // Close modal since OAuth was successful
+                closeModal();                // Refresh the payment methods list
+                await fetchPaymentMethods();
 
-                // Close modal immediately since OAuth will handle the rest
-                closeModal();
-
-                showToast('Redirecting to PayPal for authentication...', 'primary');
+                showToast('PayPal account connected successfully!', 'success');
             } catch (error) {
                 console.error('PayPal auth error:', error);
                 showToast(PayPalService.getPaymentErrorMessage(error), 'danger');
