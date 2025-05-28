@@ -103,16 +103,16 @@ export const PayPalService = {
           if (event.origin !== window.location.origin) {
             console.log('Message origin mismatch:', event.origin, 'vs', window.location.origin);
             return;
-          }
-
-          if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
+          }          if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
             console.log('PayPal OAuth success detected');
             window.removeEventListener('message', messageListener);
+            clearInterval(checkClosed);
             popup.close();
             resolve(true);
           } else if (event.data.type === 'PAYPAL_OAUTH_ERROR' && event.data.provider === 'paypal') {
             console.log('PayPal OAuth error detected:', event.data.error);
             window.removeEventListener('message', messageListener);
+            clearInterval(checkClosed);
             popup.close();
             reject(new Error(event.data.error || 'PayPal authentication failed'));
           }

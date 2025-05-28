@@ -256,11 +256,13 @@ export default defineComponent({
                     ? JSON.parse(method.details)
                     : method.details;
 
-                return `PayPal: ${details.email || 'Connected Account'}`;
+                // Display the name if available, otherwise fallback to email
+                const displayName = details.name || details.email || 'Connected Account';
+                return `PayPal: ${displayName}`;
             }
 
             return 'Unknown Payment Method';
-        };        const formatPaymentMethodDetails = (method: PaymentMethod): string => {
+        };const formatPaymentMethodDetails = (method: PaymentMethod): string => {
             if (method.type === PaymentMethodType.PAYPAL) {
                 return 'PayPal Account';
             }
@@ -283,13 +285,19 @@ export default defineComponent({
                 addingPaymentMethod.value = true;
 
                 // Use PayPal OAuth popup flow
-                await PayPalService.openAuthPopup();
+                const success = await PayPalService.openAuthPopup();
                 
-                // Close modal since OAuth was successful
-                closeModal();                // Refresh the payment methods list
-                await fetchPaymentMethods();
-
-                showToast('PayPal account connected successfully!', 'success');
+                if (success) {
+                    // Close modal since OAuth was successful
+                    closeModal();
+                    
+                    // Refresh the payment methods list
+                    await fetchPaymentMethods();
+                    
+                    showToast('PayPal account connected successfully!', 'success');
+                } else {
+                    throw new Error('PayPal authentication was not completed');
+                }
             } catch (error) {
                 console.error('PayPal auth error:', error);
                 showToast(PayPalService.getPaymentErrorMessage(error), 'danger');
