@@ -20,7 +20,6 @@ const ArtistSongs = () => import('@/views/artist/Songs.vue');
 const ArtistSubmissions = () => import('@/views/artist/Submissions.vue');
 const ArtistSubmissionDetail = () => import('@/views/artist/SubmissionDetail.vue');
 const ArtistNewSubmission = () => import('@/views/artist/NewSubmission.vue');
-const ArtistProfile = () => import('@/views/artist/Profile.vue');
 const ArtistPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const ArtistLinkedAccounts = () => import('@/views/artist/LinkedAccounts.vue');
 
@@ -31,7 +30,6 @@ const ProfileComponent = () => import('@/components/ProfileComponent.vue');
 const PlaylistMakerPlaylists = () => import('@/views/playlist-maker/Playlists.vue');
 const PlaylistMakerSubmissions = () => import('@/views/playlist-maker/Submissions.vue');
 const PlaylistMakerSubmissionDetail = () => import('@/views/playlist-maker/SubmissionDetail.vue');
-const PlaylistMakerProfile = () => import('@/views/playlist-maker/Profile.vue');
 const PlaylistMakerPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedAccounts.vue');
 
