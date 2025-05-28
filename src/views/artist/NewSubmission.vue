@@ -145,7 +145,7 @@
                                     </ion-card-subtitle>
                                 </ion-card-header>                                <ion-card-content>                                    <div class="submission-fee">
                                         <ion-badge color="primary">
-                                            ${{ playlist.submission_fee! }} submission fee
+                                            ${{ Number(playlist.submission_fee || 0).toFixed(2) }} submission fee
                                         </ion-badge>
                                     </div>
                                 </ion-card-content>
@@ -298,12 +298,11 @@
                         <ion-card v-if="selectedPlaylist" class="summary-card payment-summary">
                             <ion-card-header>
                                 <ion-card-title>Payment Summary</ion-card-title>
-                            </ion-card-header>                            <ion-card-content>
-                                <div class="summary-item">
+                            </ion-card-header>                            <ion-card-content>                                <div class="summary-item">
                                     <span>Submission Fee</span>
-                                    <span>${{ selectedPlaylist.submission_fee! }}</span>
+                                    <span>${{ Number(selectedPlaylist.submission_fee || 0).toFixed(2) }}</span>
                                 </div>                                <div class="summary-item note">
-                                    <small>Includes 5% platform fee (${{ calculatePlatformFee(selectedPlaylist.submission_fee!) }}), ${{ (selectedPlaylist.submission_fee! - calculatePlatformFee(selectedPlaylist.submission_fee!)) }} goes to playlist curator</small>
+                                    <small>Includes 5% platform fee (${{ calculatePlatformFee(selectedPlaylist.submission_fee!) }}), ${{ (Number(selectedPlaylist.submission_fee!) - Number(calculatePlatformFee(selectedPlaylist.submission_fee!))).toFixed(2) }} goes to playlist curator</small>
                                 </div>
 
                                 <div class="summary-item total">
@@ -671,15 +670,17 @@ export default defineComponent({
                 loadingPaymentMethods.value = false;
             }
         };        // Calculate platform fee (5% of submission fee)
-        const calculatePlatformFee = (submissionFee: number): number => {
-            if (!submissionFee || typeof submissionFee !== 'number') return 0;
-            return submissionFee * 0.05;
+        const calculatePlatformFee = (submissionFee: number | string): string => {
+            const fee = Number(submissionFee);
+            if (!fee || isNaN(fee)) return '0.00';
+            return (fee * 0.05).toFixed(2);
         };
 
         // Calculate total payment (submission fee IS the total)
-        const calculateTotal = (submissionFee: number): number => {
-            if (!submissionFee || typeof submissionFee !== 'number') return 0;
-            return submissionFee; // Artist pays the full submission fee
+        const calculateTotal = (submissionFee: number | string): string => {
+            const fee = Number(submissionFee);
+            if (!fee || isNaN(fee)) return '0.00';
+            return fee.toFixed(2); // Artist pays the full submission fee
         };// Submit song to playlist
         const submitSong = async () => {
             if (!canSubmit.value) {
