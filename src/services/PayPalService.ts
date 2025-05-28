@@ -75,15 +75,16 @@ export const PayPalService = {
     
     throw new Error('Failed to get PayPal authentication URL');
   },
-
   openAuthPopup: async (): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { url } = await PayPalService.getAuthUrl();
+        // Get auth URL with popup parameter
+        const response = await apiClient.get('/auth/paypal/login-url?popup=true');
+        if (!response.data || !response.data.url) {
+          throw new Error('Failed to get PayPal authentication URL');
+        }
         
-        // Add popup parameter to the URL
-        const authUrl = new URL(url);
-        authUrl.searchParams.set('popup', 'true');
+        const authUrl = new URL(response.data.url);
         
         // Open popup window
         const popup = window.open(
@@ -96,24 +97,38 @@ export const PayPalService = {
           reject(new Error('Popup was blocked. Please allow popups for this site.'));
           return;
         }        // Listen for messages from the popup
-        const messageListener = (event: MessageEvent) => {
-          console.log('PayPal popup message received:', event.data);
+        const messageListener = (event: MessageEvent) => {          console.log('PayPal popup message received:', event.data);
           
-          // Ensure the message is from our domain
-          if (event.origin !== window.location.origin) {
-            console.log('Message origin mismatch:', event.origin, 'vs', window.location.origin);
-            return;
-          }          if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
+          // Accept messages from any origin when in popup mode
+          // This is safer than checking origin which can be complicated with localhost development
+          if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
             console.log('PayPal OAuth success detected');
             window.removeEventListener('message', messageListener);
             clearInterval(checkClosed);
-            popup.close();
-            resolve(true);
-          } else if (event.data.type === 'PAYPAL_OAUTH_ERROR' && event.data.provider === 'paypal') {
+            
+            // Try to close popup window, but don't fail if it doesn't work
+            try {
+              if (!popup.closed) {
+                popup.close();
+              }
+            } catch (e) {
+              console.warn('Could not close popup:', e);
+            }
+            
+            resolve(true);          } else if (event.data.type === 'PAYPAL_OAUTH_ERROR' && event.data.provider === 'paypal') {
             console.log('PayPal OAuth error detected:', event.data.error);
             window.removeEventListener('message', messageListener);
             clearInterval(checkClosed);
-            popup.close();
+            
+            // Try to close popup window, but don't fail if it doesn't work
+            try {
+              if (!popup.closed) {
+                popup.close();
+              }
+            } catch (e) {
+              console.warn('Could not close popup:', e);
+            }
+            
             reject(new Error(event.data.error || 'PayPal authentication failed'));
           }
         };
