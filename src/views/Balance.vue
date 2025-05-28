@@ -103,22 +103,22 @@
                     </div>
 
                     <ion-list v-else class="transactions-list">
-                        <ion-item v-for="transaction in transactions" :key="transaction.transaction_id">
+                        <ion-item v-for="transaction in transactions" :key="transaction.transaction_id" class="transaction-item">
                             <ion-icon 
                                 :icon="getTransactionIcon(transaction)" 
                                 :color="getTransactionColor(transaction)" 
                                 slot="start"
                             ></ion-icon>
                             
-                            <ion-label>
+                            <ion-label class="transaction-label">
                                 <h3>{{ getTransactionTitle(transaction) }}</h3>
                                 <p>{{ formatDate(transaction.created_at) }}</p>
                                 <ion-note>{{ transaction.status }}</ion-note>
                             </ion-label>
                             
-                            <ion-note slot="end" :color="getTransactionColor(transaction)">
+                            <div slot="end" class="transaction-amount" :class="getTransactionColor(transaction)">
                                 {{ getTransactionAmount(transaction) }}
-                            </ion-note>
+                            </div>
                         </ion-item>
                     </ion-list>
                 </div>
@@ -221,8 +221,15 @@ export default defineComponent({
         };
 
         const getTransactionAmount = (transaction: Transaction): string => {
+            let amount = Math.abs(transaction.amount_total);
+            
+            // Apply 95% modifier for received payments (curator's cut after platform fee)
+            if (transaction.amount_total > 0) {
+                amount = amount * 0.95;
+            }
+            
             const prefix = transaction.amount_total > 0 ? '+' : '';
-            return prefix + formatCurrency(Math.abs(transaction.amount_total));
+            return prefix + formatCurrency(amount);
         };        const loadBalance = async () => {
             try {
                 // Load real balance data from API
@@ -452,6 +459,45 @@ export default defineComponent({
     --padding-start: 0;
     --inner-padding-end: 0;
     margin-bottom: 0.5rem;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+}
+
+.transaction-label {
+    text-align: left;
+    flex: 1;
+}
+
+.transaction-label h3 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    text-align: left;
+}
+
+.transaction-amount {
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: right;
+    min-width: 80px;
+}
+
+.transaction-amount.success {
+    color: var(--ion-color-success);
+}
+
+.transaction-amount.warning {
+    color: var(--ion-color-warning);
+}
+
+.transaction-amount.danger {
+    color: var(--ion-color-danger);
+}
+
+.transaction-amount.medium {
+    color: var(--ion-color-medium);
 }
 
 /* Mobile responsiveness */
