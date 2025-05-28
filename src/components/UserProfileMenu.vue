@@ -58,18 +58,9 @@ export default defineComponent({
         const router = useRouter();
         const isOpen = ref(false);
         const event = ref();
-        const user = computed(() => authStore.user);
-
-        // Determine profile link based on user role
+        const user = computed(() => authStore.user);        // Determine profile link based on user role
         const profileLink = computed(() => {
-            if (user.value?.role.toLowerCase() === 'artist') {
-                return '/artist/profile';
-            } else if (user.value?.role.toLowerCase() === 'playlist_maker') {
-                return '/playlist-maker/profile';
-            } else if (user.value?.role.toLowerCase() === 'admin') {
-                return '/admin/profile';
-            }
-            return '/';
+            return '/profile';
         });
 
         const presentPopover = (e: Event) => {

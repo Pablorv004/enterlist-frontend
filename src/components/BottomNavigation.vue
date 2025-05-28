@@ -88,11 +88,7 @@ export default defineComponent({
 
         const submissionsRoute = computed(() => 
             currentUserType.value === 'artist' ? '/artist/submissions' : '/playlist-maker/submissions'
-        );
-
-        const profileRoute = computed(() => 
-            currentUserType.value === 'artist' ? '/artist/profile' : '/playlist-maker/profile'
-        );
+        );        const profileRoute = computed(() => '/profile');
 
         // Content label and icon based on user type
         const contentLabel = computed(() => 

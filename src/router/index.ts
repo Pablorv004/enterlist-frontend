@@ -24,6 +24,9 @@ const ArtistProfile = () => import('@/views/artist/Profile.vue');
 const ArtistPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const ArtistLinkedAccounts = () => import('@/views/artist/LinkedAccounts.vue');
 
+// Unified profile component
+const ProfileComponent = () => import('@/components/ProfileComponent.vue');
+
 // Playlist maker routes
 const PlaylistMakerPlaylists = () => import('@/views/playlist-maker/Playlists.vue');
 const PlaylistMakerSubmissions = () => import('@/views/playlist-maker/Submissions.vue');
@@ -108,12 +111,9 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'ArtistNewSubmission',
         component: ArtistNewSubmission,
         meta: { requiresAuth: true, role: 'artist' }
-    },
-    {
+    },    {
         path: '/artist/profile',
-        name: 'ArtistProfile',
-        component: ArtistProfile,
-        meta: { requiresAuth: true, role: 'artist' }
+        redirect: '/profile'
     },
     {
         path: '/artist/payment-methods',
@@ -153,9 +153,7 @@ const routes: Array<RouteRecordRaw> = [    {
         meta: { requiresAuth: true, role: 'playlist_maker' }
     },    {
         path: '/playlist-maker/profile',
-        name: 'PlaylistMakerProfile',
-        component: PlaylistMakerProfile,
-        meta: { requiresAuth: true, role: 'playlist_maker' }
+        redirect: '/profile'
     },
     {
         path: '/playlist-maker/payment-methods',
@@ -212,8 +210,13 @@ const routes: Array<RouteRecordRaw> = [    {
         component: AdminActions,
         meta: { requiresAuth: true, role: 'admin' }    },
     */
-    
-    // Shared routes for all authenticated users
+      // Shared routes for all authenticated users
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: ProfileComponent,
+        meta: { requiresAuth: true }
+    },
     {
         path: '/payment-methods',
         name: 'PaymentMethods',

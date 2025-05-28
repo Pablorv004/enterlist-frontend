@@ -47,5 +47,24 @@ export const UserService = {
 
   deleteUser: async (id: string): Promise<void> => {
     await apiClient.delete(`/users/${id}`);
+  },
+
+  // Profile-related methods
+  getProfileStatistics: async (): Promise<any> => {
+    const response = await apiClient.get('/users/profile/statistics');
+    return response.data;
+  },
+
+  deactivateAccount: async (): Promise<any> => {
+    const response = await apiClient.put('/users/profile/deactivate');
+    return response.data;
+  },
+
+  updatePassword: async (currentPassword: string, newPassword: string): Promise<any> => {
+    const response = await apiClient.put('/users/profile/password', {
+      currentPassword,
+      newPassword
+    });
+    return response.data;
   }
 };
