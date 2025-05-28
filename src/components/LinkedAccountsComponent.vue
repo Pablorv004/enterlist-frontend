@@ -139,6 +139,7 @@ import {
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
 import { PlatformService } from '@/services/PlatformService';
+import PayPalService from '@/services/PayPalService';
 import { SongService } from '@/services/SongService';
 import { PlaylistService } from '@/services/PlaylistService';
 import { useAuthStore } from '@/store';
@@ -257,9 +258,7 @@ export default defineComponent({
             if (!platform) {
                 showToast('Platform not available', 'warning');
                 return;
-            }
-
-            try {
+            }            try {
                 let redirectUrl;
                 
                 if (platformName.toLowerCase() === 'spotify') {
@@ -267,7 +266,14 @@ export default defineComponent({
                     redirectUrl = response.url;
                 } else if (platformName.toLowerCase() === 'youtube') {
                     const response = await PlatformService.getYoutubeAuthUrl();
-                    redirectUrl = response.url;
+                    redirectUrl = response.url;                } else if (platformName.toLowerCase() === 'paypal') {
+                    // Use popup approach for PayPal
+                    await PayPalService.openAuthPopup();
+                    
+                    // Refresh linked accounts after successful connection
+                    await fetchLinkedAccounts();
+                    showToast('PayPal account connected successfully!', 'success');
+                    return;
                 } else {
                     showToast('Platform not supported for OAuth', 'warning');
                     return;

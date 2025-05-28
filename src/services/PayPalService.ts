@@ -95,20 +95,23 @@ export const PayPalService = {
         if (!popup) {
           reject(new Error('Popup was blocked. Please allow popups for this site.'));
           return;
-        }
-
-        // Listen for messages from the popup
+        }        // Listen for messages from the popup
         const messageListener = (event: MessageEvent) => {
+          console.log('PayPal popup message received:', event.data);
+          
           // Ensure the message is from our domain
           if (event.origin !== window.location.origin) {
+            console.log('Message origin mismatch:', event.origin, 'vs', window.location.origin);
             return;
           }
 
           if (event.data.type === 'PAYPAL_OAUTH_SUCCESS' && event.data.provider === 'paypal') {
+            console.log('PayPal OAuth success detected');
             window.removeEventListener('message', messageListener);
             popup.close();
             resolve(true);
           } else if (event.data.type === 'PAYPAL_OAUTH_ERROR' && event.data.provider === 'paypal') {
+            console.log('PayPal OAuth error detected:', event.data.error);
             window.removeEventListener('message', messageListener);
             popup.close();
             reject(new Error(event.data.error || 'PayPal authentication failed'));
