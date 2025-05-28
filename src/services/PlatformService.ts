@@ -74,21 +74,8 @@ export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> =>
       // use register-or-login endpoint which doesn't require authentication
       return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login${mobileParam}` };
     }
-      
-    // Use register-or-login endpoint as fallback
+        // Use register-or-login endpoint as fallback
     return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login${mobileParam}` };
-  },
-  getPaypalAuthUrl: async (): Promise<{ url: string }> => {
-    const isMobile = Capacitor.isNativePlatform();
-    const mobileParam = isMobile ? '?mobile=true' : '';
-    
-    // Get the URL from the authenticated API endpoint (requires user to be logged in)
-    const response = await apiClient.get('/auth/paypal/login-url');
-    if (response.data && response.data.url) {
-      return { url: response.data.url + mobileParam };
-    }
-    
-    throw new Error('Failed to get PayPal authentication URL');
   },
 
   handleOAuthCallback: async (code: string, state: string, platform: string): Promise<LinkedAccount> => {
