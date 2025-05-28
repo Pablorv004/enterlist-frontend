@@ -2,7 +2,8 @@
     <ion-page>
         <app-header :title="'Profile'" :back-button="true" :back-url="backUrl"></app-header>
 
-        <ion-content :fullscreen="true" class="profile-content">            <div class="profile-container">
+        <ion-content :fullscreen="true" class="profile-content">
+            <div class="profile-container">
                 <!-- Loading State for Profile -->
                 <div v-if="profileLoading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
@@ -62,7 +63,9 @@
                                 Configure Payment Methods
                             </ion-button>
                         </ion-card-content>
-                    </ion-card>                    <!-- Statistics Chart (Role-specific) -->
+                    </ion-card>
+
+                    <!-- Statistics Chart (Role-specific) -->
                     <ion-card class="profile-card">
                         <ion-card-header>
                             <ion-card-title>{{ getStatisticsTitle() }}</ion-card-title>
@@ -72,7 +75,9 @@
                             <div v-if="statisticsLoading" class="loading-container stats-loading">
                                 <ion-spinner name="crescent"></ion-spinner>
                                 <p>Loading your statistics...</p>
-                            </div>                            <!-- Statistics Content -->
+                            </div>
+
+                            <!-- Statistics Content -->
                             <div v-else-if="statistics">
                                 <!-- Statistics Summary -->
                                 <div class="stats-summary">
@@ -109,25 +114,35 @@
                                 <!-- Charts -->
                                 <div class="charts-container">
                                     <!-- Spending/Earnings Over Time Chart -->
-                                    <div class="chart-wrapper">
+                                    <div class="chart-wrapper" v-if="timeChartData">
                                         <h4>{{ user?.role === 'artist' ? 'Spending' : 'Earnings' }} Over Time</h4>
-                                        <canvas ref="timeChart" width="400" height="200"></canvas>
+                                        <div class="chart-container">
+                                            <Bar :data="timeChartData" :options="chartOptions" />
+                                        </div>
                                     </div>
 
                                     <!-- Submissions Status Chart -->
-                                    <div class="chart-wrapper" v-if="statistics.submissionsByStatus">
+                                    <div class="chart-wrapper" v-if="statusChartData">
                                         <h4>Submissions by Status</h4>
-                                        <canvas ref="statusChart" width="400" height="200"></canvas>
+                                        <div class="chart-container">
+                                            <Doughnut :data="statusChartData" :options="doughnutOptions" />
+                                        </div>
                                     </div>
 
-                                    <!-- Genre/Playlist Chart -->
-                                    <div class="chart-wrapper" v-if="user?.role === 'artist' && statistics.genreSpending">
+                                    <!-- Genre Chart for Artists -->
+                                    <div class="chart-wrapper" v-if="user?.role === 'artist' && genreChartData">
                                         <h4>Spending by Genre</h4>
-                                        <canvas ref="genreChart" width="400" height="200"></canvas>
+                                        <div class="chart-container">
+                                            <Bar :data="genreChartData" :options="chartOptions" />
+                                        </div>
                                     </div>
-                                    <div class="chart-wrapper" v-if="user?.role === 'playlist_maker' && statistics.submissionsByPlaylist">
+
+                                    <!-- Playlist Chart for Playlist Makers -->
+                                    <div class="chart-wrapper" v-if="user?.role === 'playlist_maker' && playlistChartData">
                                         <h4>Top Playlists by Submissions</h4>
-                                        <canvas ref="playlistChart" width="400" height="200"></canvas>
+                                        <div class="chart-container">
+                                            <Bar :data="playlistChartData" :options="playlistSubmissionOptions" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -162,7 +177,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, nextTick, onUnmounted } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store';
 import {
@@ -170,36 +185,161 @@ import {
     IonItem, IonLabel, IonButton, IonIcon, IonSpinner, alertController, toastController
 } from '@ionic/vue';
 import { linkOutline, cardOutline, keyOutline, warningOutline } from 'ionicons/icons';
-import Chart from 'chart.js/auto';
+import { Bar, Doughnut } from 'vue-chartjs';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
 import AppHeader from '@/components/AppHeader.vue';
 import { UserService } from '@/services/UserService';
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 export default defineComponent({
     name: 'ProfileComponent',
     components: {
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonButton, IonIcon, IonSpinner,
-        AppHeader
+        AppHeader, Bar, Doughnut
     },
-    setup() {        const router = useRouter();
-        const authStore = useAuthStore();        const profileLoading = ref(true);
+    setup() {
+        const router = useRouter();
+        const authStore = useAuthStore();
+
+        const profileLoading = ref(true);
         const statisticsLoading = ref(true);
         const user = ref<any>(null);
         const statistics = ref<any>(null);
         
-        // Chart refs
-        const timeChart = ref<HTMLCanvasElement>();
-        const statusChart = ref<HTMLCanvasElement>();
-        const genreChart = ref<HTMLCanvasElement>();
-        const playlistChart = ref<HTMLCanvasElement>();
-        
-        // Chart instances
-        let timeChartInstance: Chart | null = null;
-        let statusChartInstance: Chart | null = null;
-        let genreChartInstance: Chart | null = null;
-        let playlistChartInstance: Chart | null = null;
-
         const backUrl = ref('/');
+
+        // Chart data computed properties
+        const timeChartData = computed(() => {
+            if (!statistics.value) return null;
+            
+            const data = user.value?.role === 'artist' 
+                ? statistics.value.spendingOverTime 
+                : statistics.value.earningsOverTime;
+                
+            if (!data || data.length === 0) return null;
+            
+            return {
+                labels: data.map((item: any) => {
+                    const date = new Date(item.month);
+                    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                }),
+                datasets: [{
+                    label: user.value?.role === 'artist' ? 'Spending ($)' : 'Earnings ($)',
+                    data: data.map((item: any) => 
+                        user.value?.role === 'artist' ? item.total_spent || 0 : item.total_earned || 0
+                    ),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            };
+        });
+
+        const statusChartData = computed(() => {
+            if (!statistics.value?.submissionsByStatus) return null;
+            
+            return {
+                labels: statistics.value.submissionsByStatus.map((item: any) => 
+                    item.status.charAt(0).toUpperCase() + item.status.slice(1)
+                ),
+                datasets: [{
+                    data: statistics.value.submissionsByStatus.map((item: any) => item.count),
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(255, 205, 86, 0.6)',
+                        'rgba(54, 162, 235, 0.6)'
+                    ]
+                }]
+            };
+        });
+
+        const genreChartData = computed(() => {
+            if (user.value?.role !== 'artist' || !statistics.value?.genreSpending) return null;
+            
+            return {
+                labels: statistics.value.genreSpending.map((item: any) => item.genre),
+                datasets: [{
+                    label: 'Spending by Genre ($)',
+                    data: statistics.value.genreSpending.map((item: any) => item.total_spent || 0),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            };
+        });
+
+        const playlistChartData = computed(() => {
+            if (user.value?.role !== 'playlist_maker' || !statistics.value?.submissionsByPlaylist) return null;
+            
+            return {
+                labels: statistics.value.submissionsByPlaylist.map((item: any) => item.name),
+                datasets: [{
+                    label: 'Submissions per Playlist',
+                    data: statistics.value.submissionsByPlaylist.map((item: any) => item.submissionCount),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            };
+        });
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top' as const,
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value: any) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        };
+
+        const playlistSubmissionOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top' as const,
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        const doughnutOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom' as const,
+                },
+            }
+        };
 
         onMounted(async () => {
             await loadProfileData();
@@ -211,26 +351,27 @@ export default defineComponent({
             } else if (userRole === 'playlist_maker') {
                 backUrl.value = '/playlist-maker/dashboard';
             }
-        });        const loadProfileData = async () => {
+        });
+
+        const loadProfileData = async () => {
             try {
                 profileLoading.value = true;
-                  // Get user data from store or fetch
+                
+                // Get user data from store or fetch
                 user.value = authStore.user;
                 if (!user.value) {
                     // Redirect to login if no user
                     router.push('/login');
                     return;
                 }
+                
                 // Basic profile data loaded
                 profileLoading.value = false;
-                  // Load statistics separately
+                
+                // Load statistics separately
                 statisticsLoading.value = true;
                 try {
                     statistics.value = await UserService.getProfileStatistics();
-                    
-                    // Create charts after data is loaded
-                    await nextTick();
-                    createCharts();
                 } catch (error) {
                     console.error('Error loading statistics:', error);
                     statistics.value = null;
@@ -243,153 +384,7 @@ export default defineComponent({
                 console.error('Error loading profile data:', error);
             } finally {
                 profileLoading.value = false;
-                statisticsLoading.value = false;
             }
-        };
-
-        const createCharts = () => {
-            if (!statistics.value) return;
-
-            createTimeChart();
-            createStatusChart();
-            
-            if (user.value?.role === 'artist') {
-                createGenreChart();
-            } else if (user.value?.role === 'playlist_maker') {
-                createPlaylistChart();
-            }
-        };
-
-        const createTimeChart = () => {
-            if (!timeChart.value || !statistics.value) return;
-
-            const data = user.value?.role === 'artist' 
-                ? statistics.value.spendingOverTime 
-                : statistics.value.earningsOverTime;
-
-            if (!data || data.length === 0) return;
-
-            const labels = data.map((item: any) => 
-                new Date(item.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            );
-            const values = data.map((item: any) => 
-                Number(item.total_spent || item.total_earned || 0)
-            );
-
-            timeChartInstance = new Chart(timeChart.value, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: user.value?.role === 'artist' ? 'Spending' : 'Earnings',
-                        data: values,
-                        borderColor: user.value?.role === 'artist' ? '#f56565' : '#48bb78',
-                        backgroundColor: user.value?.role === 'artist' ? '#f5656520' : '#48bb7820',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + Number(value).toFixed(2);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
-        const createStatusChart = () => {
-            if (!statusChart.value || !statistics.value?.submissionsByStatus) return;
-
-            const data = statistics.value.submissionsByStatus;
-            const labels = data.map((item: any) => item.status.charAt(0).toUpperCase() + item.status.slice(1));
-            const values = data.map((item: any) => item.count);
-            const colors = ['#48bb78', '#f56565', '#fbb947']; // green, red, yellow
-
-            statusChartInstance = new Chart(statusChart.value, {
-                type: 'doughnut',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors.slice(0, labels.length)
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        };
-
-        const createGenreChart = () => {
-            if (!genreChart.value || !statistics.value?.genreSpending) return;
-
-            const data = statistics.value.genreSpending.slice(0, 5); // Top 5
-            const labels = data.map((item: any) => item.genre);
-            const values = data.map((item: any) => Number(item.total_spent || 0));
-
-            genreChartInstance = new Chart(genreChart.value, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Spending',
-                        data: values,
-                        backgroundColor: '#4299e1'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + Number(value).toFixed(2);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
-        const createPlaylistChart = () => {
-            if (!playlistChart.value || !statistics.value?.submissionsByPlaylist) return;
-
-            const data = statistics.value.submissionsByPlaylist.slice(0, 5); // Top 5
-            const labels = data.map((item: any) => item.name);
-            const values = data.map((item: any) => item.submissionCount);
-
-            playlistChartInstance = new Chart(playlistChart.value, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Submissions',
-                        data: values,
-                        backgroundColor: '#9f7aea'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
         };
 
         const formatRole = (role: string) => {
@@ -403,7 +398,9 @@ export default defineComponent({
 
         const getStatisticsTitle = () => {
             return user.value?.role === 'artist' ? 'Artist Statistics' : 'Playlist Maker Statistics';
-        };        const openLinkedAccounts = () => {
+        };
+
+        const openLinkedAccounts = () => {
             const userRole = user.value?.role;
             if (userRole === 'artist') {
                 router.push('/artist/linked-accounts');
@@ -419,7 +416,9 @@ export default defineComponent({
             } else if (userRole === 'playlist_maker') {
                 router.push('/playlist-maker/payment-methods');
             }
-        };const openPasswordReset = async () => {
+        };
+
+        const openPasswordReset = async () => {
             const alert = await alertController.create({
                 header: 'Change Password',
                 inputs: [
@@ -451,7 +450,8 @@ export default defineComponent({
                                 showToast('Passwords do not match', 'danger');
                                 return false;
                             }
-                              try {
+                            
+                            try {
                                 await UserService.updatePassword(data.currentPassword, data.newPassword);
                                 showToast('Password updated successfully', 'success');
                                 return true;
@@ -470,7 +470,9 @@ export default defineComponent({
             });
             
             await alert.present();
-        };        const confirmDeactivateAccount = async () => {
+        };
+
+        const confirmDeactivateAccount = async () => {
             const alert = await alertController.create({
                 header: 'Deactivate Account',
                 message: 'Are you sure you want to deactivate your account? This action cannot be undone.',
@@ -481,7 +483,8 @@ export default defineComponent({
                     },
                     {
                         text: 'Deactivate',
-                        role: 'destructive',                        handler: async () => {                            
+                        role: 'destructive',
+                        handler: async () => {
                             try {
                                 await UserService.deactivateAccount();
                                 showToast('Your account has been deactivated', 'success');
@@ -504,7 +507,9 @@ export default defineComponent({
             });
             
             await alert.present();
-        };const showToast = async (message: string, color: string = 'primary') => {
+        };
+
+        const showToast = async (message: string, color: string = 'primary') => {
             const toast = await toastController.create({
                 message,
                 duration: 3000,
@@ -514,39 +519,19 @@ export default defineComponent({
             await toast.present();
         };
 
-        // Cleanup chart instances on component unmount
-        const cleanupCharts = () => {
-            if (timeChartInstance) {
-                timeChartInstance.destroy();
-                timeChartInstance = null;
-            }
-            if (statusChartInstance) {
-                statusChartInstance.destroy();
-                statusChartInstance = null;
-            }
-            if (genreChartInstance) {
-                genreChartInstance.destroy();
-                genreChartInstance = null;
-            }
-            if (playlistChartInstance) {
-                playlistChartInstance.destroy();
-                playlistChartInstance = null;
-            }
-        };
-
-        // Cleanup on component unmount
-        onUnmounted(cleanupCharts);
-
         return {
             profileLoading,
             statisticsLoading,
             user,
             statistics,
             backUrl,
-            timeChart,
-            statusChart,
-            genreChart,
-            playlistChart,
+            timeChartData,
+            statusChartData,
+            genreChartData,
+            playlistChartData,
+            chartOptions,
+            playlistSubmissionOptions,
+            doughnutOptions,
             formatRole,
             formatCurrency,
             getStatisticsTitle,
@@ -655,8 +640,9 @@ export default defineComponent({
     text-align: center;
 }
 
-.chart-wrapper canvas {
-    max-height: 300px;
+.chart-container {
+    height: 300px;
+    position: relative;
 }
 
 .no-stats-container {
