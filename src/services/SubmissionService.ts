@@ -100,13 +100,11 @@ export const SubmissionService = {
       throw error; // Individual resource lookups should throw errors
     }
   },
-  
-  createSubmission: async (submissionData: {
+    createSubmission: async (submissionData: {
     artist_id: string;
     playlist_id: string;
     song_id: string;
     submission_message?: string;
-    payment_method_id?: string;
   }): Promise<Submission> => {
     const response = await apiClient.post('/submissions', submissionData);
     return response.data;

@@ -298,22 +298,19 @@
                         <ion-card v-if="selectedPlaylist" class="summary-card payment-summary">
                             <ion-card-header>
                                 <ion-card-title>Payment Summary</ion-card-title>
-                            </ion-card-header>
-                            <ion-card-content>                                <div class="summary-item">
+                            </ion-card-header>                            <ion-card-content>
+                                <div class="summary-item">
                                     <span>Submission Fee</span>
-                                    <span>${{ selectedPlaylist.submission_fee!}}</span>
+                                    <span>${{ selectedPlaylist.submission_fee! }}</span>
                                 </div>
 
-                                <div class="summary-item">
-                                    <span>Platform Fee</span>
-                                    <span>${{ calculatePlatformFee(selectedPlaylist.submission_fee!)
-                                        }}</span>
+                                <div class="summary-item note">
+                                    <small>Includes 5% platform fee ({{ '$' + calculatePlatformFee(selectedPlaylist.submission_fee!).toFixed(2) }}), {{ '$' + (selectedPlaylist.submission_fee! - calculatePlatformFee(selectedPlaylist.submission_fee!)).toFixed(2) }} goes to playlist curator</small>
                                 </div>
 
                                 <div class="summary-item total">
-                                    <span>Total</span>
-                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!)
-                                        }}</span>
+                                    <span>Total to Pay</span>
+                                    <span>${{ calculateTotal(selectedPlaylist.submission_fee!).toFixed(2) }}</span>
                                 </div>
                             </ion-card-content>
                         </ion-card>
@@ -680,10 +677,10 @@ export default defineComponent({
             return submissionFee * 0.05;
         };
 
-        // Calculate total payment
+        // Calculate total payment (submission fee IS the total)
         const calculateTotal = (submissionFee: number): number => {
-            return submissionFee + calculatePlatformFee(submissionFee);
-        };        // Submit song to playlist
+            return submissionFee; // Artist pays the full submission fee
+        };// Submit song to playlist
         const submitSong = async () => {
             if (!canSubmit.value) {
                 return;
@@ -702,15 +699,12 @@ export default defineComponent({
 
                 if (!selectedPaymentMethodId.value) {
                     throw new Error('Please select a payment method');
-                }
-
-                // First, create a draft submission to get the submissionId
+                }                // First, create a draft submission to get the submissionId
                 const draftSubmission = await SubmissionService.createSubmission({
                     artist_id: authStore.user.user_id,
                     playlist_id: selectedPlaylistId.value!,
                     song_id: selectedSongId.value!,
-                    submission_message: submissionMessage.value.trim() || undefined,
-                    payment_method_id: selectedPaymentMethodId.value
+                    submission_message: submissionMessage.value.trim() || undefined
                 });
 
                 // Create PayPal payment using submissionId and paymentMethodId
@@ -1232,6 +1226,20 @@ export default defineComponent({
 
 .summary-item:last-child {
     border-bottom: none;
+}
+
+.summary-item.note {
+    flex-direction: column;
+    align-items: flex-start;
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.summary-item.note small {
+    color: var(--ion-color-medium);
+    font-style: italic;
+    line-height: 1.4;
 }
 
 .summary-item.total {
