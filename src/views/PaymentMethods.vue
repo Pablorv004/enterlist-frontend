@@ -31,7 +31,7 @@
                             <ion-list>
                                 <ion-item v-for="method in paymentMethods" :key="method.payment_method_id" class="payment-method-item">
                                     <ion-thumbnail slot="start" class="payment-method-icon">
-                                        <img :src="getPaymentMethodIcon(method.type)" :alt="method.type">
+                                        <img src="@/assets/paypal.png" alt="PayPal" />
                                     </ion-thumbnail>
 
                                     <ion-label>
@@ -170,7 +170,6 @@ import {
     IonIcon, IonSpinner, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, 
     IonRadioGroup, IonRadio, IonListHeader, IonInput, IonCheckbox, alertController, toastController
 } from '@ionic/vue';
-import { useRoute } from 'vue-router';
 import {
     cardOutline, addOutline, checkmarkOutline, trashOutline, closeOutline,
     checkmarkCircle, closeCircle, timeOutline, arrowForward
@@ -191,8 +190,8 @@ export default defineComponent({
         IonCardContent, IonList, IonItem, IonThumbnail, IonLabel, IonBadge, IonButton, 
         IonIcon, IonSpinner, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, 
         IonRadioGroup, IonRadio, IonListHeader, IonInput, IonCheckbox, AppHeader, 
-        EmptyStateDisplay, BottomNavigation    },setup() {
-        const route = useRoute();
+        EmptyStateDisplay, BottomNavigation
+    },setup() {
         const authStore = useAuthStore();
         const userId = computed(() => authStore.user?.user_id || '');
         
@@ -215,17 +214,14 @@ export default defineComponent({
             type: 'paypal' as PaymentMethodType,
             paypalEmail: '',
             setAsDefault: false
-        });        onMounted(async () => {
+        });
+
+        onMounted(async () => {
             if (userId.value) {
                 await Promise.all([
                     fetchPaymentMethods(),
                     fetchTransactions()
                 ]);
-                
-                // Check if we arrived via a success URL parameter (fallback method)
-                if (route.query.success === 'paypal-connected') {
-                    showToast('PayPal account connected successfully!', 'success');
-                }
             }
         });const fetchPaymentMethods = async () => {
             try {
@@ -251,7 +247,7 @@ export default defineComponent({
             }
         };        const getPaymentMethodIcon = (type: PaymentMethodType): string => {
             if (type === PaymentMethodType.PAYPAL) {
-                return '/src/assets/paypal.png'; // Using an existing image
+                return '/@/assets/paypal.png'; // Using an existing image
             }
             return '/@/assets/logo.png'; // Default to logo
         };        const formatPaymentMethodName = (method: PaymentMethod): string => {
@@ -289,16 +285,11 @@ export default defineComponent({
                 addingPaymentMethod.value = true;
 
                 // Use PayPal OAuth popup flow
-                console.log('Opening PayPal auth popup');
                 const success = await PayPalService.openAuthPopup();
                 
-                console.log('PayPal auth popup result:', success);
                 if (success) {
                     // Close modal since OAuth was successful
                     closeModal();
-                    
-                    // Add a small delay to ensure backend has completed processing
-                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     // Refresh the payment methods list
                     await fetchPaymentMethods();
