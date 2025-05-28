@@ -2,10 +2,9 @@
     <ion-page>
         <app-header :title="'Profile'" :back-button="true" :back-url="backUrl"></app-header>
 
-        <ion-content :fullscreen="true" class="profile-content">
-            <div class="profile-container">
-                <!-- Loading State -->
-                <div v-if="loading" class="loading-container">
+        <ion-content :fullscreen="true" class="profile-content">            <div class="profile-container">
+                <!-- Loading State for Profile -->
+                <div v-if="profileLoading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
                     <p>Loading your profile...</p>
                 </div>
@@ -63,69 +62,79 @@
                                 Configure Payment Methods
                             </ion-button>
                         </ion-card-content>
-                    </ion-card>
-
-                    <!-- Statistics Chart (Role-specific) -->
-                    <ion-card class="profile-card" v-if="statistics">
+                    </ion-card>                    <!-- Statistics Chart (Role-specific) -->
+                    <ion-card class="profile-card">
                         <ion-card-header>
                             <ion-card-title>{{ getStatisticsTitle() }}</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
-                            <!-- Statistics Summary -->
-                            <div class="stats-summary">
-                                <div v-if="user?.role === 'artist'" class="artist-stats">
-                                    <div class="stat-item">
-                                        <h3>{{ statistics.totalSubmissions }}</h3>
-                                        <p>Total Submissions</p>
+                            <!-- Loading State for Statistics -->
+                            <div v-if="statisticsLoading" class="loading-container stats-loading">
+                                <ion-spinner name="crescent"></ion-spinner>
+                                <p>Loading your statistics...</p>
+                            </div>                            <!-- Statistics Content -->
+                            <div v-else-if="statistics">
+                                <!-- Statistics Summary -->
+                                <div class="stats-summary">
+                                    <div v-if="user?.role === 'artist'" class="artist-stats">
+                                        <div class="stat-item">
+                                            <h3>{{ statistics.totalSubmissions }}</h3>
+                                            <p>Total Submissions</p>
+                                        </div>
+                                        <div class="stat-item">
+                                            <h3>{{ statistics.approvalRate }}%</h3>
+                                            <p>Approval Rate</p>
+                                        </div>
+                                        <div class="stat-item">
+                                            <h3>${{ formatCurrency(statistics.totalSpent) }}</h3>
+                                            <p>Total Spent</p>
+                                        </div>
                                     </div>
-                                    <div class="stat-item">
-                                        <h3>{{ statistics.approvalRate }}%</h3>
-                                        <p>Approval Rate</p>
-                                    </div>
-                                    <div class="stat-item">
-                                        <h3>${{ formatCurrency(statistics.totalSpent) }}</h3>
-                                        <p>Total Spent</p>
+                                    <div v-else-if="user?.role === 'playlist_maker'" class="playlist-maker-stats">
+                                        <div class="stat-item">
+                                            <h3>{{ statistics.totalPlaylists }}</h3>
+                                            <p>Total Playlists</p>
+                                        </div>
+                                        <div class="stat-item">
+                                            <h3>{{ statistics.totalTracks }}</h3>
+                                            <p>Total Tracks</p>
+                                        </div>
+                                        <div class="stat-item">
+                                            <h3>${{ formatCurrency(statistics.totalEarnings) }}</h3>
+                                            <p>Total Earnings</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div v-else-if="user?.role === 'playlist_maker'" class="playlist-maker-stats">
-                                    <div class="stat-item">
-                                        <h3>{{ statistics.totalPlaylists }}</h3>
-                                        <p>Total Playlists</p>
+
+                                <!-- Charts -->
+                                <div class="charts-container">
+                                    <!-- Spending/Earnings Over Time Chart -->
+                                    <div class="chart-wrapper">
+                                        <h4>{{ user?.role === 'artist' ? 'Spending' : 'Earnings' }} Over Time</h4>
+                                        <canvas ref="timeChart" width="400" height="200"></canvas>
                                     </div>
-                                    <div class="stat-item">
-                                        <h3>{{ statistics.totalTracks }}</h3>
-                                        <p>Total Tracks</p>
+
+                                    <!-- Submissions Status Chart -->
+                                    <div class="chart-wrapper" v-if="statistics.submissionsByStatus">
+                                        <h4>Submissions by Status</h4>
+                                        <canvas ref="statusChart" width="400" height="200"></canvas>
                                     </div>
-                                    <div class="stat-item">
-                                        <h3>${{ formatCurrency(statistics.totalEarnings) }}</h3>
-                                        <p>Total Earnings</p>
+
+                                    <!-- Genre/Playlist Chart -->
+                                    <div class="chart-wrapper" v-if="user?.role === 'artist' && statistics.genreSpending">
+                                        <h4>Spending by Genre</h4>
+                                        <canvas ref="genreChart" width="400" height="200"></canvas>
+                                    </div>
+                                    <div class="chart-wrapper" v-if="user?.role === 'playlist_maker' && statistics.submissionsByPlaylist">
+                                        <h4>Top Playlists by Submissions</h4>
+                                        <canvas ref="playlistChart" width="400" height="200"></canvas>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Charts -->
-                            <div class="charts-container">
-                                <!-- Spending/Earnings Over Time Chart -->
-                                <div class="chart-wrapper">
-                                    <h4>{{ user?.role === 'artist' ? 'Spending' : 'Earnings' }} Over Time</h4>
-                                    <canvas ref="timeChart" width="400" height="200"></canvas>
-                                </div>
-
-                                <!-- Submissions Status Chart -->
-                                <div class="chart-wrapper" v-if="statistics.submissionsByStatus">
-                                    <h4>Submissions by Status</h4>
-                                    <canvas ref="statusChart" width="400" height="200"></canvas>
-                                </div>
-
-                                <!-- Genre/Playlist Chart -->
-                                <div class="chart-wrapper" v-if="user?.role === 'artist' && statistics.genreSpending">
-                                    <h4>Spending by Genre</h4>
-                                    <canvas ref="genreChart" width="400" height="200"></canvas>
-                                </div>
-                                <div class="chart-wrapper" v-if="user?.role === 'playlist_maker' && statistics.submissionsByPlaylist">
-                                    <h4>Top Playlists by Submissions</h4>
-                                    <canvas ref="playlistChart" width="400" height="200"></canvas>
-                                </div>
+                            
+                            <!-- No Statistics State -->
+                            <div v-else class="no-stats-container">
+                                <p>No statistics available. Start using the platform to see your statistics here.</p>
                             </div>
                         </ion-card-content>
                     </ion-card>
@@ -153,12 +162,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, nextTick } from 'vue';
+import { defineComponent, ref, onMounted, nextTick, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store';
 import {
     IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonButton, IonIcon, IonSpinner, alertController
+    IonItem, IonLabel, IonButton, IonIcon, IonSpinner, alertController, toastController
 } from '@ionic/vue';
 import { linkOutline, cardOutline, keyOutline, warningOutline } from 'ionicons/icons';
 import Chart from 'chart.js/auto';
@@ -173,8 +182,8 @@ export default defineComponent({
         AppHeader
     },
     setup() {        const router = useRouter();
-        const authStore = useAuthStore();
-        const loading = ref(true);
+        const authStore = useAuthStore();        const profileLoading = ref(true);
+        const statisticsLoading = ref(true);
         const user = ref<any>(null);
         const statistics = ref<any>(null);
         
@@ -202,28 +211,39 @@ export default defineComponent({
             } else if (userRole === 'playlist_maker') {
                 backUrl.value = '/playlist-maker/dashboard';
             }
-        });
-
-        const loadProfileData = async () => {
+        });        const loadProfileData = async () => {
             try {
-                loading.value = true;
+                profileLoading.value = true;
                   // Get user data from store or fetch
                 user.value = authStore.user;
                 if (!user.value) {
                     // Redirect to login if no user
                     router.push('/login');
                     return;
-                }// Fetch statistics
-                statistics.value = await UserService.getProfileStatistics();
-                
-                // Create charts after data is loaded
-                await nextTick();
-                createCharts();
+                }
+                // Basic profile data loaded
+                profileLoading.value = false;
+                  // Load statistics separately
+                statisticsLoading.value = true;
+                try {
+                    statistics.value = await UserService.getProfileStatistics();
+                    
+                    // Create charts after data is loaded
+                    await nextTick();
+                    createCharts();
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                    statistics.value = null;
+                    showToast('Could not load statistics. Please try again later.', 'warning');
+                } finally {
+                    statisticsLoading.value = false;
+                }
                 
             } catch (error) {
                 console.error('Error loading profile data:', error);
             } finally {
-                loading.value = false;
+                profileLoading.value = false;
+                statisticsLoading.value = false;
             }
         };
 
@@ -383,18 +403,23 @@ export default defineComponent({
 
         const getStatisticsTitle = () => {
             return user.value?.role === 'artist' ? 'Artist Statistics' : 'Playlist Maker Statistics';
-        };
-
-        const openLinkedAccounts = () => {
-            router.push('/linked-accounts');
+        };        const openLinkedAccounts = () => {
+            const userRole = user.value?.role;
+            if (userRole === 'artist') {
+                router.push('/artist/linked-accounts');
+            } else if (userRole === 'playlist_maker') {
+                router.push('/playlist-maker/linked-accounts');
+            }
         };
 
         const openPaymentMethods = () => {
-            // Navigate to payment methods page
-            console.log('Navigate to payment methods');
-        };
-
-        const openPasswordReset = async () => {
+            const userRole = user.value?.role;
+            if (userRole === 'artist') {
+                router.push('/artist/payment-methods');
+            } else if (userRole === 'playlist_maker') {
+                router.push('/playlist-maker/payment-methods');
+            }
+        };const openPasswordReset = async () => {
             const alert = await alertController.create({
                 header: 'Change Password',
                 inputs: [
@@ -423,13 +448,19 @@ export default defineComponent({
                         text: 'Change Password',
                         handler: async (data) => {
                             if (data.newPassword !== data.confirmPassword) {
-                                console.error('Passwords do not match');
+                                showToast('Passwords do not match', 'danger');
                                 return false;
                             }
                               try {
                                 await UserService.updatePassword(data.currentPassword, data.newPassword);
-                                console.log('Password updated successfully');
-                            } catch (error) {
+                                showToast('Password updated successfully', 'success');
+                                return true;
+                            } catch (error: any) {
+                                if (error.response && error.response.status === 409) {
+                                    showToast('Current password is incorrect', 'danger');
+                                } else {
+                                    showToast('Error updating password. Please try again.', 'danger');
+                                }
                                 console.error('Error updating password:', error);
                                 return false;
                             }
@@ -439,9 +470,7 @@ export default defineComponent({
             });
             
             await alert.present();
-        };
-
-        const confirmDeactivateAccount = async () => {
+        };        const confirmDeactivateAccount = async () => {
             const alert = await alertController.create({
                 header: 'Deactivate Account',
                 message: 'Are you sure you want to deactivate your account? This action cannot be undone.',
@@ -452,14 +481,22 @@ export default defineComponent({
                     },
                     {
                         text: 'Deactivate',
-                        role: 'destructive',
-                        handler: async () => {                            try {
+                        role: 'destructive',                        handler: async () => {                            
+                            try {
                                 await UserService.deactivateAccount();
+                                showToast('Your account has been deactivated', 'success');
                                 // Logout and redirect
                                 await authStore.logout();
                                 router.push('/login');
-                            } catch (error) {
+                            } catch (error: any) {
                                 console.error('Error deactivating account:', error);
+                                if (error.response && error.response.status === 401) {
+                                    showToast('Authentication failed. Please log in again.', 'danger');
+                                    await authStore.logout();
+                                    router.push('/login');
+                                } else {
+                                    showToast('Failed to deactivate account. Please try again.', 'danger');
+                                }
                             }
                         }
                     }
@@ -467,10 +504,42 @@ export default defineComponent({
             });
             
             await alert.present();
+        };const showToast = async (message: string, color: string = 'primary') => {
+            const toast = await toastController.create({
+                message,
+                duration: 3000,
+                color
+            });
+
+            await toast.present();
         };
 
+        // Cleanup chart instances on component unmount
+        const cleanupCharts = () => {
+            if (timeChartInstance) {
+                timeChartInstance.destroy();
+                timeChartInstance = null;
+            }
+            if (statusChartInstance) {
+                statusChartInstance.destroy();
+                statusChartInstance = null;
+            }
+            if (genreChartInstance) {
+                genreChartInstance.destroy();
+                genreChartInstance = null;
+            }
+            if (playlistChartInstance) {
+                playlistChartInstance.destroy();
+                playlistChartInstance = null;
+            }
+        };
+
+        // Cleanup on component unmount
+        onUnmounted(cleanupCharts);
+
         return {
-            loading,
+            profileLoading,
+            statisticsLoading,
             user,
             statistics,
             backUrl,
@@ -512,6 +581,10 @@ export default defineComponent({
     justify-content: center;
     height: 300px;
     text-align: center;
+}
+
+.loading-container.stats-loading {
+    height: 200px;
 }
 
 .profile-card {
@@ -584,6 +657,14 @@ export default defineComponent({
 
 .chart-wrapper canvas {
     max-height: 300px;
+}
+
+.no-stats-container {
+    text-align: center;
+    padding: 24px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    color: #666;
 }
 
 @media (min-width: 768px) {
