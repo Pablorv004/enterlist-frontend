@@ -96,17 +96,6 @@
                                 </ion-card>
                             </ion-col>
                         </ion-row>
-
-                        <ion-row>
-                            <ion-col size="6" size-md="3">
-                                <ion-card button router-link="/playlist-maker/profile" class="action-card">
-                                    <ion-card-content>
-                                        <ion-icon :icon="personIcon"></ion-icon>
-                                        <span>My Profile</span>
-                                    </ion-card-content>
-                                </ion-card>
-                            </ion-col>
-                        </ion-row>
                     </ion-grid>
                 </div>
 
