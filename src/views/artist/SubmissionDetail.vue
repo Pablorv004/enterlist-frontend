@@ -208,10 +208,28 @@ export default defineComponent({
         const fetchSubmission = async () => {
             try {
                 loading.value = true;
-                submission.value = await SubmissionService.getSubmission(submissionId.value);
+                const submissionData = await SubmissionService.getSubmission(submissionId.value);
                 
-                // Fetch complete playlist data if available
-                if (submission.value?.playlist?.playlist_id) {
+                // Preserve existing data if it exists and IDs match
+                if (submission.value && 
+                    submission.value.submission_id === submissionData.submission_id &&
+                    submission.value.song?.song_id === submissionData.song?.song_id &&
+                    submission.value.playlist?.playlist_id === submissionData.playlist?.playlist_id) {
+                    
+                    // Update only the submission status and review fields while preserving other data
+                    submission.value = {
+                        ...submission.value,
+                        ...submissionData,
+                        song: submission.value.song || submissionData.song,
+                        playlist: submission.value.playlist || submissionData.playlist
+                    };
+                } else {
+                    // Fresh load or different submission
+                    submission.value = submissionData;
+                }
+                
+                // Fetch complete playlist data if available and not already loaded
+                if (submission.value?.playlist?.playlist_id && !completePlaylistData.value) {
                     try {
                         completePlaylistData.value = await PlaylistService.getPlaylist(submission.value.playlist.playlist_id);
                     } catch (err) {

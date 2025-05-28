@@ -69,8 +69,8 @@ export default defineComponent({
         };
 
         const logout = async () => {
+            isOpen.value = false; // Close popover before logout
             await authStore.logout();
-            isOpen.value = false;
             router.push('/login');
         };
 

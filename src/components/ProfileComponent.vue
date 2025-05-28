@@ -173,7 +173,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
+import { defineComponent, ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store';
 import { useFormValidation } from '@/composables/useFormValidation';
@@ -205,7 +205,8 @@ export default defineComponent({
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonButton, IonIcon, IonSpinner,
         AppHeader, Bar, Doughnut
-    },    setup() {
+    },
+    setup() {
         const router = useRouter();
         const authStore = useAuthStore();
         const { errors, validateField, validateForm, resetValidation } = useFormValidation();
@@ -216,6 +217,15 @@ export default defineComponent({
         const statistics = ref<any>(null);
         
         const backUrl = ref('/');
+
+        // Watch for user changes and reload profile data
+        watch(() => authStore.user, async (newUser, oldUser) => {
+            if (newUser && (!oldUser || newUser.user_id !== oldUser.user_id)) {
+                // Reset statistics when user changes
+                statistics.value = null;
+                await loadProfileData();
+            }
+        }, { immediate: false });
 
         // Chart data computed properties
         const timeChartData = computed(() => {
@@ -365,8 +375,10 @@ export default defineComponent({
                 // Basic profile data loaded
                 profileLoading.value = false;
                 
-                // Load statistics separately
+                // Load statistics separately and reset previous data
                 statisticsLoading.value = true;
+                statistics.value = null; // Clear previous statistics
+                
                 try {
                     statistics.value = await UserService.getProfileStatistics();
                 } catch (error) {
