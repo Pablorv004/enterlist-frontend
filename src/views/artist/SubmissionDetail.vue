@@ -313,7 +313,7 @@ export default defineComponent({
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: currency || 'USD'
-            }).format(amount / 100); // Assuming amount is in cents
+            }).format(amount); // Remove division by 100 - amounts are already in USD
         };
 
         const resubmitSong = () => {

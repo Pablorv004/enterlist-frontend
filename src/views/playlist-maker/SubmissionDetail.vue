@@ -135,8 +135,7 @@
 
                         <div v-if="submission.transaction" class="detail-item">
                             <ion-label>Your Payout</ion-label>
-                            <p>{{ formatCurrency(submission.transaction.creator_payout_amount,
-                                submission.transaction.currency) }}</p>
+                            <p>{{ formatCurrency(calculateCuratorPayout(submission.transaction.amount_total), submission.transaction.currency) }}</p>
                         </div>
                     </ion-card-content>
                 </ion-card>
@@ -509,7 +508,12 @@ export default defineComponent({
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: currency || 'USD'
-            }).format(amount / 100); // Assuming amount is in cents
+            }).format(amount); // Remove division by 100 - amounts are already in USD
+        };
+
+        // Calculate the curator's payout (95% of submission fee)
+        const calculateCuratorPayout = (submissionFee: number): number => {
+            return submissionFee * 0.95;
         };
 
         // Action handlers
@@ -641,6 +645,7 @@ export default defineComponent({
             getStatusColor,
             getStatusIcon,
             formatCurrency,
+            calculateCuratorPayout,
             // Modal states
             approveModalOpen,
             rejectModalOpen,
