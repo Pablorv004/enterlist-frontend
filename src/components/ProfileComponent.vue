@@ -11,38 +11,38 @@
                 </div>
 
                 <!-- Content -->
-                <div v-else>
-                    <!-- Basic Profile Information -->
+                <div v-else>                    <!-- Basic Profile Information -->
                     <ion-card class="profile-card">
-                        <ion-card-header>
-                            <ion-card-title>Account Information</ion-card-title>
+                        <ion-card-header class="centered-header">
+                            <div class="user-icon-container">
+                                <ion-icon :icon="personCircleOutline" class="user-icon"></ion-icon>
+                            </div>
+                            <ion-card-title class="centered-title">Account Information</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
-                            <ion-item>
-                                <ion-label>
+                            <ion-item class="profile-item">
+                                <ion-label class="centered-label">
                                     <h3>Username</h3>
                                     <p>{{ user?.username }}</p>
                                 </ion-label>
                             </ion-item>
-                            <ion-item>
-                                <ion-label>
+                            <ion-item class="profile-item">
+                                <ion-label class="centered-label">
                                     <h3>Email</h3>
                                     <p>{{ user?.email }}</p>
                                 </ion-label>
                             </ion-item>
-                            <ion-item>
-                                <ion-label>
+                            <ion-item class="profile-item">
+                                <ion-label class="centered-label">
                                     <h3>Role</h3>
                                     <p class="role-badge" :class="user?.role">{{ formatRole(user?.role) }}</p>
                                 </ion-label>
                             </ion-item>
                         </ion-card-content>
-                    </ion-card>
-
-                    <!-- Linked Accounts -->
+                    </ion-card>                    <!-- Linked Accounts -->
                     <ion-card class="profile-card">
                         <ion-card-header>
-                            <ion-card-title>Linked Accounts</ion-card-title>
+                            <ion-card-title class="centered-title">Linked Accounts</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
                             <ion-button expand="block" fill="outline" @click="openLinkedAccounts">
@@ -55,7 +55,7 @@
                     <!-- Payment Methods -->
                     <ion-card class="profile-card">
                         <ion-card-header>
-                            <ion-card-title>Payment Methods</ion-card-title>
+                            <ion-card-title class="centered-title">Payment Methods</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
                             <ion-button expand="block" fill="outline" @click="openPaymentMethods">
@@ -63,12 +63,10 @@
                                 Configure Payment Methods
                             </ion-button>
                         </ion-card-content>
-                    </ion-card>
-
-                    <!-- Statistics Chart (Role-specific) -->
+                    </ion-card>                    <!-- Statistics Chart (Role-specific) -->
                     <ion-card class="profile-card">
                         <ion-card-header>
-                            <ion-card-title>{{ getStatisticsTitle() }}</ion-card-title>
+                            <ion-card-title class="centered-title">{{ getStatisticsTitle() }}</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
                             <!-- Loading State for Statistics -->
@@ -152,12 +150,10 @@
                                 <p>No statistics available. Start using the platform to see your statistics here.</p>
                             </div>
                         </ion-card-content>
-                    </ion-card>
-
-                    <!-- Account Management -->
+                    </ion-card>                    <!-- Account Management -->
                     <ion-card class="profile-card">
                         <ion-card-header>
-                            <ion-card-title>Account Management</ion-card-title>
+                            <ion-card-title class="centered-title">Account Management</ion-card-title>
                         </ion-card-header>
                         <ion-card-content>
                             <ion-button expand="block" fill="outline" @click="openPasswordReset">
@@ -180,11 +176,12 @@
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store';
+import { useFormValidation } from '@/composables/useFormValidation';
 import {
     IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonLabel, IonButton, IonIcon, IonSpinner, alertController, toastController
 } from '@ionic/vue';
-import { linkOutline, cardOutline, keyOutline, warningOutline } from 'ionicons/icons';
+import { linkOutline, cardOutline, keyOutline, warningOutline, personCircleOutline } from 'ionicons/icons';
 import { Bar, Doughnut } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -208,10 +205,10 @@ export default defineComponent({
         IonPage, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonButton, IonIcon, IonSpinner,
         AppHeader, Bar, Doughnut
-    },
-    setup() {
+    },    setup() {
         const router = useRouter();
         const authStore = useAuthStore();
+        const { errors, validateField, validateForm, resetValidation } = useFormValidation();
 
         const profileLoading = ref(true);
         const statisticsLoading = ref(true);
@@ -416,9 +413,9 @@ export default defineComponent({
             } else if (userRole === 'playlist_maker') {
                 router.push('/playlist-maker/payment-methods');
             }
-        };
-
-        const openPasswordReset = async () => {
+        };        const openPasswordReset = async () => {
+            resetValidation();
+            
             const alert = await alertController.create({
                 header: 'Change Password',
                 inputs: [
@@ -430,7 +427,7 @@ export default defineComponent({
                     {
                         name: 'newPassword',
                         type: 'password',
-                        placeholder: 'New Password'
+                        placeholder: 'New Password (min 8 chars, 1 letter, 1 number)'
                     },
                     {
                         name: 'confirmPassword',
@@ -446,14 +443,33 @@ export default defineComponent({
                     {
                         text: 'Change Password',
                         handler: async (data) => {
+                            // Validate form data
+                            const isValid = validateForm(data, {
+                                currentPassword: { required: true },
+                                newPassword: { required: true, password: true },
+                                confirmPassword: { required: true }
+                            });
+                            
+                            if (!isValid) {
+                                const errorMessages = Object.values(errors.value).join('\n');
+                                showToast(errorMessages, 'danger');
+                                return false;
+                            }
+                            
                             if (data.newPassword !== data.confirmPassword) {
                                 showToast('Passwords do not match', 'danger');
+                                return false;
+                            }
+                            
+                            if (data.currentPassword === data.newPassword) {
+                                showToast('New password must be different from current password', 'danger');
                                 return false;
                             }
                             
                             try {
                                 await UserService.updatePassword(data.currentPassword, data.newPassword);
                                 showToast('Password updated successfully', 'success');
+                                resetValidation();
                                 return true;
                             } catch (error: any) {
                                 if (error.response && error.response.status === 409) {
@@ -517,9 +533,7 @@ export default defineComponent({
             });
 
             await toast.present();
-        };
-
-        return {
+        };        return {
             profileLoading,
             statisticsLoading,
             user,
@@ -542,7 +556,10 @@ export default defineComponent({
             linkOutline,
             cardOutline,
             keyOutline,
-            warningOutline
+            warningOutline,
+            personCircleOutline,
+            errors,
+            resetValidation
         };
     }
 });
@@ -651,6 +668,60 @@ export default defineComponent({
     background: #f5f5f5;
     border-radius: 8px;
     color: #666;
+}
+
+/* New styles for centered elements and user icon */
+.centered-header {
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.user-icon-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.user-icon {
+    font-size: 80px;
+    color: #3880ff;
+    opacity: 0.8;
+}
+
+.centered-title {
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+}
+
+.profile-item {
+    --inner-padding: 12px 16px;
+}
+
+.centered-label {
+    text-align: center;
+    width: 100%;
+}
+
+.centered-label h3 {
+    margin: 0 0 4px 0;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.centered-label p {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #333;
+}
+
+.role-badge {
+    display: inline-block;
+    margin: 0 auto;
 }
 
 @media (min-width: 768px) {
