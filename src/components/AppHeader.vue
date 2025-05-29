@@ -12,7 +12,7 @@
             <ion-title class="ion-text-center">{{ title }}</ion-title>
             <ion-buttons slot="end">
                 <slot name="end-buttons"></slot>
-                <user-profile-menu v-if="showUserMenu"></user-profile-menu>
+                <user-profile-menu></user-profile-menu>
             </ion-buttons>
         </ion-toolbar>
     </ion-header>
@@ -50,11 +50,7 @@ export default defineComponent({
       default: ''
     }
   },  setup() {
-    const authStore = useAuthStore();
-    const showUserMenu = computed(() => authStore.isAuthenticated && !authStore.isAdmin);
-    
     return {
-      showUserMenu,
       arrowBackIcon: arrowBack,
       homeIcon: home
     };
