@@ -35,6 +35,7 @@ export interface User {
   oauth_id?: string;
   role: UserRole;
   is_active: boolean;
+  email_confirmed: boolean;
   created_at: string;
   updated_at: string;
 }

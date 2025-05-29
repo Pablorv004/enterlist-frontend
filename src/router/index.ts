@@ -7,6 +7,8 @@ import { Capacitor } from '@capacitor/core';
 // Lazy load views for better performance
 const Home = () => import('@/views/Home.vue');
 const Login = () => import('@/views/Login.vue');
+const EmailConfirmation = () => import('@/views/EmailConfirmation.vue');
+const EmailConfirmationHandler = () => import('@/views/EmailConfirmationHandler.vue');
 // const Register = () => import('@/views/Register.vue'); // Commented out missing component
 const Dashboard = () => import('@/views/Dashboard.vue');
 const RoleSelection = () => import('@/views/RoleSelection.vue');
@@ -53,12 +55,22 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'Home',
         component: Home,
         meta: { requiresAuth: false }
-    },
-    {
+    },    {
         path: '/login',
         name: 'Login',
         component: Login,
         meta: { requiresAuth: false, guestOnly: true }
+    },    {
+        path: '/confirm-email',
+        name: 'EmailConfirmation',
+        component: EmailConfirmation,
+        meta: { requiresAuth: true, skipEmailConfirmation: true }
+    },
+    {
+        path: '/confirm-email-token',
+        name: 'EmailConfirmationHandler',
+        component: EmailConfirmationHandler,
+        meta: { requiresAuth: false }
     },
     /* Commented out missing route
     {
@@ -306,27 +318,28 @@ router.beforeEach(async (to, from, next) => {
             // OAuth service handled the redirect, don't proceed with normal routing
             return;
         }
-    }
-    
+    }    
     // Check if route requires authentication
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
     const requiredRole = to.matched.find(record => record.meta.role)?.meta.role;
     const allowNoRole = to.matched.some(record => record.meta.allowNoRole);
+    const skipEmailConfirmation = to.matched.some(record => record.meta.skipEmailConfirmation);
 
     // Special handling for Dashboard and RoleSelection with OAuth parameters
     if ((to.name === 'Dashboard' || to.name === 'RoleSelection') && to.query.access_token) {
         // Allow these routes to handle OAuth authentication themselves
         next();
         return;
-    }
-
-    if (requiresAuth && !authStore.isAuthenticated) {
+    }    if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if user is not authenticated
         next({ name: 'Login', query: { redirect: to.fullPath } });
     } else if (guestOnly && authStore.isAuthenticated) {
         // Redirect to dashboard if user is authenticated and tries to access guest-only pages
         next({ name: 'Dashboard' });
+    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation) {
+        // Redirect to email confirmation if user is authenticated but email is not confirmed
+        next({ name: 'EmailConfirmation' });
     } else if (requiredRole && authStore.isAuthenticated) {
         // Check user role for role-specific routes
         const userRole = authStore.user?.role?.toLowerCase();

@@ -1,7 +1,8 @@
 import apiClient from './api';
 import { AuthResponse, User } from '@/types';
 
-export const AuthService = {  login: async (email: string, password: string): Promise<AuthResponse> => {
+export const AuthService = {
+  login: async (email: string, password: string): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/login', { email, password });
     return response.data;
   },
@@ -22,6 +23,16 @@ export const AuthService = {  login: async (email: string, password: string): Pr
   },
   updateUserRole: async (roleData: { role: string }): Promise<User> => {
     const response = await apiClient.put('/users/role/update', roleData);
+    return response.data;
+  },
+
+  confirmEmail: async (token: string): Promise<{ message: string }> => {
+    const response = await apiClient.post('/auth/confirm-email', { token });
+    return response.data;
+  },
+
+  resendEmailConfirmation: async (email: string): Promise<{ message: string }> => {
+    const response = await apiClient.post('/auth/resend-confirmation', { email });
     return response.data;
   }
 };

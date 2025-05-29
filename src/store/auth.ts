@@ -50,13 +50,13 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loading.value = false;
     }
-  };
-  // Computed properties
+  };  // Computed properties
   const isAuthenticated = computed(() => !!token.value);
   const isArtist = computed(() => user.value?.role === UserRole.ARTIST);
   const isPlaylistMaker = computed(() => user.value?.role === UserRole.PLAYLIST_MAKER);
   const isAdmin = computed(() => user.value?.role === UserRole.ADMIN);
   const hasRole = computed(() => !!user.value?.role);
+  const isEmailConfirmed = computed(() => user.value?.email_confirmed === true);
   // Actions
   const login = async (email: string, password: string): Promise<void> => {
     loading.value = true;
@@ -183,8 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = userData;
     token.value = authToken;
     await storeAuthData(userData, authToken);
-  };
-  return {
+  };  return {
     user,
     token,
     loading,
@@ -194,6 +193,7 @@ export const useAuthStore = defineStore('auth', () => {
     isPlaylistMaker,
     isAdmin,
     hasRole,
+    isEmailConfirmed,
     initializeFromStorage,
     login,
     register,
