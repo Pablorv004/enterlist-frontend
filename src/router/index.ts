@@ -35,15 +35,6 @@ const PlaylistMakerSubmissionDetail = () => import('@/views/playlist-maker/Submi
 const PlaylistMakerPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedAccounts.vue');
 
-//Admin routes
-const AdminUsers = () => import('@/views/admin/Users.vue');
-const AdminPlaylists = () => import('@/views/admin/Playlists.vue');
-const AdminSongs = () => import('@/views/admin/Songs.vue');
-const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
-const AdminTransactions = () => import('@/views/admin/Transactions.vue');
-const AdminWithdrawals = () => import('@/views/admin/Withdrawals.vue');
-const AdminActions = () => import('@/views/admin/Actions.vue');
-
 // OAuth callback routes
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
 const OAuthHandler = () => import('@/views/OAuthHandler.vue');
@@ -182,47 +173,6 @@ const routes: Array<RouteRecordRaw> = [    {
         path: '/admin/dashboard',
         name: 'AdminDashboard',
         component: AdminDashboard,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/users',
-        name: 'AdminUsers',
-        component: AdminUsers,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/playlists',
-        name: 'AdminPlaylists',
-        component: AdminPlaylists,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/songs',
-        name: 'AdminSongs',
-        component: AdminSongs,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/submissions',
-        name: 'AdminSubmissions',
-        component: AdminSubmissions,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/transactions',
-        name: 'AdminTransactions',
-        component: AdminTransactions,
-        meta: { requiresAuth: true, role: 'admin' }
-    },    {
-        path: '/admin/withdrawals',
-        name: 'AdminWithdrawals',
-        component: AdminWithdrawals,
-        meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
-        path: '/admin/actions',
-        name: 'AdminActions',
-        component: AdminActions,
         meta: { requiresAuth: true, role: 'admin' }
     },
       // Shared routes for all authenticated users
