@@ -50,11 +50,11 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loading.value = false;
     }
-  };  // Computed properties
+  };  // Computed properties  
   const isAuthenticated = computed(() => !!token.value);
   const isArtist = computed(() => user.value?.role === UserRole.ARTIST);
   const isPlaylistMaker = computed(() => user.value?.role === UserRole.PLAYLIST_MAKER);
-  const isAdmin = computed(() => user.value?.role === UserRole.ADMIN);
+  const isAdmin = computed(() => user.value?.role?.toLowerCase() === UserRole.ADMIN.toLowerCase());
   const hasRole = computed(() => !!user.value?.role);
   const isEmailConfirmed = computed(() => user.value?.email_confirmed === true);
   // Actions
@@ -165,6 +165,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false;
       }
       
+      console.log('User data from API:', userData);
       user.value = userData;
       await storeUserData(userData);
       return true;

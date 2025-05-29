@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import { IonPage, IonContent, IonSpinner } from '@ionic/vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/store';
@@ -32,8 +32,19 @@ export default defineComponent({
         const loading = ref(true);
         const error = ref('');
 
+        // Watch for changes in the user object
+        watch(() => authStore.user, (newUser) => {
+            console.log("Auth user changed:", newUser);
+            console.log("User role:", newUser?.role, "isAdmin:", authStore.isAdmin);
+        }, { immediate: true });
+
         onMounted(async () => {
             let shouldProceedWithRedirect = true;
+            
+            // If auth store hasn't been initialized yet, initialize it
+            if (!authStore.user && !authStore.loading) {
+                await authStore.initializeFromStorage();
+            }
             
             // Handle OAuth authentication if we have OAuth parameters
             if (route.query.access_token && route.query.user && route.query.status === 'success') {
@@ -65,10 +76,11 @@ export default defineComponent({
                     loading.value = false;
                 }
             }
-            
-            // Only proceed with role-based redirection if OAuth handling was successful or not needed
+              // Only proceed with role-based redirection if OAuth handling was successful or not needed
             if (shouldProceedWithRedirect) {
                 // Check user role and redirect accordingly
+                console.log("User role:", authStore.user?.role, "isAdmin:", authStore.isAdmin);
+                
                 if (authStore.isArtist) {
                     await router.replace('/artist/dashboard');
                 } else if (authStore.isPlaylistMaker) {
