@@ -11,7 +11,6 @@ window.process.env.BASE_URL = import.meta.env.BASE_URL;
 import { IonicVue } from '@ionic/vue';
 
 // Vuetify
-import 'vuetify/styles';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
