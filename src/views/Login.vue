@@ -227,6 +227,13 @@ export default defineComponent({
         const youtubeIcon = logoYoutube;        // Toggle login/register mode
         const toggleMode = () => {
             isLoginMode.value = !isLoginMode.value;
+            
+            // Clear form data when switching modes
+            form.email = '';
+            form.password = '';
+            form.username = '';
+            form.confirmPassword = '';
+            
             resetValidation();
             // Clear any OAuth error when switching modes
             localError.value = '';
@@ -256,6 +263,14 @@ export default defineComponent({
 
                 try {
                     await authStore.login(form.email, form.password);
+                    
+                    // Clear form data after successful login
+                    form.email = '';
+                    form.password = '';
+                    form.username = '';
+                    form.confirmPassword = '';
+                    resetValidation();
+                    
                     router.push('/dashboard');
 
                     // Show welcome toast
@@ -284,12 +299,22 @@ export default defineComponent({
                     confirmPassword: validationRules.confirmPassword
                 })) {
                     return;
-                } try {
+                } 
+                
+                try {
                     await authStore.register({
                         username: form.username,
                         email: form.email,
                         password: form.password
                     });
+                    
+                    // Clear form data after successful registration
+                    form.email = '';
+                    form.password = '';
+                    form.username = '';
+                    form.confirmPassword = '';
+                    resetValidation();
+                    
                     // Redirect to role selection after successful registration
                     router.push('/role-selection');                    // Show welcome toast
                     const toast = await toastController.create({

@@ -73,9 +73,10 @@
 
                 <!-- Quick Actions -->
                 <div class="quick-actions">
-                    <h2>Quick Actions</h2>                    <ion-grid class="actions-grid">
+                    <h2>Quick Actions</h2>                    
+                    <ion-grid class="actions-grid">
                         <ion-row>
-                            <ion-col size="6" size-md="3">
+                            <ion-col size="6" size-md="4">
                                 <ion-card button router-link="/artist/submissions/new" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="addIcon"></ion-icon>
@@ -84,14 +85,16 @@
                                 </ion-card>
                             </ion-col>
 
-                            <ion-col size="6" size-md="3">
+                            <ion-col size="6" size-md="4">
                                 <ion-card button router-link="/artist/submissions" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="documentTextIcon"></ion-icon>
                                         <span>My Submissions</span>
                                     </ion-card-content>
                                 </ion-card>
-                            </ion-col>                            <ion-col size="6" size-md="3">
+                            </ion-col>
+
+                            <ion-col size="6" size-md="4">
                                 <ion-card button router-link="/artist/songs" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="musicalNotesIcon"></ion-icon>
@@ -99,10 +102,8 @@
                                     </ion-card-content>
                                 </ion-card>
                             </ion-col>
-                        </ion-row>
 
-                        <ion-row>
-                            <ion-col size="6" size-md="3">
+                            <ion-col size="6" size-md="4" size-lg="3">
                                 <ion-card button router-link="/artist/linked-accounts" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="linkIcon"></ion-icon>
