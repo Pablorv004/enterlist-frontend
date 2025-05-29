@@ -78,21 +78,12 @@ const resendLoading = ref(false);
 const resendMessage = ref('');
 const resendSuccess = ref(false);
 
-// Get current user's email from the store
-const userEmail = computed(() => authStore.user?.email || '');
-
 const resendConfirmation = async () => {
-  if (!userEmail.value) {
-    resendMessage.value = 'No email address found. Please log in again.';
-    resendSuccess.value = false;
-    return;
-  }
-  
   resendLoading.value = true;
   resendMessage.value = '';
   
   try {
-    await AuthService.resendEmailConfirmation(userEmail.value);
+    await AuthService.resendEmailConfirmation();
     resendSuccess.value = true;
     resendMessage.value = 'Confirmation email sent successfully! Please check your inbox.';
     

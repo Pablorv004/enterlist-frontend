@@ -25,14 +25,22 @@ export const AuthService = {
     const response = await apiClient.put('/users/role/update', roleData);
     return response.data;
   },
-
   confirmEmail: async (token: string): Promise<{ message: string }> => {
-    const response = await apiClient.post('/auth/confirm-email', { token });
+    const response = await apiClient.post('/email/confirm', { token });
     return response.data;
   },
 
-  resendEmailConfirmation: async (email: string): Promise<{ message: string }> => {
-    const response = await apiClient.post('/auth/resend-confirmation', { email });
+  resendEmailConfirmation: async (): Promise<{ message: string }> => {
+    const response = await apiClient.post('/email/resend-confirmation');
+    return response.data;
+  },
+
+  getEmailConfirmationStatus: async (): Promise<{ 
+    emailConfirmed: boolean; 
+    isOAuthUser: boolean; 
+    email: string; 
+  }> => {
+    const response = await apiClient.get('/email/confirmation-status');
     return response.data;
   }
 };

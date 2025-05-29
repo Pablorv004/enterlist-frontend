@@ -165,7 +165,9 @@ const resendConfirmation = async () => {
   resendMessage.value = '';
   
   try {
-    await AuthService.resendEmailConfirmation(resendEmail.value);
+    // Note: The new email API uses JWT token to get user info, 
+    // but we still allow manual email entry for error cases
+    await AuthService.resendEmailConfirmation();
     resendSuccess.value = true;
     resendMessage.value = 'Confirmation email sent successfully! Please check your inbox.';
     
