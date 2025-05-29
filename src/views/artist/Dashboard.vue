@@ -17,6 +17,20 @@
                             <ion-card class="stats-card">
                                 <ion-card-content>
                                     <div class="stats-icon">
+                                        <ion-icon :icon="documentTextIcon"></ion-icon>
+                                    </div>
+                                    <div class="stats-info">
+                                        <div class="stats-value">{{ stats.total || 0 }}</div>
+                                        <div class="stats-label">Total</div>
+                                    </div>
+                                </ion-card-content>
+                            </ion-card>
+                        </ion-col>
+                        
+                        <ion-col size="12" size-md="3">
+                            <ion-card class="stats-card">
+                                <ion-card-content>
+                                    <div class="stats-icon">
                                         <ion-icon :icon="hourglassIcon"></ion-icon>
                                     </div>
                                     <div class="stats-info">
@@ -77,22 +91,11 @@
                                         <span>My Submissions</span>
                                     </ion-card-content>
                                 </ion-card>
-                            </ion-col>
-
-                            <ion-col size="6" size-md="3">
+                            </ion-col>                            <ion-col size="6" size-md="3">
                                 <ion-card button router-link="/artist/songs" class="action-card">
                                     <ion-card-content>
                                         <ion-icon :icon="musicalNotesIcon"></ion-icon>
                                         <span>My Songs</span>
-                                    </ion-card-content>
-                                </ion-card>
-                            </ion-col>
-
-                            <ion-col size="6" size-md="3">
-                                <ion-card button router-link="/balance" class="action-card">
-                                    <ion-card-content>
-                                        <ion-icon :icon="walletIcon"></ion-icon>
-                                        <span>Balance & Payments</span>
                                     </ion-card-content>
                                 </ion-card>
                             </ion-col>
@@ -199,15 +202,22 @@
                                         <img :src="song.cover_image_url || '/assets/default-album-cover.png'"
                                             :alt="song.title" class="song-img" />
                                         <div class="song-platform">
-                                            <ion-icon :icon="getPlatformIcon(song.platform_id)" class="platform-icon"></ion-icon>
+                                            <img :src="getPlatformIcon(song.platform_id)" 
+                                                :alt="getPlatformName(song.platform_id)" 
+                                                class="platform-icon" />
                                         </div>
                                     </div>
 
                                     <ion-card-content>
                                         <h3 class="song-name">{{ song.title }}</h3>
-                                        <p class="song-details">{{ song.album_name || 'Single' }}</p>
-                                        <div class="song-platform-name">
-                                            <span>{{ getPlatformName(song.platform_id) }}</span>
+                                        <div class="song-details">
+                                            <p class="song-album">{{ song.album_name || 'Single' }}</p>
+                                            <div class="song-platform-name">
+                                                <img :src="getPlatformIcon(song.platform_id)" 
+                                                    class="platform-icon-small"
+                                                    :alt="getPlatformName(song.platform_id)" />
+                                                <span>{{ getPlatformName(song.platform_id) }}</span>
+                                            </div>
                                         </div>
                                     </ion-card-content>
                                 </ion-card>
@@ -320,6 +330,7 @@ export default defineComponent({
         const songs = ref<Song[]>([]);
         const platforms = ref<Platform[]>([]);
         const stats = ref({
+            total: 0,
             pending: 0,
             approved: 0,
             rejected: 0
@@ -376,12 +387,15 @@ export default defineComponent({
         };        // Get platform icon based on platform ID
         const getPlatformIcon = (platformId: number) => {
             const platform = platforms.value.find(p => p.platform_id === platformId);
-            if (platform?.name.toLowerCase().includes('spotify')) {
+            const platformName = platform?.name?.toLowerCase() || '';
+
+            if (platformName.includes('spotify')) {
                 return spotifyLogo;
-            } else if (platform?.name.toLowerCase().includes('youtube')) {
+            } else if (platformName.includes('youtube')) {
                 return youtubeLogo;
+            } else {
+                return '/assets/logo.png';
             }
-            return musicalNotesIcon;
         };
 
         // Get platform name based on platform ID
@@ -417,6 +431,7 @@ export default defineComponent({
 
                 // Calculate stats
                 stats.value = {
+                    total: submissionStore.submissions.length,
                     pending: submissionStore.pendingSubmissions.length,
                     approved: submissionStore.approvedSubmissions.length,
                     rejected: submissionStore.rejectedSubmissions.length
@@ -563,19 +578,19 @@ export default defineComponent({
 }
 
 /* Use existing colors for the stats icons */
-.stats-icon:nth-child(1) {
+.stats-card:nth-child(1) .stats-icon {
+    background-color: var(--ion-color-primary);
+}
+
+.stats-card:nth-child(2) .stats-icon {
     background-color: var(--ion-color-warning);
 }
 
-.stats-icon:nth-child(2) {
-    background-color: var(--ion-color-tertiary);
-}
-
-.stats-icon:nth-child(3) {
+.stats-card:nth-child(3) .stats-icon {
     background-color: var(--ion-color-success);
 }
 
-.stats-icon:nth-child(4) {
+.stats-card:nth-child(4) .stats-icon {
     background-color: var(--ion-color-danger);
 }
 
@@ -767,7 +782,11 @@ export default defineComponent({
 .platform-icon {
     width: 16px;
     height: 16px;
-    color: white;
+}
+
+.platform-icon-small {
+    width: 12px;
+    height: 12px;
 }
 
 .song-name {
@@ -783,6 +802,11 @@ export default defineComponent({
     font-size: 0.8rem;
     color: var(--ion-color-medium);
     margin: 0 0 0.5rem;
+    text-align: center;
+}
+
+.song-album {
+    margin: 0 0 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -791,6 +815,10 @@ export default defineComponent({
 .song-platform-name {
     font-size: 0.75rem;
     color: var(--ion-color-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
 }
 
 /* Help Card */
