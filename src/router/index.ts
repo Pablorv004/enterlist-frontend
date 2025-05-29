@@ -42,6 +42,7 @@ const AdminSongs = () => import('@/views/admin/Songs.vue');
 const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
 const AdminTransactions = () => import('@/views/admin/Transactions.vue');
 const AdminPlatforms = () => import('@/views/admin/Platforms.vue');
+const AdminActions = () => import('@/views/admin/Actions.vue');
 
 // OAuth callback routes
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
@@ -217,6 +218,12 @@ const routes: Array<RouteRecordRaw> = [    {
         path: '/admin/platforms',
         name: 'AdminPlatforms',
         component: AdminPlatforms,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/actions',
+        name: 'AdminActions',
+        component: AdminActions,
         meta: { requiresAuth: true, role: 'admin' }
     },
       // Shared routes for all authenticated users
