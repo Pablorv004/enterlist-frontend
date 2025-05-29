@@ -361,10 +361,13 @@ export default defineComponent({
       target_playlist_id: '',
       target_song_id: '',
       reason: ''
-    });
-
-    const filteredActions = computed(() => {
-      let result = actions.value;      // Apply search filter
+    });    const filteredActions = computed(() => {
+      // Ensure actions.value is an array before processing
+      if (!Array.isArray(actions.value)) {
+        return [];
+      }
+      
+      let result = [...actions.value];      // Apply search filter
       if (searchTerm.value.trim()) {
         const search = searchTerm.value.toLowerCase();
         result = result.filter(action =>

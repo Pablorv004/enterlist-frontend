@@ -49,10 +49,9 @@ export default defineComponent({
       type: String,
       default: ''
     }
-  },
-  setup() {
+  },  setup() {
     const authStore = useAuthStore();
-    const showUserMenu = computed(() => authStore.isAuthenticated);
+    const showUserMenu = computed(() => authStore.isAuthenticated && !authStore.isAdmin);
     
     return {
       showUserMenu,

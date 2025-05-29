@@ -247,7 +247,12 @@ const genres = computed(() => {
 });
 
 const filteredSongs = computed(() => {
-    let filtered = songs.value;
+    // Ensure songs.value is an array before processing
+    if (!Array.isArray(songs.value)) {
+        return [];
+    }
+    
+    let filtered = [...songs.value];
 
     // Apply search filter
     if (searchQuery.value) {

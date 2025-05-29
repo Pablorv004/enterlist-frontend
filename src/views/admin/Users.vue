@@ -281,7 +281,12 @@ const saving = ref(false);
 
 // Computed properties
 const filteredUsers = computed(() => {
-  let filtered = users.value;
+  // Ensure users.value is an array before processing
+  if (!Array.isArray(users.value)) {
+    return [];
+  }
+  
+  let filtered = [...users.value];
 
   // Apply search filter
   if (searchQuery.value) {

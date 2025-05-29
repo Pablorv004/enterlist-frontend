@@ -329,7 +329,12 @@ const saving = ref(false);
 
 // Computed properties
 const filteredSubmissions = computed(() => {
-  let filtered = submissions.value;
+  // Ensure submissions.value is an array before processing
+  if (!Array.isArray(submissions.value)) {
+    return [];
+  }
+  
+  let filtered = [...submissions.value];
 
   // Apply search filter
   if (searchQuery.value) {

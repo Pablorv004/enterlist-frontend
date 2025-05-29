@@ -1,14 +1,13 @@
 import apiClient from './api';
 import { AdminAction, PaginatedResponse } from '@/types';
 
-export const AdminService = {
-  getAdminActions: async (skip = 0, take = 10): Promise<PaginatedResponse<AdminAction>> => {
-    const response = await apiClient.get(`/admin/actions?skip=${skip}&take=${take}`);
+export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Promise<PaginatedResponse<AdminAction>> => {
+    const response = await apiClient.get(`/api/admin-actions?skip=${skip}&take=${take}`);
     return response.data;
   },
 
   getAdminAction: async (id: string): Promise<AdminAction> => {
-    const response = await apiClient.get(`/admin/actions/${id}`);
+    const response = await apiClient.get(`/api/admin-actions/${id}`);
     return response.data;
   },
 
@@ -20,7 +19,7 @@ export const AdminService = {
     target_song_id?: string;
     reason?: string;
   }): Promise<AdminAction> => {
-    const response = await apiClient.post('/admin/actions', actionData);
+    const response = await apiClient.post('/api/admin-actions', actionData);
     return response.data;
   },
   // Admin dashboard stats

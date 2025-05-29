@@ -356,7 +356,12 @@ const selectedWithdrawal = ref<Withdrawal | null>(null);
 
 // Computed properties
 const filteredWithdrawals = computed(() => {
-  let filtered = withdrawals.value;
+  // Ensure we have an array to work with
+  if (!Array.isArray(withdrawals.value)) {
+    return [];
+  }
+
+  let filtered = [...withdrawals.value];
 
   // Apply search filter
   if (searchQuery.value) {
@@ -378,6 +383,7 @@ const filteredWithdrawals = computed(() => {
   if (methodFilter.value) {
     filtered = filtered.filter(withdrawal => withdrawal.method === methodFilter.value);
   }
+  
   // Apply sorting
   filtered.sort((a, b) => {
     const aVal = a[sortColumn.value as keyof Withdrawal] ?? '';

@@ -60,13 +60,6 @@
                     </li>
                     
                     <li class="nav-item">
-                        <router-link to="/admin/platforms" class="nav-link" :class="{ active: activeTab === 'platforms' }">
-                            <ion-icon :icon="globeIcon" class="nav-icon"></ion-icon>
-                            <span class="nav-text">Platform RUD</span>
-                        </router-link>
-                    </li>
-                    
-                    <li class="nav-item">
                         <router-link to="/admin/actions" class="nav-link" :class="{ active: activeTab === 'actions' }">
                             <ion-icon :icon="clipboardIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Admin Actions</span>
@@ -75,15 +68,15 @@
                 </ul>
             </nav>
         </div>
-        
-        <div class="panel-footer">
-            <div class="user-info">
+          <div class="panel-footer">
+            <button class="user-info logout-button" @click="handleLogout">
                 <ion-icon :icon="personCircleIcon" class="user-avatar"></ion-icon>
                 <div class="user-details">
                     <div class="username">{{ user?.username }}</div>
                     <div class="user-role">Administrator</div>
                 </div>
-            </div>
+                <ion-icon :icon="logOutIcon" class="logout-icon"></ion-icon>
+            </button>
         </div>
     </div>
 </template>
@@ -93,9 +86,11 @@ import { defineComponent, computed } from 'vue';
 import { IonIcon } from '@ionic/vue';
 import {
     shieldCheckmark, statsChart, people, list, musicalNotes, cash, card,
-    documentText, globe, clipboard, personCircle
+    documentText, globe, clipboard, personCircle, logOut
 } from 'ionicons/icons';
 import { useAuthStore } from '@/store/auth';
+import { useRouter } from 'vue-router';
+import { alertController } from '@ionic/vue';
 
 export default defineComponent({
     name: 'AdminSidePanel',
@@ -108,13 +103,36 @@ export default defineComponent({
             required: false,
             default: ''
         }
-    },
-    setup() {
+    },    setup() {
         const authStore = useAuthStore();
+        const router = useRouter();
         const user = computed(() => authStore.user);
+
+        const handleLogout = async () => {
+            const alert = await alertController.create({
+                header: 'Logout',
+                message: 'Are you sure you want to logout?',
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        role: 'cancel'
+                    },
+                    {
+                        text: 'Logout',
+                        role: 'destructive',
+                        handler: async () => {
+                            await authStore.logout();
+                            router.push('/login');
+                        }
+                    }
+                ]
+            });
+            await alert.present();
+        };
 
         return {
             user,
+            handleLogout,
             // Icons
             shieldCheckmarkIcon: shieldCheckmark,
             statsChartIcon: statsChart,
@@ -126,7 +144,8 @@ export default defineComponent({
             documentTextIcon: documentText,
             globeIcon: globe,
             clipboardIcon: clipboard,
-            personCircleIcon: personCircle
+            personCircleIcon: personCircle,
+            logOutIcon: logOut
         };
     }
 });
@@ -239,10 +258,25 @@ export default defineComponent({
     background: rgba(0, 0, 0, 0.1);
 }
 
+.logout-button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .user-info {
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 8px;
 }
 
 .user-avatar {
@@ -252,6 +286,16 @@ export default defineComponent({
 
 .user-details {
     flex: 1;
+}
+
+.logout-icon {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.2s ease;
+}
+
+.logout-button:hover .logout-icon {
+    color: #e74c3c;
 }
 
 .username {

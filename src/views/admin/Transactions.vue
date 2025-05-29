@@ -321,7 +321,12 @@ const selectedTransaction = ref<Transaction | null>(null);
 
 // Computed properties
 const filteredTransactions = computed(() => {
-  let filtered = transactions.value;
+  // Ensure we have an array to work with
+  if (!Array.isArray(transactions.value)) {
+    return [];
+  }
+
+  let filtered = [...transactions.value];
 
   // Apply search filter
   if (searchQuery.value) {
@@ -344,6 +349,7 @@ const filteredTransactions = computed(() => {
   if (statusFilter.value) {
     filtered = filtered.filter(transaction => transaction.status === statusFilter.value);
   }
+  
   // Apply sorting
   filtered.sort((a, b) => {
     const aVal = a[sortColumn.value as keyof Transaction] ?? '';
