@@ -367,7 +367,7 @@ export default defineComponent({
         });        const rolesChartData = computed(() => {
             if (!statistics.value?.charts?.usersByRole) return null;
             
-            const data = statistics.value.charts.usersByRole;
+            const data = statistics.value.charts.usersByRole.filter((item: any) => item.role !== 'admin');
             
             const colors = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
             
@@ -378,6 +378,8 @@ export default defineComponent({
                             return 'Playlist Maker';
                         case 'artist':
                             return 'Artist';
+                        case null:
+                            return 'Unchosen';
                         default:
                             return item.role;
                     }
