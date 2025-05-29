@@ -364,17 +364,27 @@ export default defineComponent({
                     ]
                 }]
             };
-        });
-
-        const rolesChartData = computed(() => {
+        });        const rolesChartData = computed(() => {
             if (!statistics.value?.charts?.usersByRole) return null;
             
-            const data = statistics.value.charts.usersByRole.filter((item: any) => item.role !== 'admin');
+            const data = statistics.value.charts.usersByRole;
+            
+            const colors = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
+            
             return {
-                labels: data.map((item: any) => item.role === 'playlist_maker' ? 'Playlist Maker' : 'Artist'),
+                labels: data.map((item: any) => {
+                    switch(item.role) {
+                        case 'playlist_maker':
+                            return 'Playlist Maker';
+                        case 'artist':
+                            return 'Artist';
+                        default:
+                            return item.role;
+                    }
+                }),
                 datasets: [{
                     data: data.map((item: any) => item.count),
-                    backgroundColor: ['#36A2EB', '#FF6384']
+                    backgroundColor: colors.slice(0, data.length)
                 }]
             };
         });
