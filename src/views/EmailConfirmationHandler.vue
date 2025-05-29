@@ -110,9 +110,11 @@ import {
   closeCircleOutline,
 } from 'ionicons/icons';
 import { AuthService } from '@/services/AuthService';
+import { useAuthStore } from '@/store';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const confirmationState = ref<'loading' | 'success' | 'error'>('loading');
 const errorMessage = ref('');
@@ -133,6 +135,10 @@ onMounted(async () => {
   
   try {
     await AuthService.confirmEmail(token);
+    
+    // IMPORTANT: Refresh auth store to get updated email_confirmed status
+    await authStore.checkAuth();
+    
     confirmationState.value = 'success';
     
     // Show success toast
