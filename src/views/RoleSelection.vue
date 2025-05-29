@@ -95,18 +95,12 @@ export default defineComponent({
     },    setup() {
         const router = useRouter();
         const route = useRoute();
-        const authStore = useAuthStore();
-
-        const selectedRole = ref('');
+        const authStore = useAuthStore();        const selectedRole = ref('');
         const loading = ref(false);
         const error = ref('');
-        const provider = ref(route.query.provider as string || '');
-        const oauthData = ref({
-            provider: route.query.provider as string,
-            status: route.query.status as string,
-        });
-
-        onMounted(async () => {
+        const provider = ref(route.query.provider as string || '');onMounted(async () => {
+            let shouldProceedWithRoleCheck = true;
+            
             // Handle OAuth authentication if we have OAuth parameters
             if (route.query.access_token && route.query.user && route.query.status === 'success') {
                 try {
@@ -121,7 +115,7 @@ export default defineComponent({
                     await authStore.setAuthData(accessToken, userData);
                     
                     // Clear the URL parameters
-                    router.replace({ 
+                    await router.replace({ 
                         name: 'RoleSelection',
                         query: {} 
                     });
@@ -130,17 +124,21 @@ export default defineComponent({
                     console.error('OAuth authentication failed:', err);
                     error.value = 'Authentication failed. Please try again.';
                     // Redirect to login on error
-                    router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                    await router.push({ name: 'Login', query: { error: 'Authentication failed' } });
+                    shouldProceedWithRoleCheck = false;
                 }
                 finally {
                     loading.value = false;
                 }
             }
             
-            // Check if user is already authenticated and has a role
-            if (authStore.isAuthenticated && authStore.user?.role && 
-                (authStore.isArtist || authStore.isPlaylistMaker)) {
-                router.push('/dashboard');
+            // Only proceed with role checking if OAuth handling was successful or not needed
+            if (shouldProceedWithRoleCheck) {
+                // Check if user is already authenticated and has a role
+                if (authStore.isAuthenticated && authStore.user?.role && 
+                    (authStore.isArtist || authStore.isPlaylistMaker)) {
+                    await router.push('/dashboard');
+                }
             }
         });
 
