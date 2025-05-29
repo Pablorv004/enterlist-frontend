@@ -6,53 +6,58 @@
                 <h2>Admin Panel</h2>
             </div>
         </div>
-        
+
         <div class="panel-content">
             <nav class="admin-nav">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <router-link to="/admin/dashboard" class="nav-link" :class="{ active: activeTab === 'dashboard' }">
+                        <router-link to="/admin/dashboard" class="nav-link"
+                            :class="{ active: activeTab === 'dashboard' }">
                             <ion-icon :icon="statsChartIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Dashboard</span>
                         </router-link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <router-link to="/admin/users" class="nav-link" :class="{ active: activeTab === 'users' }">
                             <ion-icon :icon="peopleIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">User RUD</span>
                         </router-link>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <router-link to="/admin/playlists" class="nav-link" :class="{ active: activeTab === 'playlists' }">
+                        <router-link to="/admin/playlists" class="nav-link"
+                            :class="{ active: activeTab === 'playlists' }">
                             <ion-icon :icon="listIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Playlist RUD</span>
                         </router-link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <router-link to="/admin/songs" class="nav-link" :class="{ active: activeTab === 'songs' }">
                             <ion-icon :icon="musicalNotesIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Song RUD</span>
                         </router-link>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <router-link to="/admin/withdrawals" class="nav-link" :class="{ active: activeTab === 'withdrawals' }">
+                        <router-link to="/admin/withdrawals" class="nav-link"
+                            :class="{ active: activeTab === 'withdrawals' }">
                             <ion-icon :icon="cashIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Withdrawal RUD</span>
                         </router-link>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <router-link to="/admin/transactions" class="nav-link" :class="{ active: activeTab === 'transactions' }">
+                        <router-link to="/admin/transactions" class="nav-link"
+                            :class="{ active: activeTab === 'transactions' }">
                             <ion-icon :icon="cardIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Transaction RUD</span>
                         </router-link>
                     </li>
-                      <li class="nav-item">
-                        <router-link to="/admin/submissions" class="nav-link" :class="{ active: activeTab === 'submissions' }">
+                    <li class="nav-item">
+                        <router-link to="/admin/submissions" class="nav-link"
+                            :class="{ active: activeTab === 'submissions' }">
                             <ion-icon :icon="documentTextIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Submission RUD</span>
                         </router-link>
@@ -66,7 +71,7 @@
                 </ul>
             </nav>
         </div>
-          <div class="panel-footer">
+        <div class="panel-footer">
             <button class="user-info logout-button" @click="handleLogout">
                 <ion-icon :icon="personCircleIcon" class="user-avatar"></ion-icon>
                 <div class="user-details">
@@ -101,7 +106,7 @@ export default defineComponent({
             required: false,
             default: ''
         }
-    },    setup() {
+    }, setup() {
         const authStore = useAuthStore();
         const router = useRouter();
         const user = computed(() => authStore.user);
@@ -323,39 +328,39 @@ export default defineComponent({
         flex-direction: row;
         z-index: 1000;
     }
-    
+
     .panel-header {
         padding: 12px 16px;
         border-bottom: none;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     .logo-section h2 {
         font-size: 1.1rem;
     }
-    
+
     .admin-logo {
         font-size: 1.5rem;
     }
-    
+
     .panel-content {
         flex: 1;
         padding: 0;
         overflow-x: auto;
         overflow-y: hidden;
     }
-    
+
     .nav-list {
         display: flex;
         gap: 4px;
         padding: 12px 16px;
     }
-    
+
     .nav-item {
         margin-bottom: 0;
         white-space: nowrap;
     }
-    
+
     .nav-link {
         padding: 8px 12px;
         border-left: none;
@@ -363,27 +368,27 @@ export default defineComponent({
         border-radius: 6px;
         min-width: fit-content;
     }
-    
+
     .nav-link:hover,
     .nav-link.active {
         border-left: none;
         border-bottom-color: #3498db;
     }
-    
+
     .nav-link.active::before {
         display: none;
     }
-    
+
     .nav-text {
         font-size: 0.85rem;
     }
-    
+
     .panel-footer {
         padding: 12px 16px;
         border-top: none;
         border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     .user-details {
         display: none;
     }
@@ -394,7 +399,7 @@ export default defineComponent({
     .nav-text {
         display: none;
     }
-    
+
     .nav-link {
         padding: 8px;
         justify-content: center;

@@ -512,10 +512,12 @@ export default defineComponent({
 
 .welcome-header {
     text-align: center;
+    align-items: center;
     margin-bottom: 24px;
 }
 
 .welcome-header h1 {
+    text-align: center;
     margin: 0 0 8px 0;
     color: #333;
     font-size: 2rem;

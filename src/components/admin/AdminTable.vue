@@ -6,38 +6,24 @@
         <slot name="actions"></slot>
       </div>
     </div>
-    
-    <v-data-table
-      :headers="vuetifyHeaders"
-      :items="rows"
-      :loading="loading"
-      :search="search"
-      :items-per-page="itemsPerPage"
-      :items-per-page-options="itemsPerPageOptions"
-      :show-current-page="true"
-      class="admin-data-table"
-      hover
-    >
+
+    <v-data-table :headers="vuetifyHeaders" :items="rows" :loading="loading" :search="search"
+      :items-per-page="itemsPerPage" :items-per-page-options="itemsPerPageOptions" :show-current-page="true"
+      class="admin-data-table" hover>
       <!-- Search slot -->
       <template v-slot:top>
         <div class="table-controls" v-if="searchEnabled">
-          <v-text-field
-            v-model="search"
-            :placeholder="`Search ${title.toLowerCase()}...`"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            hide-details
-            clearable
-            class="search-field"
-          ></v-text-field>
+          <v-text-field v-model="search" :placeholder="`Search ${title.toLowerCase()}...`"
+            prepend-inner-icon="mdi-magnify" variant="outlined" hide-details clearable
+            class="search-field"></v-text-field>
         </div>
-      </template>      <!-- Custom column slots -->
+      </template> <!-- Custom column slots -->
       <template v-for="(column, index) in columns" :key="column.field" v-slot:[`item.${column.field}`]="{ item }">
         <slot name="table-row" :row="item" :column="column" :value="(item as any)[column.field]" :formattedRow="item">
           {{ formatCellValue((item as any)[column.field], column) }}
         </slot>
       </template>
-      
+
       <!-- Empty state -->
       <template v-slot:no-data>
         <div class="empty-state">
@@ -46,7 +32,7 @@
           <p>{{ emptyMessage || `There are no ${title.toLowerCase()} to display.` }}</p>
         </div>
       </template>
-      
+
       <!-- Loading state -->
       <template v-slot:loading>
         <div class="loading-state">
