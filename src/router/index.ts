@@ -41,6 +41,7 @@ const AdminPlaylists = () => import('@/views/admin/Playlists.vue');
 const AdminSongs = () => import('@/views/admin/Songs.vue');
 const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
 const AdminTransactions = () => import('@/views/admin/Transactions.vue');
+const AdminWithdrawals = () => import('@/views/admin/Withdrawals.vue');
 const AdminPlatforms = () => import('@/views/admin/Platforms.vue');
 const AdminActions = () => import('@/views/admin/Actions.vue');
 
@@ -213,17 +214,21 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'AdminTransactions',
         component: AdminTransactions,
         meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
+    },    {
         path: '/admin/platforms',
         name: 'AdminPlatforms',
-        component: AdminPlatforms,
-        meta: { requiresAuth: true, role: 'admin' }
+        component: AdminPlatforms,        meta: { requiresAuth: true, role: 'admin' }
     },
     {
         path: '/admin/actions',
         name: 'AdminActions',
         component: AdminActions,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/withdrawals',
+        name: 'AdminWithdrawals',
+        component: AdminWithdrawals,
         meta: { requiresAuth: true, role: 'admin' }
     },
       // Shared routes for all authenticated users

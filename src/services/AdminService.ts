@@ -10,7 +10,6 @@ export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Pr
     const response = await apiClient.get(`/admin-actions/${id}`);
     return response.data;
   },
-
   createAdminAction: async (actionData: {
     admin_user_id: string;
     action_type: string;
@@ -21,7 +20,11 @@ export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Pr
   }): Promise<AdminAction> => {
     const response = await apiClient.post('/admin-actions', actionData);
     return response.data;
-  },  // Admin dashboard stats
+  },
+
+  deleteAdminAction: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin-actions/${id}`);
+  },// Admin dashboard stats
   getDashboardStats: async (): Promise<any> => {
     const response = await apiClient.get('/admin/dashboard-stats');
     return response.data;

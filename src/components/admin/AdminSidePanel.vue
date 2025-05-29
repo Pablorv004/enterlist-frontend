@@ -51,18 +51,23 @@
                             <span class="nav-text">Transaction RUD</span>
                         </router-link>
                     </li>
-                    
-                    <li class="nav-item">
+                      <li class="nav-item">
                         <router-link to="/admin/submissions" class="nav-link" :class="{ active: activeTab === 'submissions' }">
                             <ion-icon :icon="documentTextIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Submission RUD</span>
+                        </router-link>
+                    </li>
+                      <li class="nav-item">
+                        <router-link to="/admin/platforms" class="nav-link" :class="{ active: activeTab === 'platforms' }">
+                            <ion-icon :icon="globeIcon" class="nav-icon"></ion-icon>
+                            <span class="nav-text">Platform RUD</span>
                         </router-link>
                     </li>
                     
                     <li class="nav-item">
                         <router-link to="/admin/actions" class="nav-link" :class="{ active: activeTab === 'actions' }">
                             <ion-icon :icon="clipboardIcon" class="nav-icon"></ion-icon>
-                            <span class="nav-text">Admin Actions</span>
+                            <span class="nav-text">Actions RUD</span>
                         </router-link>
                     </li>
                 </ul>
