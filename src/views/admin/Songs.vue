@@ -242,6 +242,10 @@ const saving = ref(false);
 
 // Computed properties
 const genres = computed(() => {
+    // Ensure songs.value is an array before processing
+    if (!Array.isArray(songs.value)) {
+        return [];
+    }
     const uniqueGenres = [...new Set(songs.value.map(s => s.genre))];
     return uniqueGenres.sort();
 });
