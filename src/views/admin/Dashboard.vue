@@ -418,7 +418,7 @@ export default defineComponent({
         });
 
         const formatCurrency = (amount: number) => {
-            return (amount / 100).toFixed(2);
+            return amount.toFixed(2);
         };
 
         const loadStatistics = async () => {
