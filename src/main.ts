@@ -10,6 +10,21 @@ window.process.env.BASE_URL = import.meta.env.BASE_URL;
 
 import { IonicVue } from '@ionic/vue';
 
+// Vuetify
+import 'vuetify/styles';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import '@mdi/font/css/materialdesignicons.css';
+
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'light'
+  }
+});
+
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
 
@@ -31,6 +46,7 @@ import './theme/variables.css';
 
 const app = createApp(App)
   .use(IonicVue)
+  .use(vuetify)
   .use(pinia)
   .use(router);
 

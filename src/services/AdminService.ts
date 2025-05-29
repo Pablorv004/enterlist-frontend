@@ -21,126 +21,193 @@ export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Pr
   }): Promise<AdminAction> => {
     const response = await apiClient.post('/api/admin-actions', actionData);
     return response.data;
-  },
-  // Admin dashboard stats
+  },  // Admin dashboard stats
   getDashboardStats: async (): Promise<any> => {
-    const response = await apiClient.get('/admin/dashboard-stats');
+    const response = await apiClient.get('/api/admin/dashboard-stats');
     return response.data;
   },
 
   getStatistics: async (): Promise<any> => {
-    const response = await apiClient.get('/admin/statistics');
+    const response = await apiClient.get('/api/admin/statistics');
     return response.data;
   },
-  getWithdrawals: async (): Promise<any[]> => {
-    const response = await apiClient.get('/admin/withdrawals');
+
+  getWithdrawals: async (skip = 0, take = 10, status?: string): Promise<any> => {
+    let url = `/api/admin/withdrawals?skip=${skip}&take=${take}`;
+    if (status) {
+      url += `&status=${status}`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
-  processWithdrawal: async (withdrawalId: number): Promise<any> => {
-    const response = await apiClient.put(`/admin/withdrawals/${withdrawalId}/process`);
+
+  processWithdrawal: async (withdrawalId: string, status: 'completed' | 'failed', notes?: string): Promise<any> => {
+    const response = await apiClient.put(`/api/admin/withdrawals/${withdrawalId}/process`, { status, notes });
     return response.data;
   },
 
   // User management
-  getUsers: async (): Promise<any[]> => {
-    const response = await apiClient.get('/users');
+  getUsers: async (skip = 0, take = 10): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/users?skip=${skip}&take=${take}`);
     return response.data;
   },
 
-  updateUser: async (userId: number, userData: any): Promise<any> => {
-    const response = await apiClient.put(`/users/${userId}`, userData);
+  getUser: async (userId: string): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/users/${userId}`);
     return response.data;
   },
 
-  deleteUser: async (userId: number): Promise<void> => {
-    await apiClient.delete(`/users/${userId}`);
+  updateUser: async (userId: string, userData: any): Promise<any> => {
+    const response = await apiClient.put(`/api/admin/users/${userId}`, userData);
+    return response.data;
+  },
+
+  deleteUser: async (userId: string): Promise<void> => {
+    await apiClient.delete(`/api/admin/users/${userId}`);
+  },
+
+  suspendUser: async (userId: string, reason: string): Promise<void> => {
+    await apiClient.post(`/api/admin/users/${userId}/suspend`, { reason });
+  },
+
+  reactivateUser: async (userId: string): Promise<void> => {
+    await apiClient.post(`/api/admin/users/${userId}/reactivate`);
   },
 
   // Playlist management
-  getPlaylists: async (): Promise<any[]> => {
-    const response = await apiClient.get('/playlists');
+  getPlaylists: async (skip = 0, take = 10): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/playlists?skip=${skip}&take=${take}`);
     return response.data;
   },
 
-  updatePlaylist: async (playlistId: number, playlistData: any): Promise<any> => {
-    const response = await apiClient.put(`/playlists/${playlistId}`, playlistData);
+  getPlaylist: async (playlistId: string): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/playlists/${playlistId}`);
     return response.data;
   },
 
-  deletePlaylist: async (playlistId: number): Promise<void> => {
-    await apiClient.delete(`/playlists/${playlistId}`);
+  updatePlaylist: async (playlistId: string, playlistData: any): Promise<any> => {
+    const response = await apiClient.put(`/api/admin/playlists/${playlistId}`, playlistData);
+    return response.data;
+  },
+
+  deletePlaylist: async (playlistId: string): Promise<void> => {
+    await apiClient.delete(`/api/admin/playlists/${playlistId}`);
+  },
+
+  flagPlaylist: async (playlistId: string, reason: string): Promise<void> => {
+    await apiClient.post(`/api/admin/playlists/${playlistId}/flag`, { reason });
+  },
+
+  unflagPlaylist: async (playlistId: string): Promise<void> => {
+    await apiClient.post(`/api/admin/playlists/${playlistId}/unflag`);
   },
 
   // Song management
-  getSongs: async (): Promise<any[]> => {
-    const response = await apiClient.get('/songs');
+  getSongs: async (skip = 0, take = 10): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/songs?skip=${skip}&take=${take}`);
     return response.data;
   },
 
-  updateSong: async (songId: number, songData: any): Promise<any> => {
-    const response = await apiClient.put(`/songs/${songId}`, songData);
+  getSong: async (songId: string): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/songs/${songId}`);
     return response.data;
   },
 
-  deleteSong: async (songId: number): Promise<void> => {
-    await apiClient.delete(`/songs/${songId}`);
+  updateSong: async (songId: string, songData: any): Promise<any> => {
+    const response = await apiClient.put(`/api/admin/songs/${songId}`, songData);
+    return response.data;
+  },
+
+  deleteSong: async (songId: string): Promise<void> => {
+    await apiClient.delete(`/api/admin/songs/${songId}`);
+  },
+
+  flagSong: async (songId: string, reason: string): Promise<void> => {
+    await apiClient.post(`/api/admin/songs/${songId}/flag`, { reason });
+  },
+
+  unflagSong: async (songId: string): Promise<void> => {
+    await apiClient.post(`/api/admin/songs/${songId}/unflag`);
   },
 
   // Submission management
-  getSubmissions: async (): Promise<any[]> => {
-    const response = await apiClient.get('/submissions');
+  getSubmissions: async (skip = 0, take = 10, status?: string): Promise<any> => {
+    let url = `/api/admin/submissions?skip=${skip}&take=${take}`;
+    if (status) {
+      url += `&status=${status}`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
 
-  updateSubmission: async (submissionId: number, submissionData: any): Promise<any> => {
-    const response = await apiClient.put(`/submissions/${submissionId}`, submissionData);
+  getSubmission: async (submissionId: string): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/submissions/${submissionId}`);
     return response.data;
   },
 
-  deleteSubmission: async (submissionId: number): Promise<void> => {
-    await apiClient.delete(`/submissions/${submissionId}`);
+  updateSubmission: async (submissionId: string, submissionData: any): Promise<any> => {
+    const response = await apiClient.put(`/api/admin/submissions/${submissionId}`, submissionData);
+    return response.data;
+  },
+
+  deleteSubmission: async (submissionId: string): Promise<void> => {
+    await apiClient.delete(`/api/admin/submissions/${submissionId}`);
   },
 
   // Transaction management
-  getTransactions: async (): Promise<any[]> => {
-    const response = await apiClient.get('/transactions');
+  getTransactions: async (skip = 0, take = 10, status?: string): Promise<any> => {
+    let url = `/api/admin/transactions?skip=${skip}&take=${take}`;
+    if (status) {
+      url += `&status=${status}`;
+    }
+    const response = await apiClient.get(url);
     return response.data;
   },
+
+  getTransaction: async (transactionId: string): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/transactions/${transactionId}`);
+    return response.data;
+  },
+
   // Platform management
   getPlatforms: async (): Promise<any[]> => {
-    const response = await apiClient.get('/platforms');
+    const response = await apiClient.get('/api/admin/platforms');
+    return response.data;
+  },
+
+  getPlatform: async (platformId: number): Promise<any> => {
+    const response = await apiClient.get(`/api/admin/platforms/${platformId}`);
     return response.data;
   },
 
   createPlatform: async (platformData: any): Promise<any> => {
-    const response = await apiClient.post('/platforms', platformData);
+    const response = await apiClient.post('/api/admin/platforms', platformData);
     return response.data;
   },
 
   updatePlatform: async (platformId: number, platformData: any): Promise<any> => {
-    const response = await apiClient.put(`/platforms/${platformId}`, platformData);
+    const response = await apiClient.put(`/api/admin/platforms/${platformId}`, platformData);
     return response.data;
   },
 
   deletePlatform: async (platformId: number): Promise<void> => {
-    await apiClient.delete(`/platforms/${platformId}`);
+    await apiClient.delete(`/api/admin/platforms/${platformId}`);
   },
 
-  // Admin user management methods
-  suspendUser: async (userId: string, reason: string): Promise<void> => {
-    await apiClient.post(`/admin/users/${userId}/suspend`, { reason });
-  },
-
-  reactivateUser: async (userId: string): Promise<void> => {
-    await apiClient.post(`/admin/users/${userId}/reactivate`);
-  },
-
-  // Admin content moderation methods
+  // Admin content moderation methods (kept for backward compatibility)
   flagContent: async (contentType: 'playlist' | 'song', contentId: string, reason: string): Promise<void> => {
-    await apiClient.post(`/admin/${contentType}s/${contentId}/flag`, { reason });
+    if (contentType === 'playlist') {
+      await AdminService.flagPlaylist(contentId, reason);
+    } else if (contentType === 'song') {
+      await AdminService.flagSong(contentId, reason);
+    }
   },
 
   unflagContent: async (contentType: 'playlist' | 'song', contentId: string): Promise<void> => {
-    await apiClient.post(`/admin/${contentType}s/${contentId}/unflag`);
+    if (contentType === 'playlist') {
+      await AdminService.unflagPlaylist(contentId);
+    } else if (contentType === 'song') {
+      await AdminService.unflagSong(contentId);
+    }
   }
 };

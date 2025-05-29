@@ -22,14 +22,15 @@
     "@capacitor/status-bar": "^5.0.0",
     "@ionic/vue": "^7.0.0",
     "@ionic/vue-router": "^7.0.0",
-    "@tanstack/vue-table": "^8.21.3",
+    "@mdi/font": "^7.4.47",
     "axios": "^1.6.0",
     "chart.js": "^4.4.9",
     "enterlist-frontend": "file:",
     "pinia": "^2.1.0",
     "vue": "^3.3.0",
     "vue-chartjs": "^5.0.0",
-    "vue-router": "^4.2.0"
+    "vue-router": "^4.2.0",
+    "vuetify": "^3.8.7"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.0.0",
