@@ -6,8 +6,6 @@
             
             <!-- Main Content -->
             <div class="main-content">
-                <app-header title="Admin Dashboard" :show-user-menu="true"></app-header>
-                
                 <ion-content :fullscreen="true" class="dashboard-content">
                     <div class="dashboard-container">
                         <!-- Welcome Header -->
