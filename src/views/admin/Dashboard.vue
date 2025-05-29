@@ -545,6 +545,7 @@ export default defineComponent({
 
 .stats-grid {
     margin-bottom: 32px;
+    --ion-grid-padding: 8px;
 }
 
 .stats-card {
@@ -605,6 +606,10 @@ export default defineComponent({
 
 .charts-section {
     margin-top: 32px;
+}
+
+.charts-section ion-grid {
+    --ion-grid-padding: 8px;
 }
 
 .chart-card {
