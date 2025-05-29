@@ -700,35 +700,45 @@ export default defineComponent({
 
                 if (!selectedPaymentMethodId.value) {
                     throw new Error('Please select a payment method');
-                }                // First, create a draft submission to get the submissionId
-                const draftSubmission = await SubmissionService.createSubmission({
-                    artist_id: authStore.user.user_id,
-                    playlist_id: selectedPlaylistId.value!,
-                    song_id: selectedSongId.value!,
-                    submission_message: submissionMessage.value.trim() || undefined
-                });
-
-                // Create PayPal payment using submissionId and paymentMethodId
-                const paymentData = await TransactionService.createPayPalPayment(
-                    draftSubmission.submission_id,
-                    selectedPaymentMethodId.value
-                );
-
-                // Store submission data in sessionStorage to retrieve after payment
-                const submissionData = {
-                    submissionId: draftSubmission.submission_id,
-                    paymentId: paymentData.paymentId,
-                    paymentMethodId: selectedPaymentMethodId.value
-                };
-                sessionStorage.setItem('enterlist_submission_data', JSON.stringify(submissionData));
-
-                // Redirect to PayPal for payment approval
-                if (paymentData.approvalUrl) {
-                    window.location.href = paymentData.approvalUrl;
-                } else {
-                    throw new Error('PayPal payment creation failed - no approval URL received');
                 }
 
+                // First, create a draft submission to get the submissionId
+                try {
+                    const draftSubmission = await SubmissionService.createSubmission({
+                        artist_id: authStore.user.user_id,
+                        playlist_id: selectedPlaylistId.value!,
+                        song_id: selectedSongId.value!,
+                        submission_message: submissionMessage.value.trim() || undefined
+                    });
+
+                    // Create PayPal payment using submissionId and paymentMethodId
+                    const paymentData = await TransactionService.createPayPalPayment(
+                        draftSubmission.submission_id,
+                        selectedPaymentMethodId.value
+                    );
+
+                    // Store submission data in sessionStorage to retrieve after payment
+                    const submissionData = {
+                        submissionId: draftSubmission.submission_id,
+                        paymentId: paymentData.paymentId,
+                        paymentMethodId: selectedPaymentMethodId.value
+                    };
+                    sessionStorage.setItem('enterlist_submission_data', JSON.stringify(submissionData));
+
+                    // Redirect to PayPal for payment approval
+                    if (paymentData.approvalUrl) {
+                        window.location.href = paymentData.approvalUrl;
+                    } else {
+                        throw new Error('PayPal payment creation failed - no approval URL received');
+                    }
+                } catch (err: any) {
+                    // Check if there's a response with a message (like 409 conflict)
+                    if (err.response && err.response.data && err.response.data.message) {
+                        throw new Error(err.response.data.message);
+                    } else {
+                        throw err; // Re-throw if it's not a response error with message
+                    }
+                }
             } catch (err) {
                 let errorMessage = 'Failed to process payment';
 
@@ -736,7 +746,7 @@ export default defineComponent({
                     errorMessage = err.message;
                 }
 
-                showErrorAlert('Payment Failed', errorMessage);
+                showErrorAlert('Submission Failed', errorMessage);
                 console.error(err);
             } finally {
                 isSubmitting.value = false;
