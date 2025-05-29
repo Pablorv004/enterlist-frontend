@@ -389,11 +389,42 @@ export default defineComponent({
             .map(id => id.toString());
           
           if (selectedTrackIds.length > 0) {
-            await SpotifyService.importTracks(selectedTrackIds);
-          }
-          
-          if (isComponentMounted.value) {
-            showToast(`Successfully imported ${selectedTrackIds.length} tracks from Spotify`, 'success');
+            const result = await SpotifyService.importTracks(selectedTrackIds);
+            
+            if (isComponentMounted.value) {
+              // Show detailed results
+              let message = '';
+              let color = 'success';
+              
+              if (result.imported && result.imported.length > 0) {
+                message += `Successfully imported ${result.imported.length} new song(s). `;
+              }
+              
+              if (result.updated && result.updated.length > 0) {
+                message += `Updated ${result.updated.length} existing song(s). `;
+              }
+              
+              if (result.failed && result.failed.length > 0) {
+                color = 'warning';
+                message += `${result.failed.length} song(s) failed to import. `;
+                  // Show details about failed imports
+                const failedDetails = result.failed.map((f: any) => `${f.name || f.id}: ${f.reason || 'Unknown error'}`).join('\n');
+                console.warn('Failed song imports:', failedDetails);
+                
+                // Show detailed error for conflict issues
+                if (result.failed.some((f: any) => f.reason && f.reason.includes('already registered'))) {
+                  showToast('Some songs are already owned by other users. Check console for details.', 'danger');
+                  return;
+                }
+              }
+              
+              if (!message) {
+                message = 'No songs were processed.';
+                color = 'warning';
+              }
+              
+              showToast(message.trim(), color);
+            }
           }
         } 
         else if (selectedPlatform.value === 'youtube') {
@@ -404,11 +435,42 @@ export default defineComponent({
             .map(id => id.toString());
           
           if (selectedVideoIds.length > 0) {
-            await YouTubeService.importVideos(selectedVideoIds);
-          }
-          
-          if (isComponentMounted.value) {
-            showToast(`Successfully imported ${selectedVideoIds.length} videos from YouTube`, 'success');
+            const result = await YouTubeService.importVideos(selectedVideoIds);
+            
+            if (isComponentMounted.value) {
+              // Show detailed results
+              let message = '';
+              let color = 'success';
+              
+              if (result.imported && result.imported.length > 0) {
+                message += `Successfully imported ${result.imported.length} new video(s). `;
+              }
+              
+              if (result.updated && result.updated.length > 0) {
+                message += `Updated ${result.updated.length} existing video(s). `;
+              }
+              
+              if (result.failed && result.failed.length > 0) {
+                color = 'warning';
+                message += `${result.failed.length} video(s) failed to import. `;
+                  // Show details about failed imports
+                const failedDetails = result.failed.map((f: any) => `${f.name || f.id}: ${f.reason || 'Unknown error'}`).join('\n');
+                console.warn('Failed video imports:', failedDetails);
+                
+                // Show detailed error for conflict issues
+                if (result.failed.some((f: any) => f.reason && f.reason.includes('already registered'))) {
+                  showToast('Some videos are already owned by other users. Check console for details.', 'danger');
+                  return;
+                }
+              }
+              
+              if (!message) {
+                message = 'No videos were processed.';
+                color = 'warning';
+              }
+              
+              showToast(message.trim(), color);
+            }
           }
         }
         
@@ -416,10 +478,18 @@ export default defineComponent({
         if (isComponentMounted.value) {
           dismiss(true);
         }
-      } catch (error) {
+      } catch (error: any) {
         if (isComponentMounted.value) {
           console.error('Error importing content:', error);
-          showToast('Failed to import content', 'danger');
+          
+          // Handle specific error types
+          if (error.response?.status === 409) {
+            // Conflict error - show the detailed message from backend
+            const errorMessage = error.response.data?.message || 'Content already exists and belongs to another user.';
+            showToast(errorMessage, 'danger');
+          } else {
+            showToast('Failed to import content. Please try again.', 'danger');
+          }
         }
       } finally {
         if (isComponentMounted.value) {

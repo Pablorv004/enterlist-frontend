@@ -385,13 +385,44 @@ export default defineComponent({
           
           const selectedPlaylistIds = Object.keys(selectedSpotifyPlaylists.value)
             .filter(id => selectedSpotifyPlaylists.value[id]);
-          
-          if (selectedPlaylistIds.length > 0) {
-            await SpotifyService.importPlaylists(selectedPlaylistIds);
-          }
-          
-          if (isComponentMounted.value) {
-            showToast(`Successfully imported ${selectedPlaylistIds.length} playlists from Spotify`, 'success');
+            if (selectedPlaylistIds.length > 0) {
+            const result = await SpotifyService.importPlaylists(selectedPlaylistIds);
+            
+            if (isComponentMounted.value) {
+              // Show detailed results
+              let message = '';
+              let color = 'success';
+              
+              if (result.imported && result.imported.length > 0) {
+                message += `Successfully imported ${result.imported.length} new playlist(s). `;
+              }
+              
+              if (result.updated && result.updated.length > 0) {
+                message += `Updated ${result.updated.length} existing playlist(s). `;
+              }
+              
+              if (result.failed && result.failed.length > 0) {
+                color = 'warning';
+                message += `${result.failed.length} playlist(s) failed to import. `;
+                
+                // Show details about failed imports
+                const failedDetails = result.failed.map((f: any) => `${f.name || f.id}: ${f.reason || 'Unknown error'}`).join('\n');
+                console.warn('Failed playlist imports:', failedDetails);
+                
+                // Show detailed error for conflict issues
+                if (result.failed.some((f: any) => f.reason && f.reason.includes('already registered'))) {
+                  showToast('Some playlists are already owned by other users. Check console for details.', 'danger');
+                  return;
+                }
+              }
+              
+              if (!message) {
+                message = 'No playlists were processed.';
+                color = 'warning';
+              }
+              
+              showToast(message.trim(), color);
+            }
           }
         } 
         else if (selectedPlatform.value === 'youtube') {
@@ -399,13 +430,44 @@ export default defineComponent({
           
           const selectedPlaylistIds = Object.keys(selectedYoutubePlaylists.value)
             .filter(id => selectedYoutubePlaylists.value[id]);
-          
-          if (selectedPlaylistIds.length > 0) {
-            await YouTubeService.importPlaylists(selectedPlaylistIds);
-          }
-          
-          if (isComponentMounted.value) {
-            showToast(`Successfully imported ${selectedPlaylistIds.length} playlists from YouTube`, 'success');
+            if (selectedPlaylistIds.length > 0) {
+            const result = await YouTubeService.importPlaylists(selectedPlaylistIds);
+            
+            if (isComponentMounted.value) {
+              // Show detailed results
+              let message = '';
+              let color = 'success';
+              
+              if (result.imported && result.imported.length > 0) {
+                message += `Successfully imported ${result.imported.length} new playlist(s). `;
+              }
+              
+              if (result.updated && result.updated.length > 0) {
+                message += `Updated ${result.updated.length} existing playlist(s). `;
+              }
+              
+              if (result.failed && result.failed.length > 0) {
+                color = 'warning';
+                message += `${result.failed.length} playlist(s) failed to import. `;
+                
+                // Show details about failed imports
+                const failedDetails = result.failed.map((f: any) => `${f.name || f.id}: ${f.reason || 'Unknown error'}`).join('\n');
+                console.warn('Failed playlist imports:', failedDetails);
+                
+                // Show detailed error for conflict issues
+                if (result.failed.some((f: any) => f.reason && f.reason.includes('already registered'))) {
+                  showToast('Some playlists are already owned by other users. Check console for details.', 'danger');
+                  return;
+                }
+              }
+              
+              if (!message) {
+                message = 'No playlists were processed.';
+                color = 'warning';
+              }
+              
+              showToast(message.trim(), color);
+            }
           }
         }
         
@@ -413,10 +475,18 @@ export default defineComponent({
         if (isComponentMounted.value) {
           dismiss(true);
         }
-      } catch (error) {
+      } catch (error: any) {
         if (isComponentMounted.value) {
           console.error('Error importing playlists:', error);
-          showToast('Failed to import playlists. Please try again.', 'danger');
+          
+          // Handle specific error types
+          if (error.response?.status === 409) {
+            // Conflict error - show the detailed message from backend
+            const errorMessage = error.response.data?.message || 'Content already exists and belongs to another user.';
+            showToast(errorMessage, 'danger');
+          } else {
+            showToast('Failed to import playlists. Please try again.', 'danger');
+          }
         }
       } finally {
         if (isComponentMounted.value) {
