@@ -10,15 +10,15 @@
       <div class="admin-table-container">
         <div class="table-controls">
           <ion-searchbar
-            v-model="searchQuery"
+            v-model="globalFilter"
             placeholder="Search actions..."
-            @ionInput="handleSearch"
+            @ionInput="updateGlobalFilter"
             show-clear-button="focus"
           />
           <ion-select
             v-model="actionTypeFilter"
             placeholder="Filter by action type"
-            @ionChange="handleActionTypeFilter"
+            @ionChange="updateActionTypeFilter"
           >
             <ion-select-option value="">All Action Types</ion-select-option>
             <ion-select-option value="user_suspend">User Suspend</ion-select-option>
@@ -33,61 +33,30 @@
         <div class="table-wrapper" v-if="!loading">
           <table class="admin-table">
             <thead>
-              <tr>
-                <th @click="handleSort('action_id')">
-                  ID
-                  <ion-icon :icon="getArrowIcon('action_id')" v-if="sortColumn === 'action_id'" />
+              <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+                <th 
+                  v-for="header in headerGroup.headers" 
+                  :key="header.id"
+                  @click="header.column.getToggleSortingHandler()?.($event)"
+                  :class="{ 'sortable': header.column.getCanSort() }"
+                >
+                  <div class="header-content">
+                    <span>{{ header.isPlaceholder ? '' : header.column.columnDef.header }}</span>
+                    <ion-icon 
+                      v-if="header.column.getIsSorted()"
+                      :icon="header.column.getIsSorted() === 'desc' ? arrowDown : arrowUp"
+                      class="sort-icon"
+                    />
+                  </div>
                 </th>
-                <th @click="handleSort('action_type')">
-                  Action Type
-                  <ion-icon :icon="getArrowIcon('action_type')" v-if="sortColumn === 'action_type'" />
-                </th>
-                <th>Admin</th>
-                <th>Target</th>
-                <th>Reason</th>
-                <th @click="handleSort('action_timestamp')">
-                  Date
-                  <ion-icon :icon="getArrowIcon('action_timestamp')" v-if="sortColumn === 'action_timestamp'" />
-                </th>
-                <th>Actions</th>
               </tr>
-            </thead>
-            <tbody>
-              <tr v-for="action in paginatedActions" :key="action.action_id">
-                <td>{{ action.action_id }}</td>
-                <td>
-                  <span class="type-badge" :class="getActionTypeColor(action.action_type)">
-                    {{ formatActionType(action.action_type) }}
-                  </span>
-                </td>
-                <td>{{ action.admin?.username || 'Unknown' }}</td>
-                <td>
-                  <div class="target-info">
-                    <span v-if="action.target_user_id">
-                      User: {{ action.target_user?.username || action.target_user_id }}
-                    </span>
-                    <span v-else-if="action.target_playlist_id">
-                      Playlist: {{ action.target_playlist?.name || action.target_playlist_id }}
-                    </span>
-                    <span v-else-if="action.target_song_id">
-                      Song: {{ action.target_song?.title || action.target_song_id }}
-                    </span>
-                    <span v-else>No target</span>
+            </thead>            <tbody>
+              <tr v-for="row in table.getRowModel().rows" :key="row.id">
+                <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+                  <div v-if="cell.column.columnDef.cell && typeof cell.column.columnDef.cell === 'function'">
+                    <component :is="(cell.column.columnDef.cell as any)(cell)" />
                   </div>
-                </td>
-                <td>{{ action.reason || 'No reason provided' }}</td>
-                <td>{{ formatDate(action.action_timestamp) }}</td>
-                <td>
-                  <div class="action-buttons">
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      @click="viewAction(action)"
-                      title="View Action"
-                    >
-                      <ion-icon :icon="eye" />
-                    </ion-button>
-                  </div>
+                  <span v-else>{{ cell.getValue() }}</span>
                 </td>
               </tr>
             </tbody>
@@ -105,26 +74,28 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination" v-if="!loading && !error">
+        <div class="pagination" v-if="!loading && !error && table">
           <div class="pagination-info">
-            Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }}-{{ Math.min(currentPage * itemsPerPage, filteredActions.length) }} of {{ filteredActions.length }}
+            Showing {{ table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 }}-{{ Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length) }} of {{ table.getFilteredRowModel().rows.length }}
           </div>
           <div class="pagination-controls">
             <ion-button 
               fill="outline" 
               size="small" 
-              @click="goToPage(currentPage - 1)" 
-              :disabled="currentPage === 1"
+              @click="table.previousPage()" 
+              :disabled="!table.getCanPreviousPage()"
             >
               <ion-icon :icon="chevronBack" />
               Previous
             </ion-button>
-            <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+            <span class="page-info">
+              Page {{ table.getState().pagination.pageIndex + 1 }} of {{ table.getPageCount() }}
+            </span>
             <ion-button 
               fill="outline" 
               size="small" 
-              @click="goToPage(currentPage + 1)" 
-              :disabled="currentPage === totalPages"
+              @click="table.nextPage()" 
+              :disabled="!table.getCanNextPage()"
             >
               Next
               <ion-icon :icon="chevronForward" />
@@ -186,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, h } from 'vue';
 import {
   IonSearchbar,
   IonSelect,
@@ -215,6 +186,14 @@ import {
 } from 'ionicons/icons';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import { AdminService } from '@/services/AdminService';
+import {
+  useVueTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  createColumnHelper
+} from '@tanstack/vue-table';
 
 interface AdminAction {
   action_id: string;
@@ -245,65 +224,113 @@ interface AdminAction {
 const actions = ref<AdminAction[]>([]);
 const loading = ref(true);
 const error = ref('');
-const searchQuery = ref('');
+const globalFilter = ref('');
 const actionTypeFilter = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 10;
-const sortColumn = ref('action_timestamp');
-const sortDirection = ref<'asc' | 'desc'>('desc');
 
 // Modal state
 const isModalOpen = ref(false);
 const selectedAction = ref<AdminAction | null>(null);
 
-// Computed properties
-const filteredActions = computed(() => {
-  // Ensure actions.value is an array before processing
-  if (!Array.isArray(actions.value)) {
-    return [];
-  }
-  
-  let filtered = [...actions.value];
+// Column helper
+const columnHelper = createColumnHelper<AdminAction>();
 
-  // Apply search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(action =>
-      action.action_type.toLowerCase().includes(query) ||
-      action.admin?.username?.toLowerCase().includes(query) ||
-      action.target_user?.username?.toLowerCase().includes(query) ||
-      action.target_playlist?.name?.toLowerCase().includes(query) ||
-      action.target_song?.title?.toLowerCase().includes(query) ||
-      action.reason?.toLowerCase().includes(query)
-    );
-  }
+// Define columns
+const columns = [
+  columnHelper.accessor('action_id', {
+    header: 'ID',
+    cell: info => info.getValue(),
+    enableSorting: true,
+  }),
+  columnHelper.accessor('action_type', {
+    header: 'Action Type',
+    cell: info => h('span', {
+      class: `type-badge ${getActionTypeColor(info.getValue())}`
+    }, formatActionType(info.getValue())),
+    enableSorting: true,
+  }),
+  columnHelper.accessor('admin.username', {
+    header: 'Admin',
+    cell: info => info.getValue() || 'Unknown',
+    enableSorting: true,
+  }),
+  columnHelper.display({
+    header: 'Target',
+    cell: info => {
+      const action = info.row.original;
+      if (action.target_user_id) {
+        return h('div', { class: 'target-info' }, [
+          h('span', `User: ${action.target_user?.username || action.target_user_id}`)
+        ]);
+      } else if (action.target_playlist_id) {
+        return h('div', { class: 'target-info' }, [
+          h('span', `Playlist: ${action.target_playlist?.name || action.target_playlist_id}`)
+        ]);
+      } else if (action.target_song_id) {
+        return h('div', { class: 'target-info' }, [
+          h('span', `Song: ${action.target_song?.title || action.target_song_id}`)
+        ]);
+      } else {
+        return h('span', 'No target');
+      }
+    },
+  }),
+  columnHelper.accessor('reason', {
+    header: 'Reason',
+    cell: info => info.getValue() || 'No reason provided',
+    enableSorting: false,
+  }),
+  columnHelper.accessor('action_timestamp', {
+    header: 'Date',
+    cell: info => formatDate(info.getValue()),
+    enableSorting: true,
+  }),
+  columnHelper.display({
+    header: 'Actions',
+    cell: info => h('div', { class: 'action-buttons' }, [
+      h(IonButton, {
+        fill: 'clear',
+        size: 'small',
+        title: 'View Action',
+        onClick: () => viewAction(info.row.original)
+      }, () => h(IonIcon, { icon: eye }))
+    ]),
+  }),
+];
 
-  // Apply action type filter
-  if (actionTypeFilter.value) {
-    filtered = filtered.filter(action => action.action_type === actionTypeFilter.value);
-  }
-  
-  // Apply sorting
-  filtered.sort((a, b) => {
-    const aVal = a[sortColumn.value as keyof AdminAction] ?? '';
-    const bVal = b[sortColumn.value as keyof AdminAction] ?? '';
-    
-    let comparison = 0;
-    if (aVal < bVal) comparison = -1;
-    if (aVal > bVal) comparison = 1;
-    
-    return sortDirection.value === 'desc' ? -comparison : comparison;
-  });
+// Custom filter function for action type
+const actionTypeFilterFn = (row: any, columnId: string, filterValue: string) => {
+  if (!filterValue) return true;
+  return row.original.action_type === filterValue;
+};
 
-  return filtered;
-});
-
-const totalPages = computed(() => Math.ceil(filteredActions.value.length / itemsPerPage));
-
-const paginatedActions = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredActions.value.slice(start, end);
+// Create table
+const table = useVueTable({
+  get data() { return actions.value; },
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  state: {
+    get globalFilter() { return globalFilter.value; },
+    get columnFilters() { 
+      return actionTypeFilter.value 
+        ? [{ id: 'action_type', value: actionTypeFilter.value }]
+        : [];
+    },
+  },
+  onGlobalFilterChange: (value) => {
+    globalFilter.value = value;
+  },
+  globalFilterFn: 'includesString',
+  filterFns: {
+    actionType: actionTypeFilterFn,
+  },
+  initialState: {
+    pagination: {
+      pageSize: 10,
+    },
+  },
 });
 
 // Methods
@@ -322,35 +349,12 @@ const loadActions = async () => {
   }
 };
 
-const handleSearch = () => {
-  currentPage.value = 1; // Reset to first page when searching
+const updateGlobalFilter = () => {
+  // Filter is automatically updated via the reactive getter
 };
 
-const handleActionTypeFilter = () => {
-  currentPage.value = 1; // Reset to first page when filtering
-};
-
-const handleSort = (column: string) => {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortColumn.value = column;
-    sortDirection.value = 'asc';
-  }
-  currentPage.value = 1; // Reset to first page when sorting
-};
-
-const getArrowIcon = (column: string) => {
-  if (sortColumn.value === column) {
-    return sortDirection.value === 'asc' ? arrowUp : arrowDown;
-  }
-  return undefined;
-};
-
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
+const updateActionTypeFilter = () => {
+  // Filter is automatically updated via the reactive getter
 };
 
 const viewAction = (action: AdminAction) => {
@@ -477,12 +481,24 @@ onMounted(() => {
   user-select: none;
 }
 
-.admin-table th:hover {
+.admin-table th.sortable:hover {
   background-color: var(--ion-color-medium-tint);
 }
 
 .admin-table tr:hover {
   background-color: var(--ion-color-light-tint);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sort-icon {
+  font-size: 14px;
+  opacity: 0.7;
 }
 
 .type-badge {

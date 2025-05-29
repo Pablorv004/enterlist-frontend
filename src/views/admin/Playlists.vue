@@ -8,17 +8,15 @@
       </div>
 
       <div class="admin-table-container">
-        <div class="table-controls">
-          <ion-searchbar
-            v-model="searchQuery"
+        <div class="table-controls">          <ion-searchbar
+            v-model="globalFilter"
             placeholder="Search playlists..."
-            @ionInput="handleSearch"
+            @ionInput="() => {}"
             show-clear-button="focus"
-          />
-          <ion-select
+          />          <ion-select
             v-model="genreFilter"
             placeholder="Filter by genre"
-            @ionChange="handleGenreFilter"
+            @ionChange="() => {}"
           >
             <ion-select-option value="">All Genres</ion-select-option>
             <ion-select-option v-for="genre in genres" :key="genre" :value="genre">
@@ -28,106 +26,45 @@
           <ion-select
             v-model="statusFilter"
             placeholder="Filter by status"
-            @ionChange="handleStatusFilter"
+            @ionChange="() => {}"
           >
             <ion-select-option value="">All Status</ion-select-option>
             <ion-select-option value="active">Active</ion-select-option>
             <ion-select-option value="inactive">Inactive</ion-select-option>
           </ion-select>
-        </div>
-
-        <div class="table-wrapper" v-if="!loading">
+        </div>        <div class="table-wrapper" v-if="!loading && table">
           <table class="admin-table">
             <thead>
               <tr>
-                <th @click="handleSort('id')">
-                  ID
-                  <ion-icon :icon="getArrowIcon('id')" v-if="sortColumn === 'id'" />
+                <th v-for="header in table.getFlatHeaders()" :key="header.id">
+                  <div 
+                    v-if="header.column.getCanSort()"
+                    @click="header.column.getToggleSortingHandler()?.($event)"
+                    class="sortable-header"
+                  >
+                    {{ header.column.columnDef.header }}
+                    <ion-icon 
+                      v-if="header.column.getIsSorted() === 'asc'" 
+                      :icon="arrowUp" 
+                    />
+                    <ion-icon 
+                      v-else-if="header.column.getIsSorted() === 'desc'" 
+                      :icon="arrowDown" 
+                    />
+                  </div>
+                  <div v-else>
+                    {{ header.column.columnDef.header }}
+                  </div>
                 </th>
-                <th @click="handleSort('name')">
-                  Name
-                  <ion-icon :icon="getArrowIcon('name')" v-if="sortColumn === 'name'" />
-                </th>
-                <th @click="handleSort('genre')">
-                  Genre
-                  <ion-icon :icon="getArrowIcon('genre')" v-if="sortColumn === 'genre'" />
-                </th>
-                <th>Platform</th>
-                <th @click="handleSort('followerCount')">
-                  Followers
-                  <ion-icon :icon="getArrowIcon('followerCount')" v-if="sortColumn === 'followerCount'" />
-                </th>
-                <th>Creator</th>
-                <th @click="handleSort('isActive')">
-                  Status
-                  <ion-icon :icon="getArrowIcon('isActive')" v-if="sortColumn === 'isActive'" />
-                </th>
-                <th @click="handleSort('createdAt')">
-                  Created At
-                  <ion-icon :icon="getArrowIcon('createdAt')" v-if="sortColumn === 'createdAt'" />
-                </th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="playlist in paginatedPlaylists" :key="playlist.id">
-                <td>{{ playlist.id }}</td>
-                <td>
-                  <div class="playlist-info">
-                    <img 
-                      v-if="playlist.imageUrl" 
-                      :src="playlist.imageUrl" 
-                      :alt="playlist.name"
-                      class="playlist-image"
-                    />
-                    <span>{{ playlist.name }}</span>
+              <tr v-for="row in table.getRowModel().rows" :key="row.id">
+                <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+                  <div v-if="cell.column.columnDef.cell && typeof cell.column.columnDef.cell === 'function'">
+                    <component :is="(cell.column.columnDef.cell as any)(cell)" />
                   </div>
-                </td>
-                <td>
-                  <span class="genre-tag">{{ playlist.genre }}</span>
-                </td>
-                <td>
-                  <span class="platform-badge" :class="playlist.platform?.name">
-                    {{ playlist.platform?.name }}
-                  </span>
-                </td>
-                <td>{{ formatNumber(playlist.followerCount) }}</td>
-                <td>{{ playlist.user?.firstName }} {{ playlist.user?.lastName }}</td>
-                <td>
-                  <ion-icon 
-                    :icon="playlist.isActive ? checkmarkCircle : closeCircle"
-                    :color="playlist.isActive ? 'success' : 'danger'"
-                  />
-                </td>
-                <td>{{ formatDate(playlist.createdAt) }}</td>
-                <td>
-                  <div class="action-buttons">
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      @click="viewPlaylist(playlist)"
-                      title="View Playlist"
-                    >
-                      <ion-icon :icon="eye" />
-                    </ion-button>
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      @click="editPlaylist(playlist)"
-                      title="Edit Playlist"
-                    >
-                      <ion-icon :icon="create" />
-                    </ion-button>
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      color="danger"
-                      @click="deletePlaylist(playlist)"
-                      title="Delete Playlist"
-                    >
-                      <ion-icon :icon="trash" />
-                    </ion-button>
-                  </div>
+                  <span v-else>{{ cell.getValue() }}</span>
                 </td>
               </tr>
             </tbody>
@@ -143,32 +80,34 @@
           <ion-icon :icon="alertCircle" color="danger" />
           <p>{{ error }}</p>
           <ion-button @click="loadPlaylists" fill="outline">Retry</ion-button>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination" v-if="!loading && filteredPlaylists.length > 0">
-          <ion-button
-            fill="outline"
-            :disabled="currentPage === 1"
-            @click="goToPage(currentPage - 1)"
-          >
-            <ion-icon :icon="chevronBack" />
-            Previous
-          </ion-button>
-          
-          <span class="pagination-info">
-            Page {{ currentPage }} of {{ totalPages }} 
-            ({{ filteredPlaylists.length }} total playlists)
-          </span>
-          
-          <ion-button
-            fill="outline"
-            :disabled="currentPage === totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
-            Next
-            <ion-icon :icon="chevronForward" />
-          </ion-button>
+        </div>        <!-- Pagination -->
+        <div class="pagination" v-if="!loading && !error && table">
+          <div class="pagination-info">
+            Showing {{ table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 }}-{{ Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length) }} of {{ table.getFilteredRowModel().rows.length }}
+          </div>
+          <div class="pagination-controls">
+            <ion-button 
+              fill="outline" 
+              size="small" 
+              @click="table.previousPage()" 
+              :disabled="!table.getCanPreviousPage()"
+            >
+              <ion-icon :icon="chevronBack" />
+              Previous
+            </ion-button>
+            <span class="page-info">
+              Page {{ table.getState().pagination.pageIndex + 1 }} of {{ table.getPageCount() }}
+            </span>
+            <ion-button
+              fill="outline" 
+              size="small" 
+              @click="table.nextPage()" 
+              :disabled="!table.getCanNextPage()"
+            >
+              Next
+              <ion-icon :icon="chevronForward" />
+            </ion-button>
+          </div>
         </div>
       </div>
     </div>
@@ -243,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, h } from 'vue';
 import {
   IonSearchbar,
   IonSelect,
@@ -278,6 +217,14 @@ import {
 } from 'ionicons/icons';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import { AdminService } from '@/services/AdminService';
+import {
+  useVueTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  createColumnHelper
+} from '@tanstack/vue-table';
 
 interface Playlist {
   id: number;
@@ -301,13 +248,9 @@ interface Playlist {
 const playlists = ref<Playlist[]>([]);
 const loading = ref(true);
 const error = ref('');
-const searchQuery = ref('');
+const globalFilter = ref('');
 const genreFilter = ref('');
 const statusFilter = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 10;
-const sortColumn = ref('id');
-const sortDirection = ref<'asc' | 'desc'>('desc');
 
 // Modal state
 const isModalOpen = ref(false);
@@ -315,65 +258,149 @@ const modalMode = ref<'view' | 'edit'>('view');
 const selectedPlaylist = ref<Playlist | null>(null);
 const saving = ref(false);
 
+// Column helper
+const columnHelper = createColumnHelper<Playlist>();
+
+// Define columns
+const columns = [
+  columnHelper.accessor('id', {
+    header: 'ID',
+    cell: info => info.getValue(),
+    enableSorting: true,
+  }),
+  columnHelper.accessor('name', {
+    header: 'Name',
+    cell: info => {
+      const playlist = info.row.original;
+      return h('div', { class: 'playlist-info' }, [
+        playlist.imageUrl ? h('img', {
+          src: playlist.imageUrl,
+          alt: playlist.name,
+          class: 'playlist-image'
+        }) : null,
+        h('span', playlist.name)
+      ]);
+    },
+    enableSorting: true,
+  }),
+  columnHelper.accessor('genre', {
+    header: 'Genre',
+    cell: info => h('span', { class: 'genre-tag' }, info.getValue()),
+    enableSorting: true,
+  }),
+  columnHelper.accessor('platform.name', {
+    header: 'Platform',
+    cell: info => h('span', {
+      class: `platform-badge ${info.getValue()?.toLowerCase()}`
+    }, info.getValue() || 'N/A'),
+    enableSorting: false,
+  }),
+  columnHelper.accessor('followerCount', {
+    header: 'Followers',
+    cell: info => formatNumber(info.getValue()),
+    enableSorting: true,
+  }),
+  columnHelper.display({
+    header: 'Creator',
+    cell: info => {
+      const user = info.row.original.user;
+      return `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'N/A';
+    },
+  }),
+  columnHelper.accessor('isActive', {
+    header: 'Status',
+    cell: info => h(IonIcon, {
+      icon: info.getValue() ? checkmarkCircle : closeCircle,
+      color: info.getValue() ? 'success' : 'danger'
+    }),
+    enableSorting: true,
+  }),
+  columnHelper.accessor('createdAt', {
+    header: 'Created At',
+    cell: info => formatDate(info.getValue()),
+    enableSorting: true,
+  }),
+  columnHelper.display({
+    header: 'Actions',
+    cell: info => h('div', { class: 'action-buttons' }, [
+      h(IonButton, {
+        fill: 'clear',
+        size: 'small',
+        title: 'View Playlist',
+        onClick: () => viewPlaylist(info.row.original)
+      }, () => h(IonIcon, { icon: eye })),
+      h(IonButton, {
+        fill: 'clear',
+        size: 'small',
+        title: 'Edit Playlist',
+        onClick: () => editPlaylist(info.row.original)
+      }, () => h(IonIcon, { icon: create })),
+      h(IonButton, {
+        fill: 'clear',
+        size: 'small',
+        color: 'danger',
+        title: 'Delete Playlist',
+        onClick: () => deletePlaylist(info.row.original)
+      }, () => h(IonIcon, { icon: trash }))
+    ]),
+  }),
+];
+
+// Custom filter functions
+const genreFilterFn = (row: any, columnId: string, filterValue: string) => {
+  if (!filterValue) return true;
+  return row.original.genre === filterValue;
+};
+
+const statusFilterFn = (row: any, columnId: string, filterValue: string) => {
+  if (!filterValue) return true;
+  const isActive = filterValue === 'active';
+  return row.original.isActive === isActive;
+};
+
+// Create table
+const table = useVueTable({
+  get data() { return playlists.value; },
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  state: {
+    get globalFilter() { return globalFilter.value; },
+    get columnFilters() { 
+      const filters = [];
+      if (genreFilter.value) {
+        filters.push({ id: 'genre', value: genreFilter.value });
+      }
+      if (statusFilter.value) {
+        filters.push({ id: 'isActive', value: statusFilter.value });
+      }
+      return filters;
+    },
+  },
+  onGlobalFilterChange: (value) => {
+    globalFilter.value = value;
+  },
+  globalFilterFn: 'includesString',
+  filterFns: {
+    genre: genreFilterFn,
+    status: statusFilterFn,
+  },
+  initialState: {
+    pagination: {
+      pageSize: 10,
+    },
+  },
+});
+
 // Computed properties
 const genres = computed(() => {
-  // Ensure playlists.value is an array before processing
   if (!Array.isArray(playlists.value)) {
     return [];
   }
   const uniqueGenres = [...new Set(playlists.value.map(p => p.genre))];
   return uniqueGenres.sort();
-});
-
-const filteredPlaylists = computed(() => {
-  // Ensure playlists.value is an array before processing
-  if (!Array.isArray(playlists.value)) {
-    return [];
-  }
-  
-  let filtered = [...playlists.value];
-
-  // Apply search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(playlist =>
-      playlist.name.toLowerCase().includes(query) ||
-      playlist.genre.toLowerCase().includes(query) ||
-      playlist.description.toLowerCase().includes(query)
-    );
-  }
-
-  // Apply genre filter
-  if (genreFilter.value) {
-    filtered = filtered.filter(playlist => playlist.genre === genreFilter.value);
-  }
-
-  // Apply status filter
-  if (statusFilter.value) {
-    const isActive = statusFilter.value === 'active';
-    filtered = filtered.filter(playlist => playlist.isActive === isActive);
-  }
-  // Apply sorting
-  filtered.sort((a, b) => {
-    const aVal = a[sortColumn.value as keyof Playlist] ?? '';
-    const bVal = b[sortColumn.value as keyof Playlist] ?? '';
-    
-    let comparison = 0;
-    if (aVal < bVal) comparison = -1;
-    if (aVal > bVal) comparison = 1;
-    
-    return sortDirection.value === 'desc' ? -comparison : comparison;
-  });
-
-  return filtered;
-});
-
-const totalPages = computed(() => Math.ceil(filteredPlaylists.value.length / itemsPerPage));
-
-const paginatedPlaylists = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredPlaylists.value.slice(start, end);
 });
 
 // Methods
@@ -387,41 +414,6 @@ const loadPlaylists = async () => {
     console.error('Error loading playlists:', err);
   } finally {
     loading.value = false;
-  }
-};
-
-const handleSearch = () => {
-  currentPage.value = 1;
-};
-
-const handleGenreFilter = () => {
-  currentPage.value = 1;
-};
-
-const handleStatusFilter = () => {
-  currentPage.value = 1;
-};
-
-const handleSort = (column: string) => {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortColumn.value = column;
-    sortDirection.value = 'asc';
-  }
-  currentPage.value = 1;
-};
-
-const getArrowIcon = (column: string): string | undefined => {
-  if (sortColumn.value === column) {
-    return sortDirection.value === 'asc' ? arrowUp : arrowDown;
-  }
-  return undefined;
-};
-
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
   }
 };
 
