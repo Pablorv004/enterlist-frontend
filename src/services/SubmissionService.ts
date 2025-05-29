@@ -66,8 +66,7 @@ export const SubmissionService = {
       return handleNotFoundPaginated<Submission>(error);
     }
   },
-  
-  getSubmissionsByCreator: async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus, playlistId?: string): Promise<PaginatedResponse<Submission>> => {
+    getSubmissionsByCreator: async (creatorId: string, skip = 0, take = 10, status?: SubmissionStatus, playlistId?: string, artistId?: string): Promise<PaginatedResponse<Submission>> => {
     try {
         let url = `/submissions/creator/${creatorId}?skip=${skip}&take=${take}`;
         if (status) {
@@ -75,6 +74,9 @@ export const SubmissionService = {
         }
         if (playlistId) {
             url += `&playlistId=${playlistId}`;
+        }
+        if (artistId) {
+            url += `&artistId=${artistId}`;
         }
         const response = await apiClient.get(url);
         return response.data;

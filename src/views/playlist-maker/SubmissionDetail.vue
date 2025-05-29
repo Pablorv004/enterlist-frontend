@@ -347,6 +347,7 @@ import { Playlist, Submission, SubmissionStatus, TransactionStatus } from '@/typ
 import { useToast } from '@/composables/useToast';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PlaylistService } from '@/services/PlaylistService';
+import { useAuthStore } from '@/store';
 
 export default defineComponent({
     name: 'PlaylistMakerSubmissionDetail',
@@ -355,11 +356,11 @@ export default defineComponent({
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel,        IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
         IonItem, IonTextarea, IonNote, IonList,
         AppHeader, BottomNavigation, PlaylistDetailsModal
-    },
-    setup() {
+    },    setup() {
         const route = useRoute();
         const router = useRouter();
         const { showToast } = useToast();
+        const { user } = useAuthStore();
 
         const submissionId = computed(() => route.params.id as string);
         const submission = ref<Submission | null>(null);
@@ -603,16 +604,21 @@ export default defineComponent({
                 showToast('Failed to update feedback', 'danger');
                 console.error(err);
             }
-        };
-
-        const showArtistHistory = async () => {
-            if (!submission.value?.artist?.user_id) return;
+        };        const showArtistHistory = async () => {
+            if (!submission.value?.artist?.user_id || !user?.user_id) return;
 
             artistHistoryModalOpen.value = true;
-            loadingHistory.value = true;
-
-            try {
-                const response = await SubmissionService.getSubmissionsByArtist(submission.value.artist.user_id);
+            loadingHistory.value = true;            try {
+                // Only fetch submissions for this artist on the current curator's playlists
+                // This prevents seeing submissions to other curators' playlists
+                const response = await SubmissionService.getSubmissionsByCreator(
+                    user.user_id,
+                    0, // skip
+                    10, // take
+                    undefined, // no specific status filter
+                    undefined, // no specific playlist filter
+                    submission.value.artist.user_id // filter by this specific artist
+                );
                 artistHistory.value = response.data;
             } catch (err) {
                 console.error('Failed to load artist history:', err);
