@@ -105,7 +105,7 @@
                                                 </div>
                                                 <div class="stats-info">
                                                     <div class="stats-value">{{ statistics.totals?.pendingWithdrawals || 0 }}</div>
-                                                    <div class="stats-label">Pending Withdrawals</div>
+                                                    <div class="stats-label">P. Withdrawals</div>
                                                 </div>
                                             </ion-card-content>
                                         </ion-card>
