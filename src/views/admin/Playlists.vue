@@ -20,13 +20,11 @@
                   <ion-icon :icon="refreshIcon" slot="start"></ion-icon>
                   Refresh
                 </ion-button>
-              </template>
-
-              <!-- Custom column templates -->
+              </template>              <!-- Custom column templates -->
               <template #table-row="props">
                 <span v-if="props.column.field === 'is_active'">
-                  <ion-badge :color="props.row.is_active ? 'success' : 'danger'">
-                    {{ props.row.is_active ? 'Active' : 'Inactive' }}
+                  <ion-badge :color="props.row.is_visible ? 'success' : 'danger'">
+                    {{ props.row.is_visible ? 'Active' : 'Inactive' }}
                   </ion-badge>
                 </span>
                 <span v-else-if="props.column.field === 'platform'">
@@ -41,14 +39,14 @@
                   {{ formatDate(props.row.created_at) }}
                 </span>
                 <span v-else-if="props.column.field === 'playlist_maker'">
-                  {{ props.row.playlist_maker?.username || 'Unknown' }}
+                  {{ props.row.creator?.username || 'Unknown' }}
                 </span>
                 <span v-else-if="props.column.field === 'external_url'">
                   <ion-button 
-                    v-if="props.row.external_url" 
+                    v-if="props.row.url" 
                     fill="clear" 
                     size="small"
-                    @click="openExternalUrl(props.row.external_url)"
+                    @click="openExternalUrl(props.row.url)"
                   >
                     <ion-icon :icon="linkIcon" slot="icon-only"></ion-icon>
                   </ion-button>
@@ -63,14 +61,13 @@
                       @click="editPlaylist(props.row)"
                     >
                       <ion-icon :icon="editIcon" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    <ion-button 
+                    </ion-button>                    <ion-button 
                       fill="clear" 
                       size="small" 
-                      :color="props.row.is_active ? 'warning' : 'success'"
+                      :color="props.row.is_visible ? 'warning' : 'success'"
                       @click="togglePlaylistStatus(props.row)"
                     >
-                      <ion-icon :icon="props.row.is_active ? eyeOffIcon : eyeIcon" slot="icon-only"></ion-icon>
+                      <ion-icon :icon="props.row.is_visible ? eyeOffIcon : eyeIcon" slot="icon-only"></ion-icon>
                     </ion-button>
                     <ion-button 
                       fill="clear" 
@@ -122,15 +119,13 @@
               step="0.01"
               min="0"
             ></ion-input>
-          </ion-item>
-
-          <ion-item>
+          </ion-item>          <ion-item>
             <ion-label position="stacked">External URL</ion-label>
-            <ion-input v-model="selectedPlaylist.external_url" type="url"></ion-input>
+            <ion-input v-model="selectedPlaylist.url" type="url"></ion-input>
           </ion-item>
           
           <ion-item>
-            <ion-checkbox v-model="selectedPlaylist.is_active"></ion-checkbox>
+            <ion-checkbox v-model="selectedPlaylist.is_visible"></ion-checkbox>
             <ion-label class="ion-margin-start">Active Playlist</ion-label>
           </ion-item>
           
@@ -240,12 +235,11 @@ export default defineComponent({
         sortable: false,
         width: '120px'
       }
-    ];
-
-    const loadPlaylists = async () => {
+    ];    const loadPlaylists = async () => {
       try {
         loading.value = true;
-        playlists.value = await AdminService.getPlaylists();
+        const response = await AdminService.getPlaylists();
+        playlists.value = response.data || response; // Handle both paginated and simple array responses
       } catch (error) {
         console.error('Failed to load playlists:', error);
         const toast = await toastController.create({
@@ -315,15 +309,13 @@ export default defineComponent({
       } finally {
         saving.value = false;
       }
-    };
-
-    const togglePlaylistStatus = async (playlist: any) => {
-      const action = playlist.is_active ? 'hide' : 'show';
+    };    const togglePlaylistStatus = async (playlist: any) => {
+      const action = playlist.is_visible ? 'hide' : 'show';
       
       try {
         await AdminService.updatePlaylist(playlist.playlist_id, {
           ...playlist,
-          is_active: !playlist.is_active
+          is_visible: !playlist.is_visible
         });
 
         // Record admin action

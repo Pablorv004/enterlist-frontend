@@ -320,12 +320,11 @@ export default defineComponent({
         sortable: false,
         width: '120px'
       }
-    ];
-
-    const loadTransactions = async () => {
+    ];    const loadTransactions = async () => {
       try {
         loading.value = true;
-        transactions.value = await AdminService.getTransactions();
+        const response = await AdminService.getTransactions();
+        transactions.value = response.data || response; // Handle both paginated and simple array responses
       } catch (error) {
         console.error('Failed to load transactions:', error);
         const toast = await toastController.create({

@@ -14,19 +14,38 @@ export interface AdminPlaylist {
   name: string;
   description?: string;
   submission_fee: number;
-  external_url?: string;
-  is_active: boolean;
-  platform?: string;
+  url?: string;
+  is_visible: boolean;
+  platform?: {
+    name: string;
+  };
+  creator?: {
+    username: string;
+    email: string;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AdminSong {
   song_id: string;
   title: string;
-  artist_name: string;
+  artist_name_on_platform: string;
+  artist_name?: string;
+  album_name?: string;
   genre?: string;
-  duration: number;
-  external_url?: string;
+  duration_ms?: number;
+  url?: string;
   is_visible: boolean;
+  platform?: {
+    name: string;
+  };
+  artist?: {
+    username: string;
+    email: string;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AdminSubmission {
@@ -43,15 +62,17 @@ export interface AdminSubmission {
   };
   song?: {
     title: string;
-    artist_name: string;
-    genre?: string;
-    duration_seconds?: number;
-    file_url?: string;
+    artist_name_on_platform: string;
+    album_name?: string;
+    duration_ms?: number;
+    url?: string;
   };
   playlist?: {
     name: string;
-    platform: string;
-    fee: number;
+    platform?: {
+      name: string;
+    };
+    submission_fee: number;
   };
 }
 

@@ -37,9 +37,8 @@
                 </span>
                 <span v-else-if="props.column.field === 'song.title'">
                   {{ props.row.song?.title || 'N/A' }}
-                </span>
-                <span v-else-if="props.column.field === 'song.artist_name'">
-                  {{ props.row.song?.artist_name || 'N/A' }}
+                </span>                <span v-else-if="props.column.field === 'song.artist_name'">
+                  {{ props.row.song?.artist_name_on_platform || 'N/A' }}
                 </span>
                 <span v-else-if="props.column.field === 'submitted_at'">
                   {{ formatDate(props.row.submitted_at) }}
@@ -204,33 +203,31 @@
               <h4>Title</h4>
               <p>{{ selectedSubmission.song?.title }}</p>
             </ion-label>
-          </ion-item>
-          <ion-item>
+          </ion-item>          <ion-item>
             <ion-label>
               <h4>Artist Name</h4>
-              <p>{{ selectedSubmission.song?.artist_name }}</p>
+              <p>{{ selectedSubmission.song?.artist_name_on_platform }}</p>
             </ion-label>
           </ion-item>
           <ion-item>
             <ion-label>
-              <h4>Genre</h4>
-              <p>{{ selectedSubmission.song?.genre }}</p>
+              <h4>Album</h4>
+              <p>{{ selectedSubmission.song?.album_name }}</p>
             </ion-label>
           </ion-item>
           <ion-item>
             <ion-label>
               <h4>Duration</h4>
-              <p>{{ formatDuration(selectedSubmission.song?.duration_seconds) }}</p>
+              <p>{{ formatDuration(selectedSubmission.song?.duration_ms) }}</p>
             </ion-label>
-          </ion-item>
-          <ion-item v-if="selectedSubmission.song?.file_url">
+          </ion-item>          <ion-item v-if="selectedSubmission.song?.url">
             <ion-label>
               <h4>Audio File</h4>
               <p>
                 <ion-button 
                   fill="outline" 
                   size="small" 
-                  @click="playAudio(selectedSubmission.song.file_url)"
+                  @click="playAudio(selectedSubmission.song.url)"
                 >
                   <ion-icon :icon="playIcon" slot="start"></ion-icon>
                   Play
@@ -247,17 +244,16 @@
               <h4>Name</h4>
               <p>{{ selectedSubmission.playlist?.name }}</p>
             </ion-label>
-          </ion-item>
-          <ion-item>
+          </ion-item>          <ion-item>
             <ion-label>
               <h4>Platform</h4>
-              <p>{{ selectedSubmission.playlist?.platform }}</p>
+              <p>{{ selectedSubmission.playlist?.platform?.name }}</p>
             </ion-label>
           </ion-item>
           <ion-item>
             <ion-label>
               <h4>Fee</h4>
-              <p>${{ selectedSubmission.playlist?.fee?.toFixed(2) }}</p>
+              <p>${{ selectedSubmission.playlist?.submission_fee?.toFixed(2) }}</p>
             </ion-label>
           </ion-item>
         </div>
@@ -374,12 +370,11 @@ export default defineComponent({
         sortable: false,
         width: '150px'
       }
-    ];
-
-    const loadSubmissions = async () => {
+    ];    const loadSubmissions = async () => {
       try {
         loading.value = true;
-        submissions.value = await AdminService.getSubmissions();
+        const response = await AdminService.getSubmissions();
+        submissions.value = response.data || response; // Handle both paginated and simple array responses
       } catch (error) {
         console.error('Failed to load submissions:', error);
         const toast = await toastController.create({
@@ -409,8 +404,9 @@ export default defineComponent({
 
     const formatStatus = (status: string) => {
       return status.charAt(0).toUpperCase() + status.slice(1);
-    };    const formatDuration = (seconds?: number) => {
-      if (!seconds) return '0:00';
+    };    const formatDuration = (milliseconds?: number) => {
+      if (!milliseconds) return '0:00';
+      const seconds = Math.floor(milliseconds / 1000);
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;

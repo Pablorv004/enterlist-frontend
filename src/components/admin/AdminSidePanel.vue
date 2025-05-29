@@ -158,8 +158,8 @@ export default defineComponent({
 
 <style scoped>
 .admin-side-panel {
-    width: 280px;
-    min-width: 280px;
+    width: 200px;
+    min-width: 200px;
     background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
     color: white;
     display: flex;

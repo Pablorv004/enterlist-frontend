@@ -253,12 +253,11 @@ export default defineComponent({
         sortable: false,
         width: '150px'
       }
-    ];
-
-    const loadWithdrawals = async () => {
+    ];    const loadWithdrawals = async () => {
       try {
         loading.value = true;
-        withdrawals.value = await AdminService.getWithdrawals();
+        const response = await AdminService.getWithdrawals();
+        withdrawals.value = response.data || response; // Handle both paginated and simple array responses
       } catch (error) {
         console.error('Failed to load withdrawals:', error);
         const toast = await toastController.create({

@@ -28,27 +28,25 @@
                   <ion-badge :color="props.row.is_visible ? 'success' : 'warning'">
                     {{ props.row.is_visible ? 'Visible' : 'Hidden' }}
                   </ion-badge>
-                </span>
-                <span v-else-if="props.column.field === 'artist'">
+                </span>                <span v-else-if="props.column.field === 'artist'">
                   {{ props.row.artist?.username || 'Unknown' }}
                 </span>
-                <span v-else-if="props.column.field === 'duration'">
-                  {{ formatDuration(props.row.duration) }}
+                <span v-else-if="props.column.field === 'duration_ms'">
+                  {{ formatDuration(props.row.duration_ms) }}
                 </span>
-                <span v-else-if="props.column.field === 'genre'">
+                <span v-else-if="props.column.field === 'album_name'">
                   <ion-badge color="medium">
-                    {{ props.row.genre || 'Unknown' }}
+                    {{ props.row.album_name || 'Unknown' }}
                   </ion-badge>
                 </span>
                 <span v-else-if="props.column.field === 'created_at'">
                   {{ formatDate(props.row.created_at) }}
-                </span>
-                <span v-else-if="props.column.field === 'external_url'">
+                </span>                <span v-else-if="props.column.field === 'external_url'">
                   <ion-button 
-                    v-if="props.row.external_url" 
+                    v-if="props.row.url" 
                     fill="clear" 
                     size="small"
-                    @click="openExternalUrl(props.row.external_url)"
+                    @click="openExternalUrl(props.row.url)"
                   >
                     <ion-icon :icon="linkIcon" slot="icon-only"></ion-icon>
                   </ion-button>
@@ -108,21 +106,20 @@
             <ion-label position="stacked">Title</ion-label>
             <ion-input v-model="selectedSong.title" required></ion-input>
           </ion-item>
-          
-          <ion-item>
+            <ion-item>
             <ion-label position="stacked">Artist Name</ion-label>
-            <ion-input v-model="selectedSong.artist_name" required></ion-input>
+            <ion-input v-model="selectedSong.artist_name_on_platform" required></ion-input>
           </ion-item>
           
           <ion-item>
-            <ion-label position="stacked">Genre</ion-label>
-            <ion-input v-model="selectedSong.genre"></ion-input>
+            <ion-label position="stacked">Album Name</ion-label>
+            <ion-input v-model="selectedSong.album_name"></ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Duration (seconds)</ion-label>
+            <ion-label position="stacked">Duration (ms)</ion-label>
             <ion-input 
-              v-model.number="selectedSong.duration" 
+              v-model.number="selectedSong.duration_ms" 
               type="number" 
               min="1"
             ></ion-input>
@@ -130,7 +127,7 @@
 
           <ion-item>
             <ion-label position="stacked">External URL</ion-label>
-            <ion-input v-model="selectedSong.external_url" type="url"></ion-input>
+            <ion-input v-model="selectedSong.url" type="url"></ion-input>
           </ion-item>
           
           <ion-item>
@@ -203,26 +200,25 @@ export default defineComponent({
         field: 'artist',
         sortable: true,
         filterOptions: { enabled: true, placeholder: 'Filter by artist' }
-      },
-      {
+      },      {
         label: 'Artist Name',
-        field: 'artist_name',
+        field: 'artist_name_on_platform',
         sortable: true,
         filterOptions: { enabled: true, placeholder: 'Filter by artist name' }
       },
       {
-        label: 'Genre',
-        field: 'genre',
+        label: 'Album',
+        field: 'album_name',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by genre' }
+        filterOptions: { enabled: true, placeholder: 'Filter by album' }
       },
       {
-        label: 'Duration',
-        field: 'duration',
+        label: 'Duration (ms)',
+        field: 'duration_ms',
         type: 'number',
         sortable: true,
         filterOptions: { enabled: true, placeholder: 'Filter by duration' },
-        width: '100px'
+        width: '120px'
       },
       {
         label: 'Visibility',
@@ -250,12 +246,11 @@ export default defineComponent({
         sortable: false,
         width: '120px'
       }
-    ];
-
-    const loadSongs = async () => {
+    ];    const loadSongs = async () => {
       try {
         loading.value = true;
-        songs.value = await AdminService.getSongs();
+        const response = await AdminService.getSongs();
+        songs.value = response.data || response; // Handle both paginated and simple array responses
       } catch (error) {
         console.error('Failed to load songs:', error);
         const toast = await toastController.create({
