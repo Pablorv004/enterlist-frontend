@@ -8,10 +8,9 @@
         </div>
     </ion-button>
 
-    <ion-popover :is-open="isOpen" :event="event" @didDismiss="isOpen = false" class="profile-popover">
-        <ion-content>
+    <ion-popover :is-open="isOpen" :event="event" @didDismiss="isOpen = false" class="profile-popover">        <ion-content>
             <ion-list lines="none">
-                <ion-item detail :router-link="profileLink" @click="closePopover">
+                <ion-item v-if="!isAdmin" detail :router-link="profileLink" @click="closePopover">
                     <ion-icon :icon="personIcon" slot="start"></ion-icon>
                     <ion-label>My Profile</ion-label>
                 </ion-item>
@@ -56,9 +55,12 @@ export default defineComponent({
     setup() {
         const authStore = useAuthStore();
         const router = useRouter();
-        const isOpen = ref(false);
-        const event = ref();
-        const user = computed(() => authStore.user);        // Determine profile link based on user role
+        const isOpen = ref(false);        const event = ref();
+        const user = computed(() => authStore.user);        
+        // Check if user is admin
+        const isAdmin = computed(() => authStore.isAdmin);
+
+        // Determine profile link based on user role
         const profileLink = computed(() => {
             return '/profile';
         });
@@ -77,12 +79,11 @@ export default defineComponent({
 
         const closePopover = () => {
             isOpen.value = false;
-        };
-
-        return {
+        };        return {
             isOpen,
             event,
             user,
+            isAdmin,
             profileLink,
             presentPopover,
             logout,

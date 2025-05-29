@@ -22,6 +22,7 @@
     "@capacitor/status-bar": "^5.0.0",
     "@ionic/vue": "^7.0.0",
     "@ionic/vue-router": "^7.0.0",
+    "@tanstack/vue-table": "^8.21.3",
     "axios": "^1.6.0",
     "chart.js": "^4.4.9",
     "enterlist-frontend": "file:",

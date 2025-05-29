@@ -14,7 +14,7 @@ const Dashboard = () => import('@/views/Dashboard.vue');
 const RoleSelection = () => import('@/views/RoleSelection.vue');
 const ArtistDashboard = () => import('@/views/artist/Dashboard.vue');
 const PlaylistMakerDashboard = () => import('@/views/playlist-maker/Dashboard.vue');
-// const AdminDashboard = () => import('@/views/admin/Dashboard.vue'); // Commented out missing component
+const AdminDashboard = () => import('@/views/admin/Dashboard.vue');
 const NotFound = () => import('@/views/NotFound.vue');
 
 // Artist routes
@@ -36,12 +36,14 @@ const PlaylistMakerPaymentMethods = () => import('@/views/PaymentMethods.vue');
 const PlaylistMakerLinkedAccounts = () => import('@/views/playlist-maker/LinkedAccounts.vue');
 
 //Admin routes
-// const AdminUsers = () => import('@/views/admin/Users.vue');
-// const AdminPlaylists = () => import('@/views/admin/Playlists.vue');
-// const AdminSongs = () => import('@/views/admin/Songs.vue');
-// const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
-// const AdminTransactions = () => import('@/views/admin/Transactions.vue');
-// const AdminActions = () => import('@/views/admin/Actions.vue');
+const AdminUsers = () => import('@/views/admin/Users.vue');
+const AdminPlaylists = () => import('@/views/admin/Playlists.vue');
+const AdminSongs = () => import('@/views/admin/Songs.vue');
+const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
+const AdminTransactions = () => import('@/views/admin/Transactions.vue');
+const AdminWithdrawals = () => import('@/views/admin/Withdrawals.vue');
+const AdminPlatforms = () => import('@/views/admin/Platforms.vue');
+const AdminActions = () => import('@/views/admin/Actions.vue');
 
 // OAuth callback routes
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
@@ -176,8 +178,7 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'PlaylistMakerLinkedAccounts',
         component: PlaylistMakerLinkedAccounts,
         meta: { requiresAuth: true, role: 'playlist_maker' }
-    },// Admin routes
-    /*
+    },    // Admin routes
     {
         path: '/admin/dashboard',
         name: 'AdminDashboard',
@@ -215,11 +216,23 @@ const routes: Array<RouteRecordRaw> = [    {
         meta: { requiresAuth: true, role: 'admin' }
     },
     {
+        path: '/admin/withdrawals',
+        name: 'AdminWithdrawals',
+        component: AdminWithdrawals,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/platforms',
+        name: 'AdminPlatforms',
+        component: AdminPlatforms,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
         path: '/admin/actions',
         name: 'AdminActions',
         component: AdminActions,
-        meta: { requiresAuth: true, role: 'admin' }    },
-    */
+        meta: { requiresAuth: true, role: 'admin' }
+    },
       // Shared routes for all authenticated users
     {
         path: '/profile',
@@ -352,10 +365,8 @@ router.beforeEach(async (to, from, next) => {
             if (userRole === 'artist') {
                 next({ name: 'ArtistDashboard' });
             } else if (userRole === 'playlist_maker') {
-                next({ name: 'PlaylistMakerDashboard' });
-            } else if (userRole === 'admin') {
-                // Temporarily redirect to Home until admin views are implemented
-                next({ name: 'Home' });
+                next({ name: 'PlaylistMakerDashboard' });            } else if (userRole === 'admin') {
+                next({ name: 'AdminDashboard' });
             } else {
                 // Fallback to home if role is unknown
                 next({ name: 'Home' });
@@ -371,10 +382,8 @@ router.beforeEach(async (to, from, next) => {
         if (userRole === 'artist') {
             next({ name: 'ArtistDashboard' });
         } else if (userRole === 'playlist_maker') {
-            next({ name: 'PlaylistMakerDashboard' });
-        } else if (userRole === 'admin') {
-            // Temporarily redirect to Home until admin views are implemented
-            next({ name: 'Home' });
+            next({ name: 'PlaylistMakerDashboard' });        } else if (userRole === 'admin') {
+            next({ name: 'AdminDashboard' });
         } else if (!userRole) {
             // If user has no role, send to role selection
             next({ name: 'RoleSelection' });
