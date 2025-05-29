@@ -42,7 +42,6 @@ const AdminSongs = () => import('@/views/admin/Songs.vue');
 const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
 const AdminTransactions = () => import('@/views/admin/Transactions.vue');
 const AdminWithdrawals = () => import('@/views/admin/Withdrawals.vue');
-const AdminPlatforms = () => import('@/views/admin/Platforms.vue');
 const AdminActions = () => import('@/views/admin/Actions.vue');
 
 // OAuth callback routes
@@ -214,10 +213,6 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'AdminTransactions',
         component: AdminTransactions,
         meta: { requiresAuth: true, role: 'admin' }
-    },    {
-        path: '/admin/platforms',
-        name: 'AdminPlatforms',
-        component: AdminPlatforms,        meta: { requiresAuth: true, role: 'admin' }
     },
     {
         path: '/admin/actions',

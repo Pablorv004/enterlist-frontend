@@ -57,13 +57,6 @@
                             <span class="nav-text">Submission RUD</span>
                         </router-link>
                     </li>
-                      <li class="nav-item">
-                        <router-link to="/admin/platforms" class="nav-link" :class="{ active: activeTab === 'platforms' }">
-                            <ion-icon :icon="globeIcon" class="nav-icon"></ion-icon>
-                            <span class="nav-text">Platform RUD</span>
-                        </router-link>
-                    </li>
-                    
                     <li class="nav-item">
                         <router-link to="/admin/actions" class="nav-link" :class="{ active: activeTab === 'actions' }">
                             <ion-icon :icon="clipboardIcon" class="nav-icon"></ion-icon>
@@ -158,8 +151,8 @@ export default defineComponent({
 
 <style scoped>
 .admin-side-panel {
-    width: 200px;
-    min-width: 200px;
+    width: 260px;
+    min-width: 260px;
     background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
     color: white;
     display: flex;
