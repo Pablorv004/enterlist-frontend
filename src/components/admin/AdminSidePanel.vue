@@ -61,11 +61,24 @@
                             <ion-icon :icon="documentTextIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Submission RUD</span>
                         </router-link>
-                    </li>
-                    <li class="nav-item">
+                    </li>                    <li class="nav-item">
                         <router-link to="/admin/actions" class="nav-link" :class="{ active: activeTab === 'actions' }">
                             <ion-icon :icon="clipboardIcon" class="nav-icon"></ion-icon>
                             <span class="nav-text">Actions RUD</span>
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item">
+                        <router-link to="/admin/linked-accounts" class="nav-link" :class="{ active: activeTab === 'linked-accounts' }">
+                            <ion-icon :icon="linkIcon" class="nav-icon"></ion-icon>
+                            <span class="nav-text">Linked Accounts RUD</span>
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item">
+                        <router-link to="/admin/payment-methods" class="nav-link" :class="{ active: activeTab === 'payment-methods' }">
+                            <ion-icon :icon="walletIcon" class="nav-icon"></ion-icon>
+                            <span class="nav-text">Payment Methods RUD</span>
                         </router-link>
                     </li>
                 </ul>
@@ -89,7 +102,7 @@ import { defineComponent, computed } from 'vue';
 import { IonIcon } from '@ionic/vue';
 import {
     shieldCheckmark, statsChart, people, list, musicalNotes, cash, card,
-    documentText, globe, clipboard, personCircle, logOut
+    documentText, globe, clipboard, personCircle, logOut, link, wallet
 } from 'ionicons/icons';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'vue-router';
@@ -131,9 +144,7 @@ export default defineComponent({
                 ]
             });
             await alert.present();
-        };
-
-        return {
+        };        return {
             user,
             handleLogout,
             // Icons
@@ -147,6 +158,8 @@ export default defineComponent({
             documentTextIcon: documentText,
             globeIcon: globe,
             clipboardIcon: clipboard,
+            linkIcon: link,
+            walletIcon: wallet,
             personCircleIcon: personCircle,
             logOutIcon: logOut
         };

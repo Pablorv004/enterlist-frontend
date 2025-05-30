@@ -43,6 +43,8 @@ const AdminSubmissions = () => import('@/views/admin/Submissions.vue');
 const AdminTransactions = () => import('@/views/admin/Transactions.vue');
 const AdminWithdrawals = () => import('@/views/admin/Withdrawals.vue');
 const AdminActions = () => import('@/views/admin/Actions.vue');
+const AdminLinkedAccounts = () => import('@/views/admin/LinkedAccounts.vue');
+const AdminPaymentMethods = () => import('@/views/admin/PaymentMethods.vue');
 
 // OAuth callback routes
 const OAuthCallback = () => import('@/views/OAuthCallback.vue');
@@ -219,11 +221,22 @@ const routes: Array<RouteRecordRaw> = [    {
         name: 'AdminActions',
         component: AdminActions,
         meta: { requiresAuth: true, role: 'admin' }
-    },
-    {
+    },    {
         path: '/admin/withdrawals',
         name: 'AdminWithdrawals',
         component: AdminWithdrawals,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/linked-accounts',
+        name: 'AdminLinkedAccounts',
+        component: AdminLinkedAccounts,
+        meta: { requiresAuth: true, role: 'admin' }
+    },
+    {
+        path: '/admin/payment-methods',
+        name: 'AdminPaymentMethods',
+        component: AdminPaymentMethods,
         meta: { requiresAuth: true, role: 'admin' }
     },
       // Shared routes for all authenticated users

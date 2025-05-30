@@ -43,10 +43,18 @@ export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Pr
     const response = await apiClient.get(url);
     return response.data;
   },
-
   processWithdrawal: async (withdrawalId: string, status: 'completed' | 'failed', notes?: string): Promise<any> => {
     const response = await apiClient.put(`/admin/withdrawals/${withdrawalId}/process`, { status, notes });
     return response.data;
+  },
+
+  updateWithdrawal: async (withdrawalId: string, withdrawalData: any): Promise<any> => {
+    const response = await apiClient.put(`/admin/withdrawals/${withdrawalId}`, withdrawalData);
+    return response.data;
+  },
+
+  deleteWithdrawal: async (withdrawalId: string): Promise<void> => {
+    await apiClient.delete(`/admin/withdrawals/${withdrawalId}`);
   },
 
   // User management
@@ -195,6 +203,46 @@ export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Pr
 
   deletePlatform: async (platformId: number): Promise<void> => {
     await apiClient.delete(`/admin/platforms/${platformId}`);
+  },
+
+  // Linked Accounts management
+  getLinkedAccounts: async (skip = 0, take = 10): Promise<any> => {
+    const response = await apiClient.get(`/admin/linked-accounts?skip=${skip}&take=${take}`);
+    return response.data;
+  },
+
+  getLinkedAccount: async (linkedAccountId: string): Promise<any> => {
+    const response = await apiClient.get(`/admin/linked-accounts/${linkedAccountId}`);
+    return response.data;
+  },
+
+  updateLinkedAccount: async (linkedAccountId: string, linkedAccountData: any): Promise<any> => {
+    const response = await apiClient.put(`/admin/linked-accounts/${linkedAccountId}`, linkedAccountData);
+    return response.data;
+  },
+
+  deleteLinkedAccount: async (linkedAccountId: string): Promise<void> => {
+    await apiClient.delete(`/admin/linked-accounts/${linkedAccountId}`);
+  },
+
+  // Payment Methods management
+  getPaymentMethods: async (skip = 0, take = 10): Promise<any> => {
+    const response = await apiClient.get(`/admin/payment-methods?skip=${skip}&take=${take}`);
+    return response.data;
+  },
+
+  getPaymentMethod: async (paymentMethodId: string): Promise<any> => {
+    const response = await apiClient.get(`/admin/payment-methods/${paymentMethodId}`);
+    return response.data;
+  },
+
+  updatePaymentMethod: async (paymentMethodId: string, paymentMethodData: any): Promise<any> => {
+    const response = await apiClient.put(`/admin/payment-methods/${paymentMethodId}`, paymentMethodData);
+    return response.data;
+  },
+
+  deletePaymentMethod: async (paymentMethodId: string): Promise<void> => {
+    await apiClient.delete(`/admin/payment-methods/${paymentMethodId}`);
   },
 
   // Admin content moderation methods (kept for backward compatibility)

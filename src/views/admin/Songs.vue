@@ -15,45 +15,37 @@
                                     <ion-icon :icon="refreshIcon" slot="start"></ion-icon>
                                     Refresh
                                 </ion-button>
-                            </template>
-
-                            <!-- Custom column templates -->
+                            </template>                            <!-- Custom column templates -->
                             <template #table-row="props">
                                 <span v-if="props.column.field === 'is_visible'">
                                     <ion-badge :color="props.row.is_visible ? 'success' : 'warning'">
                                         {{ props.row.is_visible ? 'Visible' : 'Hidden' }}
                                     </ion-badge>
-                                </span> <span v-else-if="props.column.field === 'artist'">
-                                    {{ props.row.user?.username || 'Unknown' }}
+                                </span>
+                                <span v-else-if="props.column.field === 'artist'">
+                                    {{ props.row.artist?.username || 'Unknown' }}
+                                </span>
+                                <span v-else-if="props.column.field === 'platform'">
+                                    <ion-badge :color="getPlatformColor(props.row.platform?.name)">
+                                        {{ props.row.platform?.name || 'Unknown' }}
+                                    </ion-badge>
                                 </span>
                                 <span v-else-if="props.column.field === 'duration_ms'">
-                                    {{ formatDuration(props.row.duration_ms) }}
+                                    {{ formatDuration(Number(props.row.duration_ms || 0)) }}
                                 </span>
                                 <span v-else-if="props.column.field === 'album_name'">
                                     <ion-badge color="medium">
                                         {{ props.row.album_name || 'Unknown' }}
                                     </ion-badge>
                                 </span>
-                                <span v-else-if="props.column.field === 'created_at'">
-                                    {{ formatDate(props.row.created_at) }}
-                                </span> <span v-else-if="props.column.field === 'external_url'">
-                                    <ion-button v-if="props.row.url" fill="clear" size="small"
-                                        @click="openExternalUrl(props.row.url)">
-                                        <ion-icon :icon="linkIcon" slot="icon-only"></ion-icon>
-                                    </ion-button>
-                                    <span v-else>-</span>
+                                <span v-else-if="props.column.field === 'created_at' || props.column.field === 'updated_at'">
+                                    {{ formatDate(props.row[props.column.field]) }}
                                 </span>
                                 <span v-else-if="props.column.field === 'actions'">
                                     <div class="action-buttons">
                                         <ion-button fill="clear" size="small" color="primary"
                                             @click="editSong(props.row)">
                                             <ion-icon :icon="editIcon" slot="icon-only"></ion-icon>
-                                        </ion-button>
-                                        <ion-button fill="clear" size="small"
-                                            :color="props.row.is_visible ? 'warning' : 'success'"
-                                            @click="toggleSongVisibility(props.row)">
-                                            <ion-icon :icon="props.row.is_visible ? eyeOffIcon : eyeIcon"
-                                                slot="icon-only"></ion-icon>
                                         </ion-button>
                                         <ion-button fill="clear" size="small" color="danger"
                                             @click="confirmDeleteSong(props.row)">
@@ -80,16 +72,21 @@
                         </ion-button>
                     </ion-buttons>
                 </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
+            </ion-header>            <ion-content class="ion-padding">
                 <form @submit.prevent="saveSong" v-if="selectedSong">
                     <ion-item>
-                        <ion-label position="stacked">Title</ion-label>
+                        <ion-label position="stacked">Title *</ion-label>
                         <ion-input v-model="selectedSong.title" required></ion-input>
                     </ion-item>
+                    
                     <ion-item>
-                        <ion-label position="stacked">Artist Name</ion-label>
+                        <ion-label position="stacked">Artist Name on Platform *</ion-label>
                         <ion-input v-model="selectedSong.artist_name_on_platform" required></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                        <ion-label position="stacked">Platform Specific ID *</ion-label>
+                        <ion-input v-model="selectedSong.platform_specific_id" required></ion-input>
                     </ion-item>
 
                     <ion-item>
@@ -108,8 +105,13 @@
                     </ion-item>
 
                     <ion-item>
+                        <ion-label position="stacked">Cover Image URL</ion-label>
+                        <ion-input v-model="selectedSong.cover_image_url" type="url"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
                         <ion-checkbox v-model="selectedSong.is_visible"></ion-checkbox>
-                        <ion-label class="ion-margin-start">Visible to Playlist Makers</ion-label>
+                        <ion-label class="ion-margin-start">Visible to Public</ion-label>
                     </ion-item>
 
                     <div class="modal-actions">
@@ -135,7 +137,7 @@ import {
     IonCheckbox, IonSpinner, alertController, toastController
 } from '@ionic/vue';
 import {
-    refresh, create, eye, eyeOff, trash, close, link
+    refresh, create, trash, close
 } from 'ionicons/icons';
 import { AdminSong } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
@@ -155,16 +157,14 @@ export default defineComponent({
         const loading = ref(true);
         const saving = ref(false);
         const isEditModalOpen = ref(false);
-        const selectedSong = ref<AdminSong | null>(null);
-
-        const columns = [
+        const selectedSong = ref<AdminSong | null>(null);        const columns = [
             {
                 label: 'ID',
                 field: 'song_id',
                 type: 'string',
                 sortable: true,
                 filterOptions: { enabled: true, placeholder: 'Filter by ID' },
-                width: '100px'
+                width: '120px'
             },
             {
                 label: 'Title',
@@ -173,15 +173,29 @@ export default defineComponent({
                 filterOptions: { enabled: true, placeholder: 'Filter by title' }
             },
             {
-                label: 'User',
-                field: 'user',
+                label: 'Artist',
+                field: 'artist',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by user' }
-            }, {
+                filterOptions: { enabled: true, placeholder: 'Filter by artist' }
+            },
+            {
                 label: 'Artist Name',
                 field: 'artist_name_on_platform',
                 sortable: true,
                 filterOptions: { enabled: true, placeholder: 'Filter by artist name' }
+            },
+            {
+                label: 'Platform',
+                field: 'platform',
+                sortable: true,
+                filterOptions: { enabled: true, placeholder: 'Filter by platform' }
+            },
+            {
+                label: 'Platform ID',
+                field: 'platform_specific_id',
+                sortable: true,
+                filterOptions: { enabled: true, placeholder: 'Filter by platform ID' },
+                width: '120px'
             },
             {
                 label: 'Album',
@@ -190,12 +204,12 @@ export default defineComponent({
                 filterOptions: { enabled: true, placeholder: 'Filter by album' }
             },
             {
-                label: 'Duration (ms)',
+                label: 'Duration',
                 field: 'duration_ms',
                 type: 'number',
                 sortable: true,
                 filterOptions: { enabled: true, placeholder: 'Filter by duration' },
-                width: '120px'
+                width: '100px'
             },
             {
                 label: 'Visibility',
@@ -205,17 +219,20 @@ export default defineComponent({
                 width: '100px'
             },
             {
-                label: 'External Link',
-                field: 'external_url',
-                sortable: false,
-                width: '100px'
-            },
-            {
                 label: 'Created',
                 field: 'created_at',
                 type: 'date',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by date' }
+                filterOptions: { enabled: true, placeholder: 'Filter by date' },
+                width: '120px'
+            },
+            {
+                label: 'Updated',
+                field: 'updated_at',
+                type: 'date',
+                sortable: true,
+                filterOptions: { enabled: true, placeholder: 'Filter by update date' },
+                width: '120px'
             },
             {
                 label: 'Actions',
@@ -223,7 +240,7 @@ export default defineComponent({
                 sortable: false,
                 width: '120px'
             }
-        ]; const loadSongs = async () => {
+        ];const loadSongs = async () => {
             try {
                 loading.value = true;
                 const response = await AdminService.getSongs();
@@ -243,6 +260,15 @@ export default defineComponent({
 
         const refreshSongs = () => {
             loadSongs();
+        };
+
+        const getPlatformColor = (platform: string) => {
+            const colors: { [key: string]: string } = {
+                'Spotify': 'success',
+                'YouTube': 'danger',
+                'Apple Music': 'dark'
+            };
+            return colors[platform] || 'medium';
         };
 
         const formatDuration = (milliseconds: number) => {
@@ -297,44 +323,7 @@ export default defineComponent({
                 await toast.present();
             } finally {
                 saving.value = false;
-            }
-        };
-
-        const toggleSongVisibility = async (song: any) => {
-            const action = song.is_visible ? 'hide' : 'show';
-
-            try {
-                await AdminService.updateSong(song.song_id, {
-                    ...song,
-                    is_visible: !song.is_visible
-                });
-
-                // Record admin action
-                await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id',
-                    action_type: action === 'hide' ? 'hide_song' : 'show_song',
-                    target_song_id: song.song_id,
-                    reason: `Song ${action}n via admin panel`
-                });
-
-                const toast = await toastController.create({
-                    message: `Song ${action}n successfully`,
-                    duration: 3000,
-                    color: 'success'
-                });
-                await toast.present();
-
-                loadSongs();
-            } catch (error) {
-                console.error(`Failed to ${action} song:`, error);
-                const toast = await toastController.create({
-                    message: `Failed to ${action} song`,
-                    duration: 3000,
-                    color: 'danger'
-                });
-                await toast.present();
-            }
-        };
+            }        };
 
         const confirmDeleteSong = async (song: any) => {
             const alert = await alertController.create({
@@ -383,18 +372,11 @@ export default defineComponent({
                     color: 'danger'
                 });
                 await toast.present();
-            }
-        };
-
-        const openExternalUrl = (url: string) => {
-            window.open(url, '_blank');
-        };
+            }        };
 
         onMounted(() => {
             loadSongs();
-        });
-
-        return {
+        });        return {
             songs,
             loading,
             saving,
@@ -403,22 +385,18 @@ export default defineComponent({
             selectedSong,
             loadSongs,
             refreshSongs,
+            getPlatformColor,
             formatDate,
             formatDuration,
             editSong,
             closeEditModal,
             saveSong,
-            toggleSongVisibility,
             confirmDeleteSong,
-            openExternalUrl,
             // Icons
             refreshIcon: refresh,
             editIcon: create,
-            eyeIcon: eye,
-            eyeOffIcon: eyeOff,
             trashIcon: trash,
-            closeIcon: close,
-            linkIcon: link
+            closeIcon: close
         };
     }
 });

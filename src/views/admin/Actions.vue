@@ -48,8 +48,7 @@
                       <ion-icon :icon="eyeIcon" slot="icon-only"></ion-icon>
                     </ion-button>
                   </div>
-                </span>
-                <span v-else-if="props.column.field === 'actions'">
+                </span>                <span v-else-if="props.column.field === 'actions'">
                   <div class="action-buttons">
                     <ion-button 
                       fill="clear" 
@@ -58,14 +57,6 @@
                       @click="viewActionDetails(props.row)"
                     >
                       <ion-icon :icon="eyeIcon" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    <ion-button 
-                      fill="clear" 
-                      size="small" 
-                      color="danger"
-                      @click="deleteAction(props.row)"
-                    >
-                      <ion-icon :icon="trashIcon" slot="icon-only"></ion-icon>
                     </ion-button>
                   </div>
                 </span>
@@ -146,17 +137,16 @@
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import {
   IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal, 
-  IonHeader, IonToolbar, IonTitle, IonButtons, alertController
+  IonHeader, IonToolbar, IonTitle, IonButtons
 } from '@ionic/vue';
-import { refresh, eye, trash } from 'ionicons/icons';
+import { refresh, eye } from 'ionicons/icons';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
 import { AdminAction } from '@/types';
 
 export default defineComponent({
-  name: 'AdminActions',
-  components: {
+  name: 'AdminActions',  components: {
     IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal,
     IonHeader, IonToolbar, IonTitle, IonButtons,
     AdminSidePanel, AdminTable
@@ -197,40 +187,9 @@ export default defineComponent({
     const viewActionDetails = (action: AdminAction) => {
       selectedAction.value = action;
       isModalOpen.value = true;
-    };
-
-    const closeModal = () => {
+    };    const closeModal = () => {
       isModalOpen.value = false;
       selectedAction.value = null;
-    };
-
-    const deleteAction = async (action: AdminAction) => {
-      const alert = await alertController.create({
-        header: 'Delete Admin Action',
-        message: `Are you sure you want to delete this admin action? This action cannot be undone.`,
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel'
-          },
-          {
-            text: 'Delete',
-            role: 'destructive',            handler: async () => {
-              try {
-                loading.value = true;
-                await AdminService.deleteAdminAction(action.action_id);
-                await loadActions();
-              } catch (err: any) {
-                console.error('Error deleting admin action:', err);
-                error.value = err.message || 'Failed to delete admin action';
-              } finally {
-                loading.value = false;
-              }
-            }
-          }
-        ]
-      });
-      await alert.present();
     };
 
     const getActionTypeColor = (actionType: string): string => {
@@ -262,9 +221,7 @@ export default defineComponent({
 
     onMounted(() => {
       loadActions();
-    });
-
-    return {
+    });    return {
       actions,
       loading,
       error,
@@ -275,15 +232,13 @@ export default defineComponent({
       refreshActions,
       viewActionDetails,
       closeModal,
-      deleteAction,
       getActionTypeColor,
       formatActionType,
       formatDate,
       truncateDescription,
       // Icons
       refreshIcon: refresh,
-      eyeIcon: eye,
-      trashIcon: trash
+      eyeIcon: eye
     };
   }
 });

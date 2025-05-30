@@ -20,9 +20,7 @@
                   <ion-icon :icon="refreshIcon" slot="start"></ion-icon>
                   Refresh
                 </ion-button>
-              </template>
-
-              <!-- Custom column templates -->
+              </template>              <!-- Custom column templates -->
               <template #table-row="props">
                 <span v-if="props.column.field === 'status'">
                   <ion-badge :color="getStatusColor(props.row.status)">
@@ -37,14 +35,18 @@
                 </span>
                 <span v-else-if="props.column.field === 'song.title'">
                   {{ props.row.song?.title || 'N/A' }}
-                </span>                <span v-else-if="props.column.field === 'song.artist_name'">
+                </span>
+                <span v-else-if="props.column.field === 'song.artist_name'">
                   {{ props.row.song?.artist_name_on_platform || 'N/A' }}
                 </span>
-                <span v-else-if="props.column.field === 'submitted_at'">
-                  {{ formatDate(props.row.submitted_at) }}
+                <span v-else-if="props.column.field === 'submission_message'">
+                  {{ props.row.submission_message ? (props.row.submission_message.length > 50 ? props.row.submission_message.substring(0, 50) + '...' : props.row.submission_message) : 'N/A' }}
                 </span>
-                <span v-else-if="props.column.field === 'reviewed_at'">
-                  {{ props.row.reviewed_at ? formatDate(props.row.reviewed_at) : 'Not reviewed' }}
+                <span v-else-if="props.column.field === 'review_feedback'">
+                  {{ props.row.review_feedback ? (props.row.review_feedback.length > 50 ? props.row.review_feedback.substring(0, 50) + '...' : props.row.review_feedback) : 'N/A' }}
+                </span>
+                <span v-else-if="props.column.field === 'submitted_at' || props.column.field === 'reviewed_at'">
+                  {{ props.row[props.column.field] ? formatDate(props.row[props.column.field]) : 'N/A' }}
                 </span>
                 <span v-else-if="props.column.field === 'actions'">
                   <div class="action-buttons">
@@ -52,14 +54,6 @@
                       fill="clear" 
                       size="small" 
                       color="primary"
-                      @click="viewSubmissionDetails(props.row)"
-                    >
-                      <ion-icon :icon="eyeIcon" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    <ion-button 
-                      fill="clear" 
-                      size="small" 
-                      color="medium"
                       @click="editSubmission(props.row)"
                     >
                       <ion-icon :icon="editIcon" slot="icon-only"></ion-icon>
@@ -93,32 +87,31 @@
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding">
+      </ion-header>      <ion-content class="ion-padding">
         <form @submit.prevent="saveSubmission" v-if="selectedSubmission">
           <ion-item>
-            <ion-label position="stacked">Status</ion-label>
+            <ion-label position="stacked">Status *</ion-label>
             <ion-select v-model="selectedSubmission.status" interface="popover">
               <ion-select-option value="pending">Pending</ion-select-option>
               <ion-select-option value="approved">Approved</ion-select-option>
               <ion-select-option value="rejected">Rejected</ion-select-option>
-              <ion-select-option value="removed">Removed</ion-select-option>
             </ion-select>
           </ion-item>
           
           <ion-item>
-            <ion-label position="stacked">Admin Notes</ion-label>
+            <ion-label position="stacked">Submission Message</ion-label>
             <ion-textarea 
-              v-model="selectedSubmission.admin_notes"
-              placeholder="Add notes about this submission..."
+              v-model="selectedSubmission.submission_message"
+              placeholder="Message from artist..."
+              readonly
             ></ion-textarea>
           </ion-item>
           
           <ion-item>
-            <ion-label position="stacked">Rejection Reason</ion-label>
+            <ion-label position="stacked">Review Feedback</ion-label>
             <ion-textarea 
-              v-model="selectedSubmission.rejection_reason"
-              placeholder="Reason for rejection (if applicable)..."
+              v-model="selectedSubmission.review_feedback"
+              placeholder="Add feedback for this submission..."
             ></ion-textarea>
           </ion-item>
           
@@ -229,7 +222,6 @@
                   size="small" 
                   @click="playAudio(selectedSubmission.song.url)"
                 >
-                  <ion-icon :icon="playIcon" slot="start"></ion-icon>
                   Play
                 </ion-button>
               </p>
@@ -256,22 +248,20 @@
               <p>${{ selectedSubmission.playlist?.submission_fee?.toFixed(2) }}</p>
             </ion-label>
           </ion-item>
-        </div>
-
-        <div class="detail-section" v-if="selectedSubmission.admin_notes">
-          <h3>Admin Notes</h3>
+        </div>        <div class="detail-section" v-if="selectedSubmission.review_feedback">
+          <h3>Review Feedback</h3>
           <ion-item>
             <ion-label>
-              <p>{{ selectedSubmission.admin_notes }}</p>
+              <p>{{ selectedSubmission.review_feedback }}</p>
             </ion-label>
           </ion-item>
         </div>
 
-        <div class="detail-section" v-if="selectedSubmission.rejection_reason">
-          <h3>Rejection Reason</h3>
+        <div class="detail-section" v-if="selectedSubmission.submission_message">
+          <h3>Submission Message</h3>
           <ion-item>
             <ion-label>
-              <p>{{ selectedSubmission.rejection_reason }}</p>
+              <p>{{ selectedSubmission.submission_message }}</p>
             </ion-label>
           </ion-item>
         </div>
@@ -288,7 +278,7 @@ import {
   IonTextarea, IonSpinner, toastController, alertController
 } from '@ionic/vue';
 import {
-  refresh, eye, create, trash, close, play
+  refresh, create, trash, close
 } from 'ionicons/icons';
 import { AdminSubmission } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
@@ -309,16 +299,14 @@ export default defineComponent({
     const saving = ref(false);
     const isEditModalOpen = ref(false);
     const isDetailsModalOpen = ref(false);
-    const selectedSubmission = ref<AdminSubmission | null>(null);
-
-    const columns = [
+    const selectedSubmission = ref<AdminSubmission | null>(null);    const columns = [
       {
         label: 'ID',
         field: 'submission_id',
         type: 'string',
         sortable: true,
         filterOptions: { enabled: true, placeholder: 'Filter by ID' },
-        width: '100px'
+        width: '120px'
       },
       {
         label: 'Artist',
@@ -348,29 +336,46 @@ export default defineComponent({
         label: 'Status',
         field: 'status',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by status' }
+        filterOptions: { enabled: true, placeholder: 'Filter by status' },
+        width: '100px'
+      },
+      {
+        label: 'Message',
+        field: 'submission_message',
+        sortable: false,
+        filterOptions: { enabled: true, placeholder: 'Filter by message' },
+        width: '150px'
+      },
+      {
+        label: 'Feedback',
+        field: 'review_feedback',
+        sortable: false,
+        filterOptions: { enabled: true, placeholder: 'Filter by feedback' },
+        width: '150px'
       },
       {
         label: 'Submitted',
         field: 'submitted_at',
         type: 'date',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by date' }
+        filterOptions: { enabled: true, placeholder: 'Filter by date' },
+        width: '120px'
       },
       {
         label: 'Reviewed',
         field: 'reviewed_at',
         type: 'date',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by reviewed date' }
+        filterOptions: { enabled: true, placeholder: 'Filter by reviewed date' },
+        width: '120px'
       },
       {
         label: 'Actions',
         field: 'actions',
         sortable: false,
-        width: '150px'
+        width: '120px'
       }
-    ];    const loadSubmissions = async () => {
+    ];const loadSubmissions = async () => {
       try {
         loading.value = true;
         const response = await AdminService.getSubmissions();
@@ -547,14 +552,11 @@ export default defineComponent({
       closeDetailsModal,
       confirmDeleteSubmission,
       playAudio,
-      formatDate,
-      // Icons
+      formatDate,      // Icons
       refreshIcon: refresh,
-      eyeIcon: eye,
       editIcon: create,
       trashIcon: trash,
-      closeIcon: close,
-      playIcon: play
+      closeIcon: close
     };
   }
 });

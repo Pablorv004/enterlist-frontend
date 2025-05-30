@@ -48,21 +48,7 @@
 import { defineComponent, PropType, computed, ref } from 'vue';
 import { IonIcon, IonSpinner } from '@ionic/vue';
 import { folderOpen } from 'ionicons/icons';
-
-interface Column {
-  label: string;
-  field: string;
-  type?: string;
-  sortable?: boolean;
-  filterable?: boolean;
-  filterOptions?: {
-    enabled: boolean;
-    placeholder?: string;
-  };
-  width?: string;
-  tdClass?: string;
-  thClass?: string;
-}
+import type { Column } from '@/types/admin';
 
 interface VuetifyHeader {
   title: string;

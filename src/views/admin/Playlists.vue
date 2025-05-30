@@ -22,9 +22,9 @@
                 </ion-button>
               </template>              <!-- Custom column templates -->
               <template #table-row="props">
-                <span v-if="props.column.field === 'is_active'">
+                <span v-if="props.column.field === 'is_visible'">
                   <ion-badge :color="props.row.is_visible ? 'success' : 'danger'">
-                    {{ props.row.is_visible ? 'Active' : 'Inactive' }}
+                    {{ props.row.is_visible ? 'Visible' : 'Hidden' }}
                   </ion-badge>
                 </span>
                 <span v-else-if="props.column.field === 'platform'">
@@ -33,24 +33,16 @@
                   </ion-badge>
                 </span>
                 <span v-else-if="props.column.field === 'submission_fee'">
-                  ${{ props.row.submission_fee?.toFixed(2) || '0.00' }}
+                  ${{ Number(props.row.submission_fee || 0).toFixed(2) }}
                 </span>
-                <span v-else-if="props.column.field === 'created_at'">
-                  {{ formatDate(props.row.created_at) }}
+                <span v-else-if="props.column.field === 'track_count'">
+                  {{ Number(props.row.track_count || 0) }}
+                </span>
+                <span v-else-if="props.column.field === 'created_at' || props.column.field === 'updated_at'">
+                  {{ formatDate(props.row[props.column.field]) }}
                 </span>
                 <span v-else-if="props.column.field === 'playlist_maker'">
                   {{ props.row.creator?.username || 'Unknown' }}
-                </span>
-                <span v-else-if="props.column.field === 'external_url'">
-                  <ion-button 
-                    v-if="props.row.url" 
-                    fill="clear" 
-                    size="small"
-                    @click="openExternalUrl(props.row.url)"
-                  >
-                    <ion-icon :icon="linkIcon" slot="icon-only"></ion-icon>
-                  </ion-button>
-                  <span v-else>-</span>
                 </span>
                 <span v-else-if="props.column.field === 'actions'">
                   <div class="action-buttons">
@@ -61,13 +53,6 @@
                       @click="editPlaylist(props.row)"
                     >
                       <ion-icon :icon="editIcon" slot="icon-only"></ion-icon>
-                    </ion-button>                    <ion-button 
-                      fill="clear" 
-                      size="small" 
-                      :color="props.row.is_visible ? 'warning' : 'success'"
-                      @click="togglePlaylistStatus(props.row)"
-                    >
-                      <ion-icon :icon="props.row.is_visible ? eyeOffIcon : eyeIcon" slot="icon-only"></ion-icon>
                     </ion-button>
                     <ion-button 
                       fill="clear" 
@@ -98,11 +83,10 @@
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding">
+      </ion-header>      <ion-content class="ion-padding">
         <form @submit.prevent="savePlaylist" v-if="selectedPlaylist">
           <ion-item>
-            <ion-label position="stacked">Name</ion-label>
+            <ion-label position="stacked">Name *</ion-label>
             <ion-input v-model="selectedPlaylist.name" required></ion-input>
           </ion-item>
           
@@ -112,21 +96,48 @@
           </ion-item>
           
           <ion-item>
-            <ion-label position="stacked">Submission Fee ($)</ion-label>
+            <ion-label position="stacked">Platform Specific ID *</ion-label>
+            <ion-input v-model="selectedPlaylist.platform_specific_id" required></ion-input>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Submission Fee ($) *</ion-label>
             <ion-input 
               v-model.number="selectedPlaylist.submission_fee" 
               type="number" 
               step="0.01"
               min="0"
+              required
             ></ion-input>
-          </ion-item>          <ion-item>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Track Count</ion-label>
+            <ion-input 
+              v-model.number="selectedPlaylist.track_count" 
+              type="number" 
+              min="0"
+            ></ion-input>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Genre</ion-label>
+            <ion-input v-model="selectedPlaylist.genre"></ion-input>
+          </ion-item>
+          
+          <ion-item>
             <ion-label position="stacked">External URL</ion-label>
             <ion-input v-model="selectedPlaylist.url" type="url"></ion-input>
           </ion-item>
           
           <ion-item>
+            <ion-label position="stacked">Cover Image URL</ion-label>
+            <ion-input v-model="selectedPlaylist.cover_image_url" type="url"></ion-input>
+          </ion-item>
+          
+          <ion-item>
             <ion-checkbox v-model="selectedPlaylist.is_visible"></ion-checkbox>
-            <ion-label class="ion-margin-start">Active Playlist</ion-label>
+            <ion-label class="ion-margin-start">Visible to Public</ion-label>
           </ion-item>
           
           <div class="modal-actions">
@@ -152,7 +163,7 @@ import {
   IonCheckbox, IonSpinner, alertController, toastController
 } from '@ionic/vue';
 import {
-  refresh, create, eye, eyeOff, trash, close, link
+  refresh, create, trash, close
 } from 'ionicons/icons';
 import { AdminPlaylist } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
@@ -172,16 +183,14 @@ export default defineComponent({
     const loading = ref(true);
     const saving = ref(false);
     const isEditModalOpen = ref(false);
-    const selectedPlaylist = ref<AdminPlaylist | null>(null);
-
-    const columns = [
+    const selectedPlaylist = ref<AdminPlaylist | null>(null);    const columns = [
       {
         label: 'ID',
         field: 'playlist_id',
         type: 'string',
         sortable: true,
         filterOptions: { enabled: true, placeholder: 'Filter by ID' },
-        width: '100px'
+        width: '120px'
       },
       {
         label: 'Name',
@@ -190,10 +199,10 @@ export default defineComponent({
         filterOptions: { enabled: true, placeholder: 'Filter by name' }
       },
       {
-        label: 'Owner',
+        label: 'Creator',
         field: 'playlist_maker',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by owner' }
+        filterOptions: { enabled: true, placeholder: 'Filter by creator' }
       },
       {
         label: 'Platform',
@@ -202,7 +211,14 @@ export default defineComponent({
         filterOptions: { enabled: true, placeholder: 'Filter by platform' }
       },
       {
-        label: 'Fee',
+        label: 'Platform ID',
+        field: 'platform_specific_id',
+        sortable: true,
+        filterOptions: { enabled: true, placeholder: 'Filter by platform ID' },
+        width: '120px'
+      },
+      {
+        label: 'Fee ($)',
         field: 'submission_fee',
         type: 'number',
         sortable: true,
@@ -210,16 +226,25 @@ export default defineComponent({
         width: '100px'
       },
       {
-        label: 'Status',
-        field: 'is_active',
+        label: 'Tracks',
+        field: 'track_count',
+        type: 'number',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by status' },
+        filterOptions: { enabled: true, placeholder: 'Filter by track count' },
+        width: '80px'
+      },
+      {
+        label: 'Genre',
+        field: 'genre',
+        sortable: true,
+        filterOptions: { enabled: true, placeholder: 'Filter by genre' },
         width: '100px'
       },
       {
-        label: 'External Link',
-        field: 'external_url',
-        sortable: false,
+        label: 'Status',
+        field: 'is_visible',
+        sortable: true,
+        filterOptions: { enabled: true, placeholder: 'Filter by status' },
         width: '100px'
       },
       {
@@ -227,7 +252,16 @@ export default defineComponent({
         field: 'created_at',
         type: 'date',
         sortable: true,
-        filterOptions: { enabled: true, placeholder: 'Filter by date' }
+        filterOptions: { enabled: true, placeholder: 'Filter by date' },
+        width: '120px'
+      },
+      {
+        label: 'Updated',
+        field: 'updated_at',
+        type: 'date',
+        sortable: true,
+        filterOptions: { enabled: true, placeholder: 'Filter by update date' },
+        width: '120px'
       },
       {
         label: 'Actions',
@@ -235,7 +269,7 @@ export default defineComponent({
         sortable: false,
         width: '120px'
       }
-    ];    const loadPlaylists = async () => {
+    ];const loadPlaylists = async () => {
       try {
         loading.value = true;
         const response = await AdminService.getPlaylists();
@@ -308,42 +342,7 @@ export default defineComponent({
         await toast.present();
       } finally {
         saving.value = false;
-      }
-    };    const togglePlaylistStatus = async (playlist: any) => {
-      const action = playlist.is_visible ? 'hide' : 'show';
-      
-      try {
-        await AdminService.updatePlaylist(playlist.playlist_id, {
-          ...playlist,
-          is_visible: !playlist.is_visible
-        });
-
-        // Record admin action
-        await AdminService.createAdminAction({
-          admin_user_id: 'current_admin_id',
-          action_type: action === 'hide' ? 'hide_playlist' : 'show_playlist',
-          target_playlist_id: playlist.playlist_id,
-          reason: `Playlist ${action}n via admin panel`
-        });
-
-        const toast = await toastController.create({
-          message: `Playlist ${action}n successfully`,
-          duration: 3000,
-          color: 'success'
-        });
-        await toast.present();
-        
-        loadPlaylists();
-      } catch (error) {
-        console.error(`Failed to ${action} playlist:`, error);
-        const toast = await toastController.create({
-          message: `Failed to ${action} playlist`,
-          duration: 3000,
-          color: 'danger'
-        });
-        await toast.present();
-      }
-    };
+      }    };
 
     const confirmDeletePlaylist = async (playlist: any) => {
       const alert = await alertController.create({
@@ -392,18 +391,11 @@ export default defineComponent({
           color: 'danger'
         });
         await toast.present();
-      }
-    };
-
-    const openExternalUrl = (url: string) => {
-      window.open(url, '_blank');
-    };
+      }    };
 
     onMounted(() => {
       loadPlaylists();
-    });
-
-    return {
+    });    return {
       playlists,
       loading,
       saving,
@@ -417,17 +409,12 @@ export default defineComponent({
       editPlaylist,
       closeEditModal,
       savePlaylist,
-      togglePlaylistStatus,
       confirmDeletePlaylist,
-      openExternalUrl,
       // Icons
       refreshIcon: refresh,
       editIcon: create,
-      eyeIcon: eye,
-      eyeOffIcon: eyeOff,
       trashIcon: trash,
-      closeIcon: close,
-      linkIcon: link
+      closeIcon: close
     };
   }
 });

@@ -70,8 +70,12 @@
                     </ion-buttons>
                 </ion-toolbar>
             </ion-header>
-            <ion-content class="ion-padding">
-                <form @submit.prevent="saveUser" v-if="selectedUser">
+            <ion-content class="ion-padding">                <form @submit.prevent="saveUser" v-if="selectedUser">
+                    <ion-item>
+                        <ion-label position="stacked">User ID</ion-label>
+                        <ion-input :value="selectedUser.user_id" readonly></ion-input>
+                    </ion-item>
+
                     <ion-item>
                         <ion-label position="stacked">Username</ion-label>
                         <ion-input v-model="selectedUser.username" required></ion-input>
@@ -92,8 +96,28 @@
                     </ion-item>
 
                     <ion-item>
+                        <ion-label position="stacked">OAuth Provider</ion-label>
+                        <ion-input v-model="selectedUser.oauth_provider" placeholder="OAuth provider"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                        <ion-label position="stacked">OAuth ID</ion-label>
+                        <ion-input v-model="selectedUser.oauth_id" placeholder="OAuth ID"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                        <ion-label position="stacked">Balance</ion-label>
+                        <ion-input v-model="selectedUser.balance" type="number" step="0.01" placeholder="Balance"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
                         <ion-checkbox v-model="selectedUser.is_active"></ion-checkbox>
                         <ion-label class="ion-margin-start">Active User</ion-label>
+                    </ion-item>
+
+                    <ion-item>
+                        <ion-checkbox v-model="selectedUser.email_confirmed"></ion-checkbox>
+                        <ion-label class="ion-margin-start">Email Confirmed</ion-label>
                     </ion-item>
 
                     <div class="modal-actions">
@@ -139,55 +163,87 @@ export default defineComponent({
         const loading = ref(true);
         const saving = ref(false);
         const isEditModalOpen = ref(false);
-        const selectedUser = ref<AdminUser | null>(null);
-
-        const columns = [
+        const selectedUser = ref<AdminUser | null>(null);        const columns = [
             {
-                label: 'ID',
+                label: 'User ID',
                 field: 'user_id',
-                type: 'string',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by ID' },
-                width: '120px'
+                width: '200px'
             },
             {
                 label: 'Username',
                 field: 'username',
-                sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by username' }
+                sortable: true
             },
             {
                 label: 'Email',
                 field: 'email',
-                sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by email' }
+                sortable: true
             },
             {
                 label: 'Role',
                 field: 'role',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by role' }
+                render: (value: string) => `<ion-badge color="${getRoleColor(value)}">${formatRole(value)}</ion-badge>`
+            },
+            {
+                label: 'OAuth Provider',
+                field: 'oauth_provider',
+                sortable: true
+            },
+            {
+                label: 'Balance',
+                field: 'balance',
+                sortable: true,
+                render: (value: number) => `$${Number(value).toFixed(2)}`
             },
             {
                 label: 'Status',
                 field: 'is_active',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by status' }
+                render: (value: boolean) => `<ion-badge color="${value ? 'success' : 'danger'}">${value ? 'Active' : 'Inactive'}</ion-badge>`
+            },
+            {
+                label: 'Email Confirmed',
+                field: 'email_confirmed',
+                sortable: true,
+                render: (value: boolean) => `<ion-badge color="${value ? 'success' : 'warning'}">${value ? 'Yes' : 'No'}</ion-badge>`
             },
             {
                 label: 'Created',
                 field: 'created_at',
-                type: 'date',
                 sortable: true,
-                filterOptions: { enabled: true, placeholder: 'Filter by date' }
+                render: (value: string) => formatDate(value)
+            },
+            {
+                label: 'Updated',
+                field: 'updated_at',
+                sortable: true,
+                render: (value: string) => formatDate(value)
+            },
+            {
+                label: 'Last Login',
+                field: 'last_login',
+                sortable: true,
+                render: (value: string) => value ? formatDate(value) : 'Never'
             },
             {
                 label: 'Actions',
                 field: 'actions',
                 sortable: false,
-                width: '120px'
+                width: '100px',
+                render: (value: any, row: AdminUser) => `
+                    <div class="action-buttons">
+                        <ion-button fill="clear" size="small" color="primary" onclick="editUser('${row.user_id}')">
+                            <ion-icon name="create" slot="icon-only"></ion-icon>
+                        </ion-button>
+                        <ion-button fill="clear" size="small" color="danger" onclick="deleteUser('${row.user_id}')">
+                            <ion-icon name="trash" slot="icon-only"></ion-icon>
+                        </ion-button>
+                    </div>
+                `
             }
-        ]; const loadUsers = async (skip = 0, take = 10) => {
+        ];const loadUsers = async (skip = 0, take = 10) => {
             try {
                 loading.value = true;
                 const response = await AdminService.getUsers(skip, take);
