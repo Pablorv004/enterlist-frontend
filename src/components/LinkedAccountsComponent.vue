@@ -241,23 +241,7 @@ export default defineComponent({
             return linkedAccounts.value.find(account =>
                 account.platform_id === platform.platform_id
             );
-        };
-
-        const connectPlatform = async (platformName: string) => {
-            if (!Array.isArray(platforms.value)) {
-                console.error('Platforms is not an array:', platforms.value);
-                showToast('Platform data not loaded correctly', 'danger');
-                return;
-            }
-
-            const platform = platforms.value.find(p =>
-                p.name.toLowerCase().includes(platformName.toLowerCase())
-            );
-
-            if (!platform) {
-                showToast('Platform not available', 'warning');
-                return;
-            }        const connectPlatform = async (platformName: string) => {
+        };        const connectPlatform = async (platformName: string) => {
             if (!Array.isArray(platforms.value)) {
                 console.error('Platforms is not an array:', platforms.value);
                 showToast('Platform data not loaded correctly', 'danger');
@@ -298,7 +282,6 @@ export default defineComponent({
                 console.error('OAuth error:', error);
                 showToast(`Failed to connect to ${platformName}`, 'danger');
             }
-        };
         };
 
         const confirmDisconnect = async (platformName: string) => {
