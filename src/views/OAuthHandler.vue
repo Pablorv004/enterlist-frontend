@@ -33,6 +33,8 @@ onMounted(async () => {
         }
 
         // Handle OAuth callback
+        loadingMessage.value = 'Processing authentication...';
+        console.log('Calling handleOAuthCallback...');
         await oauthService.handleOAuthCallback(new URLSearchParams(window.location.search));
     } catch (error) {
         console.error('OAuth Handler Error:', error);

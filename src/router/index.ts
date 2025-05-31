@@ -325,10 +325,11 @@ router.beforeEach(async (to, from, next) => {
     
     // Always initialize from storage before checking auth
     await authStore.initializeFromStorage();
-    
-    // Handle OAuth redirects using the unified OAuth service for web platform
-    // Skip OAuth handling if we're going to RoleSelection or Dashboard with OAuth parameters (let the component handle it)
+      // Handle OAuth redirects using the unified OAuth service for web platform
+    // Skip OAuth handling if we're going to dedicated OAuth callback routes or specific routes with OAuth parameters
     if (!Capacitor.isNativePlatform() && 
+        to.name !== 'OAuthCallback' &&
+        to.name !== 'OAuthLinkCallback' &&
         !((to.name === 'RoleSelection' && to.query.access_token) || 
           (to.name === 'Dashboard' && to.query.access_token))) {
         const oauthService = getOAuthService();
@@ -337,7 +338,7 @@ router.beforeEach(async (to, from, next) => {
             // OAuth service handled the redirect, don't proceed with normal routing
             return;
         }
-    }    
+    }
     // Check if route requires authentication
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const guestOnly = to.matched.some(record => record.meta.guestOnly);
