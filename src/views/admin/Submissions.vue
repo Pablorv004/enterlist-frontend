@@ -284,7 +284,8 @@ import { AdminSubmission } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 export default defineComponent({
   name: 'AdminSubmissions',
@@ -292,14 +293,14 @@ export default defineComponent({
     IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal, IonHeader,
     IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonSelect, IonSelectOption,
     IonTextarea, IonSpinner,
-    AdminSidePanel, AdminTable
-  },  setup() {
+    AdminSidePanel, AdminTable  },  setup() {
+    const authStore = useAuthStore();
     const submissions = ref<AdminSubmission[]>([]);
     const loading = ref(true);
     const saving = ref(false);
     const isEditModalOpen = ref(false);
     const isDetailsModalOpen = ref(false);
-    const selectedSubmission = ref<AdminSubmission | null>(null);    const columns = [
+    const selectedSubmission = ref<AdminSubmission | null>(null);const columns = [
       {
         label: 'ID',
         field: 'submission_id',
@@ -433,10 +434,9 @@ export default defineComponent({
       try {
         saving.value = true;
         await AdminService.updateSubmission(selectedSubmission.value.submission_id, selectedSubmission.value);
-        
-        // Record admin action
+          // Record admin action
         await AdminService.createAdminAction({
-          admin_user_id: 'current_admin_id',
+          admin_user_id: authStore.user?.user_id || '',
           action_type: 'update_submission',
           target_user_id: selectedSubmission.value.artist_id,
           reason: 'Submission details updated via admin panel'
@@ -496,10 +496,9 @@ export default defineComponent({
     const deleteSubmission = async (submission: any) => {
       try {
         await AdminService.deleteSubmission(submission.submission_id);
-        
-        // Record admin action
+          // Record admin action
         await AdminService.createAdminAction({
-          admin_user_id: 'current_admin_id',
+          admin_user_id: authStore.user?.user_id || '',
           action_type: 'delete_submission',
           target_user_id: submission.artist_id,
           reason: 'Submission deleted via admin panel'

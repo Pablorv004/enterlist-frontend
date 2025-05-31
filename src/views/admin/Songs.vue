@@ -143,7 +143,8 @@ import { AdminSong } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 export default defineComponent({
     name: 'AdminSongs',
@@ -151,13 +152,13 @@ export default defineComponent({
         IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal, IonHeader,
         IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonInput,
         IonCheckbox, IonSpinner,
-        AdminSidePanel, AdminTable
-    }, setup() {
+        AdminSidePanel, AdminTable    }, setup() {
         const songs = ref<AdminSong[]>([]);
         const loading = ref(true);
         const saving = ref(false);
         const isEditModalOpen = ref(false);
-        const selectedSong = ref<AdminSong | null>(null);        const columns = [
+        const selectedSong = ref<AdminSong | null>(null);
+        const authStore = useAuthStore();const columns = [
             {
                 label: 'ID',
                 field: 'song_id',
@@ -294,11 +295,9 @@ export default defineComponent({
 
             try {
                 saving.value = true;
-                await AdminService.updateSong(selectedSong.value.song_id, selectedSong.value);
-
-                // Record admin action
+                await AdminService.updateSong(selectedSong.value.song_id, selectedSong.value);                // Record admin action
                 await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id',
+                    admin_user_id: authStore.user?.user_id || '',
                     action_type: 'update_song',
                     target_song_id: selectedSong.value.song_id,
                     reason: 'Song details updated via admin panel'
@@ -346,11 +345,9 @@ export default defineComponent({
 
         const deleteSong = async (song: any) => {
             try {
-                await AdminService.deleteSong(song.song_id);
-
-                // Record admin action
+                await AdminService.deleteSong(song.song_id);                // Record admin action
                 await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id',
+                    admin_user_id: authStore.user?.user_id || '',
                     action_type: 'delete_song',
                     target_song_id: song.song_id,
                     reason: 'Song deleted via admin panel'

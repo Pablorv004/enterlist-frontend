@@ -149,7 +149,8 @@ import { AdminUser } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 export default defineComponent({
     name: 'AdminUsers',
@@ -157,13 +158,13 @@ export default defineComponent({
         IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal, IonHeader,
         IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonInput, IonSelect,
         IonSelectOption, IonCheckbox, IonSpinner,
-        AdminSidePanel, AdminTable
-    }, setup() {
+        AdminSidePanel, AdminTable    }, setup() {
         const users = ref<AdminUser[]>([]);
         const loading = ref(true);
         const saving = ref(false);
         const isEditModalOpen = ref(false);
-        const selectedUser = ref<AdminUser | null>(null);        const columns = [
+        const selectedUser = ref<AdminUser | null>(null);
+        const authStore = useAuthStore();const columns = [
             {
                 label: 'User ID',
                 field: 'user_id',
@@ -296,11 +297,9 @@ export default defineComponent({
 
             try {
                 saving.value = true;
-                await AdminService.updateUser(selectedUser.value.user_id, selectedUser.value);
-
-                // Record admin action
+                await AdminService.updateUser(selectedUser.value.user_id, selectedUser.value);                // Record admin action
                 await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id', // This should come from auth store
+                    admin_user_id: authStore.user?.user_id || '',
                     action_type: 'update_user',
                     target_user_id: selectedUser.value.user_id,
                     reason: 'User details updated via admin panel'
@@ -337,11 +336,9 @@ export default defineComponent({
                     await AdminService.suspendUser(user.user_id, 'Admin action via admin panel');
                 } else {
                     await AdminService.reactivateUser(user.user_id);
-                }
-
-                // Record admin action
+                }                // Record admin action
                 await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id', // This should come from auth store
+                    admin_user_id: authStore.user?.user_id || '',
                     action_type: action === 'suspend' ? 'suspend_user' : 'reactivate_user',
                     target_user_id: user.user_id,
                     reason: `User ${action}ed via admin panel`
@@ -387,11 +384,9 @@ export default defineComponent({
 
         const deleteUser = async (user: any) => {
             try {
-                await AdminService.deleteUser(user.user_id);
-
-                // Record admin action
+                await AdminService.deleteUser(user.user_id);                // Record admin action
                 await AdminService.createAdminAction({
-                    admin_user_id: 'current_admin_id', // This should come from auth store
+                    admin_user_id: authStore.user?.user_id || '',
                     action_type: 'delete_user',
                     target_user_id: user.user_id,
                     reason: 'User deleted via admin panel'

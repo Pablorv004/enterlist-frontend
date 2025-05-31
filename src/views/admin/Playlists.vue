@@ -169,7 +169,8 @@ import { AdminPlaylist } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 export default defineComponent({
   name: 'AdminPlaylists',
@@ -177,13 +178,13 @@ export default defineComponent({
     IonPage, IonContent, IonButton, IonIcon, IonBadge, IonModal, IonHeader,
     IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonInput, IonTextarea,
     IonCheckbox, IonSpinner,
-    AdminSidePanel, AdminTable
-  },  setup() {
+    AdminSidePanel, AdminTable  },  setup() {
     const playlists = ref<AdminPlaylist[]>([]);
     const loading = ref(true);
     const saving = ref(false);
     const isEditModalOpen = ref(false);
-    const selectedPlaylist = ref<AdminPlaylist | null>(null);    const columns = [
+    const selectedPlaylist = ref<AdminPlaylist | null>(null);
+    const authStore = useAuthStore();const columns = [
       {
         label: 'ID',
         field: 'playlist_id',
@@ -314,10 +315,9 @@ export default defineComponent({
       try {
         saving.value = true;
         await AdminService.updatePlaylist(selectedPlaylist.value.playlist_id, selectedPlaylist.value);
-        
-        // Record admin action
+          // Record admin action
         await AdminService.createAdminAction({
-          admin_user_id: 'current_admin_id',
+          admin_user_id: authStore.user?.user_id || '',
           action_type: 'update_playlist',
           target_playlist_id: selectedPlaylist.value.playlist_id,
           reason: 'Playlist details updated via admin panel'
@@ -366,10 +366,9 @@ export default defineComponent({
     const deletePlaylist = async (playlist: any) => {
       try {
         await AdminService.deletePlaylist(playlist.playlist_id);
-        
-        // Record admin action
+          // Record admin action
         await AdminService.createAdminAction({
-          admin_user_id: 'current_admin_id',
+          admin_user_id: authStore.user?.user_id || '',
           action_type: 'delete_playlist',
           target_playlist_id: playlist.playlist_id,
           reason: 'Playlist deleted via admin panel'

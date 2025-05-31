@@ -144,8 +144,10 @@ import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
 import type { AdminLinkedAccount, Column } from '@/types/admin';
 import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 // Data
+const authStore = useAuthStore();
 const linkedAccounts = ref<AdminLinkedAccount[]>([]);
 const loading = ref(false);
 const isEditModalOpen = ref(false);
@@ -224,7 +226,13 @@ const saveLinkedAccount = async () => {
         await AdminService.updateLinkedAccount(
             selectedLinkedAccount.value.linked_account_id,
             selectedLinkedAccount.value
-        );
+        );        // Record admin action
+        await AdminService.createAdminAction({
+            admin_user_id: authStore.user?.user_id || '',
+            action_type: 'update_linked_account',
+            target_user_id: selectedLinkedAccount.value.user_id,
+            reason: 'Linked account updated via admin panel'
+        });
 
         const toast = await toastController.create({
             message: 'Linked account updated successfully',
@@ -257,7 +265,13 @@ const deleteLinkedAccount = async () => {
     if (!selectedLinkedAccount.value) return;
 
     try {
-        await AdminService.deleteLinkedAccount(selectedLinkedAccount.value.linked_account_id);
+        await AdminService.deleteLinkedAccount(selectedLinkedAccount.value.linked_account_id);        // Record admin action
+        await AdminService.createAdminAction({
+            admin_user_id: authStore.user?.user_id || '',
+            action_type: 'delete_linked_account',
+            target_user_id: selectedLinkedAccount.value.user_id,
+            reason: 'Linked account deleted via admin panel'
+        });
 
         const toast = await toastController.create({
             message: 'Linked account deleted successfully',

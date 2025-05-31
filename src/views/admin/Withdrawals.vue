@@ -280,7 +280,7 @@ import { AdminWithdrawal } from '@/types/admin';
 import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/utils/date';
 
 export default defineComponent({
   name: 'AdminWithdrawals',  components: {

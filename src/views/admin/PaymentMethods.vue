@@ -147,6 +147,7 @@ import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
 import { formatDate } from '@/utils/date';
+import { useAuthStore } from '@/store/auth';
 
 export default defineComponent({
   name: 'AdminPaymentMethods',
@@ -155,8 +156,8 @@ export default defineComponent({
     IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonInput, IonSelect,
     IonSelectOption, IonTextarea, IonCheckbox, IonSpinner,
     AdminSidePanel, AdminTable
-  },
-  setup() {
+  },  setup() {
+    const authStore = useAuthStore();
     const paymentMethods = ref<AdminPaymentMethod[]>([]);
     const loading = ref(true);
     const saving = ref(false);
@@ -269,9 +270,7 @@ export default defineComponent({
     const closeEditModal = () => {
       isEditModalOpen.value = false;
       selectedPaymentMethod.value = null;
-    };
-
-    const savePaymentMethod = async () => {
+    };    const savePaymentMethod = async () => {
       if (!selectedPaymentMethod.value) return;
 
       try {
@@ -280,6 +279,13 @@ export default defineComponent({
           type: selectedPaymentMethod.value.type,
           details: selectedPaymentMethod.value.details,
           is_default: selectedPaymentMethod.value.is_default
+        });
+          // Record admin action
+        await AdminService.createAdminAction({
+          admin_user_id: authStore.user?.user_id || '',
+          action_type: 'update_payment_method',
+          target_user_id: selectedPaymentMethod.value.user_id,
+          reason: 'Payment method updated via admin panel'
         });
         
         const toast = await toastController.create({
@@ -315,10 +321,16 @@ export default defineComponent({
           },
           {
             text: 'Delete',
-            role: 'destructive',
-            handler: async () => {
+            role: 'destructive',            handler: async () => {
               try {
                 await AdminService.deletePaymentMethod(paymentMethod.payment_method_id);
+                  // Record admin action
+                await AdminService.createAdminAction({
+                  admin_user_id: authStore.user?.user_id || '',
+                  action_type: 'delete_payment_method',
+                  target_user_id: paymentMethod.user_id,
+                  reason: 'Payment method deleted via admin panel'
+                });
                 
                 const toast = await toastController.create({
                   message: 'Payment method deleted successfully',

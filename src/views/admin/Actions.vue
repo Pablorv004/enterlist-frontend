@@ -144,6 +144,7 @@ import AdminSidePanel from '@/components/admin/AdminSidePanel.vue';
 import AdminTable from '@/components/admin/AdminTable.vue';
 import { AdminService } from '@/services/AdminService';
 import { AdminAction } from '@/types';
+import { formatDate } from '@/utils/date';
 
 export default defineComponent({
   name: 'AdminActions',  components: {
@@ -202,17 +203,13 @@ export default defineComponent({
         'view': 'tertiary'
       };
       return colorMap[actionType] || 'medium';
-    };
-
-    const formatActionType = (actionType: string): string => {
+    };    const formatActionType = (actionType: string): string => {
       return actionType.split('_').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' ');
     };
 
-    const formatDate = (dateString: string): string => {
-      return new Date(dateString).toLocaleString();
-    };    const truncateDescription = (reason: string | null): string => {
+    const truncateDescription = (reason: string | null): string => {
       if (!reason) return 'No reason';
       return reason.length > 50 
         ? reason.substring(0, 50) + '...' 
