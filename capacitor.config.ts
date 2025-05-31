@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     App: {
       appUrlOpen: {
         enabled: true,
-        url: "enterlist"
+        url: "com.enterlist.app"
       }
     }
   }

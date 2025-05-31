@@ -61,19 +61,17 @@ interface PayPalPayout {
   }>;
 }
 
-export const PayPalService = {
-  // OAuth Methods
+export const PayPalService = {  // OAuth Methods
   getAuthUrl: async (): Promise<{ url: string }> => {
-    const isMobile = Capacitor.isNativePlatform();
-    const mobileParam = isMobile ? '?mobile=true' : '';
+    // Detect if running on mobile (Capacitor/Cordova)
+    const isMobile = window.location.protocol === 'capacitor:' || 
+                     window.location.protocol === 'ionic:' ||
+                     /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()) ||
+                     (window as any).Capacitor;
     
     // Get the URL from the authenticated API endpoint (requires user to be logged in)
-    const response = await apiClient.get('/auth/paypal/login-url');
-    if (response.data && response.data.url) {
-      return { url: response.data.url + mobileParam };
-    }
-    
-    throw new Error('Failed to get PayPal authentication URL');
+    const response = await apiClient.get(`/auth/paypal/login-url${isMobile ? '?mobile=true' : ''}`);
+    return response.data;
   },
 
   openAuthPopup: async (): Promise<boolean> => {

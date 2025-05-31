@@ -99,10 +99,15 @@ export const YouTubeService = {  // Get user channels
     // Handle both direct array and nested object responses
     return Array.isArray(response.data) ? response.data : (response.data?.items || []);
   },
-
   // Get YouTube login URL
   getLoginUrl: async (): Promise<{ url: string }> => {
-    const response = await apiClient.get('/auth/youtube/login-url');
+    // Detect if running on mobile (Capacitor/Cordova)
+    const isMobile = window.location.protocol === 'capacitor:' || 
+                     window.location.protocol === 'ionic:' ||
+                     /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()) ||
+                     (window as any).Capacitor;
+    
+    const response = await apiClient.get(`/auth/youtube/login-url${isMobile ? '?mobile=true' : ''}`);
     return response.data;
   },
 

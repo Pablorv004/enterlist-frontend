@@ -329,9 +329,7 @@ export default defineComponent({
                     // Error will be handled by the watcher from auth store
                 }
             }
-        };
-
-        // OAuth login handler
+        };        // OAuth login handler
         const oauthLogin = async (provider: string) => {
             try {
                 let authUrl = '';
@@ -349,6 +347,10 @@ export default defineComponent({
                         throw new Error('Invalid provider');
                 }
 
+                // Clear any OAuth error when starting new flow
+                localError.value = '';
+                authStore.clearError();
+
                 // Open OAuth window
                 window.location.href = authUrl;
             } catch (err: any) {
@@ -360,7 +362,7 @@ export default defineComponent({
                 });
                 await alert.present();
             }
-        }; return {
+        };return {
             form,
             isLoginMode,
             showPassword,

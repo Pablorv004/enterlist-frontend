@@ -257,7 +257,23 @@ export default defineComponent({
             if (!platform) {
                 showToast('Platform not available', 'warning');
                 return;
-            }            try {
+            }        const connectPlatform = async (platformName: string) => {
+            if (!Array.isArray(platforms.value)) {
+                console.error('Platforms is not an array:', platforms.value);
+                showToast('Platform data not loaded correctly', 'danger');
+                return;
+            }
+
+            const platform = platforms.value.find(p =>
+                p.name.toLowerCase().includes(platformName.toLowerCase())
+            );
+
+            if (!platform) {
+                showToast('Platform not available', 'warning');
+                return;
+            }
+
+            try {
                 let redirectUrl;
                 
                 if (platformName.toLowerCase() === 'spotify') {
@@ -272,6 +288,7 @@ export default defineComponent({
                 }
 
                 if (redirectUrl) {
+                    // Store current path for redirect after OAuth
                     localStorage.setItem('preAuthPath', window.location.pathname);
                     window.location.href = redirectUrl;
                 } else {
@@ -281,6 +298,7 @@ export default defineComponent({
                 console.error('OAuth error:', error);
                 showToast(`Failed to connect to ${platformName}`, 'danger');
             }
+        };
         };
 
         const confirmDisconnect = async (platformName: string) => {
