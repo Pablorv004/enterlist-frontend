@@ -5,7 +5,7 @@
                 <ion-button v-if="backButton" router-back>
                     <ion-icon :icon="arrowBackIcon" slot="icon-only"></ion-icon>
                 </ion-button>
-                <ion-button router-link="/" fill="clear" color="light">
+                <ion-button router-link="/" fill="clear" color="light" class="home-button">
                     <ion-icon :icon="homeIcon" slot="icon-only"></ion-icon>
                 </ion-button>
             </ion-buttons>
@@ -72,5 +72,11 @@ ion-title {
     transform: translate(-50%, -50%);
     width: 100%;
     padding: 0;
+}
+
+.home-button {
+    position: absolute;
+    left: 16px;
+    z-index: 10;
 }
 </style>
