@@ -259,9 +259,7 @@ export default defineComponent({
                     password: validationRules.password
                 })) {
                     return;
-                }
-
-                try {
+                }                try {
                     await authStore.login(form.email, form.password);
                     
                     // Clear form data after successful login
@@ -271,7 +269,9 @@ export default defineComponent({
                     form.confirmPassword = '';
                     resetValidation();
                     
-                    router.push('/dashboard');
+                    // Check for redirect parameter and use it, otherwise go to dashboard
+                    const redirectPath = route.query.redirect as string || '/dashboard';
+                    router.push(redirectPath);
 
                     // Show welcome toast
                     const toast = await toastController.create({

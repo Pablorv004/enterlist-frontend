@@ -162,9 +162,7 @@ export default defineComponent({
                 });
 
                 // Refresh user data in store
-                await authStore.checkAuth();
-
-                // Show success message
+                await authStore.checkAuth();                // Show success message
                 const toast = await toastController.create({
                     message: `You're now registered as a ${selectedRole.value === 'artist' ? 'Artist' : 'Playlist Creator'}!`,
                     duration: 3000,
@@ -173,11 +171,17 @@ export default defineComponent({
                 });
                 await toast.present();
 
-                // Redirect to appropriate dashboard
-                if (selectedRole.value === 'artist') {
-                    router.push('/artist/dashboard');
+                // Check for redirect parameter and use it, otherwise go to appropriate dashboard
+                const redirectPath = route.query.redirect as string;
+                if (redirectPath) {
+                    router.push(redirectPath);
                 } else {
-                    router.push('/playlist-maker/dashboard');
+                    // Redirect to appropriate dashboard
+                    if (selectedRole.value === 'artist') {
+                        router.push('/artist/dashboard');
+                    } else {
+                        router.push('/playlist-maker/dashboard');
+                    }
                 }
             } catch (err: any) {
                 error.value = err.response?.data?.message || 'Failed to set role';
