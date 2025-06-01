@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import { pinia } from './store';
+import { Capacitor } from '@capacitor/core';
 
 // Polyfill for process.env to make code compatible with both Node.js and browser environments
 window.process = window.process || {};
@@ -51,4 +52,26 @@ const app = createApp(App)
 
 router.isReady().then(() => {
   app.mount('#app');
+  
+  // Initialize mobile OAuth handling after app is mounted and router is ready
+  if (Capacitor.isNativePlatform()) {
+    import('./services/OAuthService').then(({ OAuthService }) => {
+      const oauthService = new OAuthService(router);
+      
+      // Set up mobile deep links for OAuth callbacks
+      import('@capacitor/app').then(({ App: CapacitorApp }) => {
+        console.log('Setting up mobile OAuth deep link handler...');
+        
+        CapacitorApp.addListener('appUrlOpen', async (event) => {
+          console.log('Deep link received:', event.url);
+          try {
+            await oauthService.handleMobileCallback(event.url);
+          } catch (error) {
+            console.error('Mobile OAuth callback failed:', error);
+            await oauthService.handleOAuthError('OAuth authentication failed');
+          }
+        });
+      });
+    });
+  }
 });
