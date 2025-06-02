@@ -43,41 +43,52 @@ export const PlatformService = {  getPlatforms: async (): Promise<Platform[]> =>
     const mobileParam = isMobile ? '?mobile=true' : '';
     
     try {
-      // First try to get the URL from the authenticated API endpoint
+      // Try to get the URL from the authenticated API endpoint for account linking
       const response = await apiClient.get(`/auth/spotify/login-url${mobileParam}`);
       if (response.data && response.data.url) {
         return { url: response.data.url };
       }
-    } catch (error) {
-      console.warn('Failed to get Spotify auth URL from authenticated API, user may not be logged in. Using register-or-login endpoint', error);
-      // If the authenticated endpoint fails (user not logged in), 
-      // use register-or-login endpoint which doesn't require authentication
-      return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login${mobileParam}` };
+      // If response doesn't have url, throw error to be handled below
+      throw new Error('No URL returned from authenticated endpoint');
+    } catch (error: any) {
+      // Only fall back to register-or-login if user is not authenticated (401)
+      if (error.response && error.response.status === 401) {
+        console.warn('User not authenticated, using register-or-login endpoint for Spotify');
+        return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login${mobileParam}` };
+      }
+      
+      // For other errors (network, server errors, etc.), throw the error
+      // This ensures we don't silently fall back when the user IS authenticated
+      // but there's a server/network issue
+      console.error('Failed to get Spotify auth URL:', error);
+      throw new Error(`Failed to get Spotify authentication URL: ${error.message || 'Unknown error'}`);
     }
-    
-    // Use register-or-login endpoint as fallback
-    return { url: `${apiClient.defaults.baseURL}/auth/spotify/register-or-login${mobileParam}` };
-  },
-  
+  },  
   getYoutubeAuthUrl: async (): Promise<{ url: string }> => {
     const isMobile = Capacitor.isNativePlatform();
     const mobileParam = isMobile ? '?mobile=true' : '';
     
     try {
-      // First try to get the URL from the authenticated API endpoint
+      // Try to get the URL from the authenticated API endpoint for account linking
       const response = await apiClient.get(`/auth/youtube/login-url${mobileParam}`);
       if (response.data && response.data.url) {
         return { url: response.data.url };
       }
-    } catch (error) {
-      console.warn('Failed to get YouTube auth URL from authenticated API, user may not be logged in. Using register-or-login endpoint', error);
-      // If the authenticated endpoint fails (user not logged in), 
-      // use register-or-login endpoint which doesn't require authentication
-      return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login${mobileParam}` };
+      // If response doesn't have url, throw error to be handled below
+      throw new Error('No URL returned from authenticated endpoint');
+    } catch (error: any) {
+      // Only fall back to register-or-login if user is not authenticated (401)
+      if (error.response && error.response.status === 401) {
+        console.warn('User not authenticated, using register-or-login endpoint for YouTube');
+        return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login${mobileParam}` };
+      }
+      
+      // For other errors (network, server errors, etc.), throw the error
+      // This ensures we don't silently fall back when the user IS authenticated
+      // but there's a server/network issue
+      console.error('Failed to get YouTube auth URL:', error);
+      throw new Error(`Failed to get YouTube authentication URL: ${error.message || 'Unknown error'}`);
     }
-        
-    // Use register-or-login endpoint as fallback
-    return { url: `${apiClient.defaults.baseURL}/auth/youtube/register-or-login${mobileParam}` };
   },
 
   handleOAuthCallback: async (code: string, state: string, platform: string): Promise<LinkedAccount> => {
