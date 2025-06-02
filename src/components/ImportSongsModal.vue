@@ -346,7 +346,7 @@ export default defineComponent({
         if (!isComponentMounted.value) return;
         
         console.error('Error loading Spotify content:', error);
-        showToast('Failed to load your Spotify content', 'danger');
+        showToast('Failed to load your Spotify content. Please relink your account.', 'danger');
       }
     };
 
@@ -372,7 +372,7 @@ export default defineComponent({
         if (!isComponentMounted.value) return;
         
         console.error('Error loading YouTube content:', error);
-        showToast('Failed to load your YouTube videos', 'danger');
+        showToast('Failed to load your YouTube videos. Please relink your account.', 'danger');
       }
     };    // Import selected content
     const importSelected = async () => {

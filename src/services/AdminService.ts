@@ -1,7 +1,8 @@
 import apiClient from './api';
 import { AdminAction, PaginatedResponse } from '@/types';
 
-export const AdminService = {  getAdminActions: async (skip = 0, take = 100): Promise<PaginatedResponse<AdminAction>> => {
+export const AdminService = {  
+  getAdminActions: async (skip = 0, take = 100): Promise<PaginatedResponse<AdminAction>> => {
     const response = await apiClient.get(`/admin-actions?skip=${skip}&take=${take}`);
     return response.data;
   },

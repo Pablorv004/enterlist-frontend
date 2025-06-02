@@ -18,12 +18,8 @@ export default defineComponent({
     setup() {
         const authStore = useAuthStore();
 
-        // Use onMounted to ensure initialization happens after component mount
         onMounted(async () => {
-            // Initialize auth from local storage and wait for it to complete
             await authStore.initializeFromStorage();
-            
-            // No need to call checkAuth separately as it's now handled inside initializeFromStorage
         });
 
         return {};
