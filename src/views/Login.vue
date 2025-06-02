@@ -10,7 +10,7 @@
                 <ion-card class="login-card">
                     <ion-card-header>
                         <ion-card-title class="card-title">{{ isLoginMode ? 'Sign In' : 'Create Account'
-                        }}</ion-card-title>
+                            }}</ion-card-title>
                         <ion-card-subtitle>{{ isLoginMode ? 'Welcome back!' : 'Join the network' }}</ion-card-subtitle>
                     </ion-card-header> <ion-card-content>
                         <form @submit.prevent="submitForm" class="login-form">
@@ -22,7 +22,7 @@
                                     :class="{ 'ion-invalid': isDirty.username && errors.username }"
                                     :errorText="errors.username"></ion-input>
                                 <ion-note slot="error" v-if="isDirty.username && errors.username">{{ errors.username
-                                }}</ion-note>
+                                    }}</ion-note>
                             </ion-item>
 
                             <!-- Email -->
@@ -33,7 +33,7 @@
                                     :class="{ 'ion-invalid': isDirty.email && errors.email }"
                                     :errorText="errors.email"></ion-input>
                                 <ion-note slot="error" v-if="isDirty.email && errors.email">{{ errors.email
-                                }}</ion-note>
+                                    }}</ion-note>
                             </ion-item>
 
                             <!-- Password -->
@@ -47,7 +47,7 @@
                                     <ion-icon :icon="showPassword ? eyeOff : eye"></ion-icon>
                                 </ion-button>
                                 <ion-note slot="error" v-if="isDirty.password && errors.password">{{ errors.password
-                                }}</ion-note>
+                                    }}</ion-note>
                             </ion-item>
 
                             <!-- Confirm Password for register mode -->
@@ -227,13 +227,13 @@ export default defineComponent({
         const youtubeIcon = logoYoutube;        // Toggle login/register mode
         const toggleMode = () => {
             isLoginMode.value = !isLoginMode.value;
-            
+
             // Clear form data when switching modes
             form.email = '';
             form.password = '';
             form.username = '';
             form.confirmPassword = '';
-            
+
             resetValidation();
             // Clear any OAuth error when switching modes
             localError.value = '';
@@ -259,16 +259,16 @@ export default defineComponent({
                     password: validationRules.password
                 })) {
                     return;
-                }                try {
+                } try {
                     await authStore.login(form.email, form.password);
-                    
+
                     // Clear form data after successful login
                     form.email = '';
                     form.password = '';
                     form.username = '';
                     form.confirmPassword = '';
                     resetValidation();
-                    
+
                     // Check for redirect parameter and use it, otherwise go to dashboard
                     const redirectPath = route.query.redirect as string || '/dashboard';
                     router.push(redirectPath);
@@ -299,21 +299,21 @@ export default defineComponent({
                     confirmPassword: validationRules.confirmPassword
                 })) {
                     return;
-                } 
-                  try {
+                }
+                try {
                     await authStore.register({
                         username: form.username,
                         email: form.email,
                         password: form.password
                     });
-                    
+
                     // Clear form data after successful registration
                     form.email = '';
                     form.password = '';
                     form.username = '';
                     form.confirmPassword = '';
                     resetValidation();
-                    
+
                     router.push('/email-confirmation');
                     const toast = await toastController.create({
                         message: 'Account created successfully! Please check your email to confirm your account.',
@@ -326,7 +326,7 @@ export default defineComponent({
                     console.error('Registration error:', err);
                 }
             }
-        }; 
+        };
         const oauthLogin = async (provider: string) => {
             try {
                 let authUrl = '';
@@ -359,7 +359,7 @@ export default defineComponent({
                 });
                 await alert.present();
             }
-        };return {
+        }; return {
             form,
             isLoginMode,
             showPassword,
@@ -541,6 +541,7 @@ ion-card-subtitle {
     --border-color: #1DB954;
     --color: #1DB954;
 }
+
 .spotify-icon {
     width: 20px;
     height: 20px;
