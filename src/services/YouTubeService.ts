@@ -1,5 +1,6 @@
 // filepath: src/services/YouTubeService.ts
 import apiClient from './api';
+import { Capacitor } from '@capacitor/core';
 
 export interface YouTubeChannel {
   id: string;
@@ -98,14 +99,10 @@ export const YouTubeService = {  // Get user channels
     const response = await apiClient.get(`/auth/youtube/songs?limit=${limit}&offset=${offset}`);
     // Handle both direct array and nested object responses
     return Array.isArray(response.data) ? response.data : (response.data?.items || []);
-  },
-  // Get YouTube login URL
+  },  // Get YouTube login URL
   getLoginUrl: async (): Promise<{ url: string }> => {
-    // Detect if running on mobile (Capacitor/Cordova)
-    const isMobile = window.location.protocol === 'capacitor:' || 
-                     window.location.protocol === 'ionic:' ||
-                     /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()) ||
-                     (window as any).Capacitor;
+    // Detect if running on mobile using Capacitor's reliable detection
+    const isMobile = Capacitor.isNativePlatform();
     
     const response = await apiClient.get(`/auth/youtube/login-url${isMobile ? '?mobile=true' : ''}`);
     return response.data;

@@ -1,5 +1,6 @@
 // filepath: src/services/SpotifyService.ts
 import apiClient from './api';
+import { Capacitor } from '@capacitor/core';
 
 export interface SpotifyTrack {
   id: string;
@@ -89,14 +90,10 @@ export const SpotifyService = {  // Get user playlists with tracks
     const response = await apiClient.get(`/auth/spotify/tracks?limit=${limit}&offset=${offset}`);
     // Handle both direct array and nested object responses
     return Array.isArray(response.data) ? response.data : (response.data?.items || []);
-  },
-  // Get Spotify login URL
+  },  // Get Spotify login URL
   getLoginUrl: async (): Promise<{ url: string }> => {
-    // Detect if running on mobile (Capacitor/Cordova)
-    const isMobile = window.location.protocol === 'capacitor:' || 
-                     window.location.protocol === 'ionic:' ||
-                     /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()) ||
-                     (window as any).Capacitor;
+    // Detect if running on mobile using Capacitor's reliable detection
+    const isMobile = Capacitor.isNativePlatform();
     
     const response = await apiClient.get(`/auth/spotify/login-url${isMobile ? '?mobile=true' : ''}`);
     return response.data;

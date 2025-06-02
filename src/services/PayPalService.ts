@@ -61,13 +61,11 @@ interface PayPalPayout {
   }>;
 }
 
-export const PayPalService = {  // OAuth Methods
+export const PayPalService = {
+  // OAuth Methods
   getAuthUrl: async (): Promise<{ url: string }> => {
-    // Detect if running on mobile (Capacitor/Cordova)
-    const isMobile = window.location.protocol === 'capacitor:' || 
-                     window.location.protocol === 'ionic:' ||
-                     /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()) ||
-                     (window as any).Capacitor;
+    // Detect if running on mobile using Capacitor's reliable detection
+    const isMobile = Capacitor.isNativePlatform();
     
     // Get the URL from the authenticated API endpoint (requires user to be logged in)
     const response = await apiClient.get(`/auth/paypal/login-url${isMobile ? '?mobile=true' : ''}`);
