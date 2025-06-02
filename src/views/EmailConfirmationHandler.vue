@@ -157,7 +157,12 @@ onMounted(async () => {
 });
 
 const redirectToDashboard = () => {
-  router.push('/dashboard');
+  // After email confirmation, check if user needs to select a role
+  if (!authStore.user?.role) {
+    router.push('/role-selection');
+  } else {
+    router.push('/dashboard');
+  }
 };
 
 const goToLogin = () => {

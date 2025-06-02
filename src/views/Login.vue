@@ -165,7 +165,7 @@ export default defineComponent({
         const router = useRouter();
         const route = useRoute();
         const authStore = useAuthStore();
-        const { errors, isDirty, validateField, validateForm, resetValidation } = useFormValidation();        // Form state
+        const { errors, isDirty, validateField, validateForm, resetValidation } = useFormValidation();
         const form = reactive({
             username: '',
             email: '',
@@ -300,8 +300,7 @@ export default defineComponent({
                 })) {
                     return;
                 } 
-                
-                try {
+                  try {
                     await authStore.register({
                         username: form.username,
                         email: form.email,
@@ -315,10 +314,9 @@ export default defineComponent({
                     form.confirmPassword = '';
                     resetValidation();
                     
-                    // Redirect to role selection after successful registration
-                    router.push('/role-selection');                    // Show welcome toast
+                    router.push('/email-confirmation');
                     const toast = await toastController.create({
-                        message: 'Account created successfully! Please select your role.',
+                        message: 'Account created successfully! Please check your email to confirm your account.',
                         duration: 3000,
                         position: 'top',
                         color: 'success'
@@ -326,10 +324,9 @@ export default defineComponent({
                     toast.present();
                 } catch (err: any) {
                     console.error('Registration error:', err);
-                    // Error will be handled by the watcher from auth store
                 }
             }
-        };        // OAuth login handler
+        }; 
         const oauthLogin = async (provider: string) => {
             try {
                 let authUrl = '';

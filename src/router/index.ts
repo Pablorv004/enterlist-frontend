@@ -346,10 +346,13 @@ router.beforeEach(async (to, from, next) => {
         next({ name: 'Login', query: { redirect: to.fullPath } });
     } else if (guestOnly && authStore.isAuthenticated) {
         // Redirect to dashboard if user is authenticated and tries to access guest-only pages
-        next({ name: 'Dashboard' });
-    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation) {
+        next({ name: 'Dashboard' });    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation) {
         // Redirect to email confirmation if user is authenticated but email is not confirmed
+        // This takes priority over role selection
         next({ name: 'EmailConfirmation' });
+    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection' && to.name !== 'EmailConfirmation') {
+        // If authenticated, email confirmed, but no role, and not already on role selection or email confirmation page
+        next({ name: 'RoleSelection' });
     } else if (requiredRole && authStore.isAuthenticated) {
         // Check user role for role-specific routes
         const userRole = authStore.user?.role?.toLowerCase();
@@ -368,11 +371,7 @@ router.beforeEach(async (to, from, next) => {
             } else {
                 // Fallback to home if role is unknown
                 next({ name: 'Home' });
-            }
-        }
-    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection') {
-        // If authenticated but no role, and not already on role selection page
-        next({ name: 'RoleSelection' });
+            }        }
     } else if (to.path === '/dashboard' && authStore.isAuthenticated) {
         // Redirect to appropriate dashboard based on user role
         const userRole = authStore.user?.role?.toLowerCase();
