@@ -346,11 +346,12 @@ router.beforeEach(async (to, from, next) => {
         next({ name: 'Login', query: { redirect: to.fullPath } });
     } else if (guestOnly && authStore.isAuthenticated) {
         // Redirect to dashboard if user is authenticated and tries to access guest-only pages
-        next({ name: 'Dashboard' });    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation) {
+        next({ name: 'Dashboard' });    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation && to.name !== 'EmailConfirmationHandler') {
         // Redirect to email confirmation if user is authenticated but email is not confirmed
         // This takes priority over role selection
+        // BUT allow access to EmailConfirmationHandler route so users can actually confirm their email
         next({ name: 'EmailConfirmation' });
-    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection' && to.name !== 'EmailConfirmation') {
+    } else if (authStore.isAuthenticated && !authStore.hasRole && to.name !== 'RoleSelection' && to.name !== 'EmailConfirmation' && to.name !== 'EmailConfirmationHandler') {
         // If authenticated, email confirmed, but no role, and not already on role selection or email confirmation page
         next({ name: 'RoleSelection' });
     } else if (requiredRole && authStore.isAuthenticated) {
