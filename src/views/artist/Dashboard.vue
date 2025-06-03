@@ -427,7 +427,7 @@ export default defineComponent({
             // Load submissions
             loading.value.submissions = true;
             try {
-                await submissionStore.fetchSubmissionsByArtist(user.value.user_id, 0, 5);
+                await submissionStore.fetchSubmissionsByArtist(user.value.user_id, 0, 4);
                 submissions.value = submissionStore.submissions;
 
                 // Calculate stats

@@ -394,7 +394,8 @@ export default defineComponent({
         });
 
         // Submissions per playlist (for badge counts)
-        const playlistSubmissions = ref<Record<string, number>>({});        onMounted(async () => {            await Promise.all([
+        const playlistSubmissions = ref<Record<string, number>>({});        onMounted(async () => {
+            await Promise.all([
                 fetchStats(),
                 fetchRecentSubmissions(),
                 fetchPlaylists(),
@@ -440,7 +441,7 @@ export default defineComponent({
                 if (!user.value) return;
 
                 // Get submissions to playlists owned by this playlist maker
-                const response = await SubmissionService.getSubmissionsByCreator(user.value.user_id, 0, 5);
+                const response = await SubmissionService.getSubmissionsByCreator(user.value.user_id, 0, 4);
                 recentSubmissions.value = response.data;
 
                 // Count submissions per playlist
