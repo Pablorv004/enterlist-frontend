@@ -75,6 +75,8 @@ export default defineComponent({
             await new Promise(resolve => setTimeout(resolve, 100));
             await authStore.logout();
             router.push('/login');
+            // Refresh the page to clear any and all old user cache (fuck you, Vue)
+            window.location.reload();
         };
 
         const closePopover = () => {
