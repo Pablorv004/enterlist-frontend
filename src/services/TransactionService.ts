@@ -92,8 +92,9 @@ export const TransactionService = {
       paymentMethodId,
     });
     return response.data;
-  },
-  executePayPalPayment: async (paymentId: string, payerId: string): Promise<{ success: boolean; transaction: Transaction }> => {
+  },  
+  
+  executePayPalPayment: async (paymentId: string, payerId: string): Promise<Transaction> => {
     const response = await apiClient.post('/transactions/paypal/execute-payment', {
       paymentId,
       payerId,

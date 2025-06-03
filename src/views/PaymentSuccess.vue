@@ -108,20 +108,20 @@ onMounted(async () => {
         }
 
         const submissionData = JSON.parse(submissionDataStr);
-        
-        // Execute PayPal payment
+          // Execute PayPal payment
         const result = await TransactionService.executePayPalPayment(
             paymentId,
             payerId
         );
 
-        if (result.success && result.transaction) {            // Get submission details since submission was already created
-            const submissionResult = await SubmissionService.getSubmission(submissionData.submissionId);            // Set submission details for display
+        // Check if payment was successful based on transaction status
+        if (result.status === 'succeeded') {
+            const submissionResult = await SubmissionService.getSubmission(submissionData.submissionId);
             submissionDetails.value = {
                 songTitle: submissionResult.song?.title || 'Unknown Song',
                 playlistName: submissionResult.playlist?.name || 'Unknown Playlist',
-                amount: (result.transaction.amount_total || 0).toFixed(2),
-                transactionId: result.transaction.transaction_id,
+                amount: (result.amount_total || 0).toFixed(2),
+                transactionId: result.transaction_id,
                 submissionId: submissionData.submissionId
             };
 
