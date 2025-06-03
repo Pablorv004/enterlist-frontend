@@ -41,15 +41,21 @@
                                     <ion-thumbnail class="song-thumbnail">
                                         <img :src="submission.song?.cover_image_url || '/assets/default-album-cover.png'"
                                             :alt="submission.song?.title" />
-                                    </ion-thumbnail>
-                                    <div class="song-text">
+                                    </ion-thumbnail>                                    <div class="song-text">
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
-                                        <ion-button size="small" fill="clear" color="primary"
-                                            @click="openSongModal">
-                                            <ion-icon :icon="informationIcon" slot="start"></ion-icon>
-                                            View Details
-                                        </ion-button>
+                                        <div class="song-actions">
+                                            <ion-button v-if="submission.song?.url" size="small" fill="clear" 
+                                                color="primary" @click="listenToSong">
+                                                <ion-icon :icon="playIcon" slot="start"></ion-icon>
+                                                Listen
+                                            </ion-button>
+                                            <ion-button size="small" fill="clear" color="primary"
+                                                @click="openSongModal">
+                                                <ion-icon :icon="informationIcon" slot="start"></ion-icon>
+                                                View Details
+                                            </ion-button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -362,10 +368,14 @@ export default defineComponent({
 
         const openSongModal = () => {
             isSongModalOpen.value = true;
+        };        const closeSongModal = () => {
+            isSongModalOpen.value = false;
         };
 
-        const closeSongModal = () => {
-            isSongModalOpen.value = false;
+        const listenToSong = () => {
+            if (submission.value?.song?.url) {
+                window.open(submission.value.song.url, '_blank');
+            }
         };
 
         return {
@@ -381,11 +391,11 @@ export default defineComponent({
             formatCurrency,
             resubmitSong,
             isPlaylistModalOpen,
-            isSongModalOpen,
-            openPlaylistModal,
+            isSongModalOpen,            openPlaylistModal,
             closePlaylistModal,
             openSongModal,
             closeSongModal,
+            listenToSong,
             alertCircleIcon: alertCircle,
             playIcon: play,
             openIcon: open,

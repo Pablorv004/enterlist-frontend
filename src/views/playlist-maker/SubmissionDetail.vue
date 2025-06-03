@@ -46,8 +46,7 @@
                 <!-- Song & Artist Info -->
                 <ion-card class="main-info-card">
                     <ion-card-content>
-                        <div class="song-artist-container">
-                            <!-- Song Info -->
+                        <div class="song-artist-container">                            <!-- Song Info -->
                             <div class="song-info">
                                 <h3>Song Details</h3>
                                 <div class="song-details">
@@ -58,6 +57,13 @@
                                     <div class="song-text">
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
+                                        <div class="song-actions">
+                                            <ion-button v-if="submission.song?.url" size="small" fill="clear" 
+                                                color="primary" @click="listenToSong">
+                                                <ion-icon :icon="playIcon" slot="start"></ion-icon>
+                                                Listen
+                                            </ion-button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -536,10 +542,14 @@ export default defineComponent({
         const openPlaylistModal = async () => {
             if (!completePlaylistData.value) return;
             isPlaylistModalOpen.value = true;
+        };        const closePlaylistModal = () => {
+            isPlaylistModalOpen.value = false;
         };
 
-        const closePlaylistModal = () => {
-            isPlaylistModalOpen.value = false;
+        const listenToSong = () => {
+            if (submission.value?.song?.url) {
+                window.open(submission.value.song.url, '_blank');
+            }
         };
 
         const approveSubmission = async () => {
@@ -667,11 +677,11 @@ export default defineComponent({
             loadingHistory,
             // Complete playlist data
             completePlaylistData,
-            loadingPlaylist,
-            openApproveModal,
+            loadingPlaylist,            openApproveModal,
             openRejectModal,
             openEditFeedbackModal,
             openPlaylistModal,
+            listenToSong,
             approveSubmission,
             rejectSubmission,
             updateFeedback,
