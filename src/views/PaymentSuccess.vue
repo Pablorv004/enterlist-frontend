@@ -120,7 +120,7 @@ onMounted(async () => {
             submissionDetails.value = {
                 songTitle: submissionResult.song?.title || 'Unknown Song',
                 playlistName: submissionResult.playlist?.name || 'Unknown Playlist',
-                amount: (result.amount_total || 0).toFixed(2),
+                amount: ((result.amount_total || 0)).toString(),
                 transactionId: result.transaction_id,
                 submissionId: submissionData.submissionId
             };
