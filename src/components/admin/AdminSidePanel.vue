@@ -138,7 +138,7 @@ export default defineComponent({
                         role: 'destructive',
                         handler: async () => {
                             await authStore.logout();
-                            router.push('/login');
+                            router.replace('/login');
                         }
                     }
                 ]
