@@ -2,7 +2,7 @@
     <ion-page>
         <ion-content :fullscreen="true" class="login-page">
             <div class="login-container">
-                <div class="logo-container">
+                <div class="logo-container" @click="goToHome">
                     <img src="@/assets/logo.png" alt="Enterlist Logo" class="logo" />
                     <h1 class="title gradient-text">ENTERLIST</h1>
                 </div>
@@ -359,7 +359,13 @@ export default defineComponent({
                 });
                 await alert.present();
             }
-        }; return {
+        }; 
+
+        const goToHome = () => {
+            router.push('/');
+        };
+
+        return {
             form,
             isLoginMode,
             showPassword,
@@ -377,7 +383,8 @@ export default defineComponent({
             togglePasswordVisibility,
             submitForm,
             oauthLogin,
-            validateField
+            validateField,
+            goToHome
         };
     }
 });
@@ -409,6 +416,12 @@ export default defineComponent({
     text-align: center;
     gap: 16px;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.logo-container:hover {
+    opacity: 0.8;
 }
 
 .logo {
