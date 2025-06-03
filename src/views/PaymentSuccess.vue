@@ -26,7 +26,7 @@
                     <ion-icon :icon="checkmarkCircleIcon" class="success-icon"></ion-icon>
                     <h2>Payment Successful!</h2>
                     <p>Your song submission has been successfully processed and sent for review.</p>
-                    
+
                     <div v-if="submissionDetails" class="submission-details">
                         <ion-card>
                             <ion-card-header>
@@ -108,7 +108,7 @@ onMounted(async () => {
         }
 
         const submissionData = JSON.parse(submissionDataStr);
-          // Execute PayPal payment
+        // Execute PayPal payment
         const result = await TransactionService.executePayPalPayment(
             paymentId,
             payerId
@@ -216,16 +216,20 @@ const checkmarkCircleIcon = checkmarkCircle;
         transform: scale(0.8);
         opacity: 0;
     }
+
     25% {
         transform: scale(1.1);
         opacity: 1;
     }
+
     50% {
         transform: scale(0.95);
     }
+
     75% {
         transform: scale(1.05);
     }
+
     100% {
         transform: scale(1);
         opacity: 1;

@@ -64,7 +64,7 @@
                     </li>                    <li class="nav-item">
                         <router-link to="/admin/actions" class="nav-link" :class="{ active: activeTab === 'actions' }">
                             <ion-icon :icon="clipboardIcon" class="nav-icon"></ion-icon>
-                            <span class="nav-text">Actions RUD</span>
+                            <span class="nav-text">Admin Actions</span>
                         </router-link>
                     </li>
 

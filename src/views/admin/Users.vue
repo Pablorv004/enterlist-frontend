@@ -196,7 +196,7 @@ export default defineComponent({
                 label: 'Balance',
                 field: 'balance',
                 sortable: true,
-                render: (value: number) => `$${Number(value).toFixed(2)}`
+                render: (value: number) => `$${value}`
             },
             {
                 label: 'Status',
@@ -221,12 +221,6 @@ export default defineComponent({
                 field: 'updated_at',
                 sortable: true,
                 render: (value: string) => formatDate(value)
-            },
-            {
-                label: 'Last Login',
-                field: 'last_login',
-                sortable: true,
-                render: (value: string) => value ? formatDate(value) : 'Never'
             },
             {
                 label: 'Actions',
