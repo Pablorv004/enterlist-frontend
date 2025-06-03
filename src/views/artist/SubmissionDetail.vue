@@ -50,11 +50,6 @@
                                                 <ion-icon :icon="playIcon" slot="start"></ion-icon>
                                                 Listen
                                             </ion-button>
-                                            <ion-button size="small" fill="clear" color="primary"
-                                                @click="openSongModal">
-                                                <ion-icon :icon="informationIcon" slot="start"></ion-icon>
-                                                View Details
-                                            </ion-button>
                                         </div>
                                     </div>
                                 </div>
@@ -150,15 +145,7 @@
                     </ion-button>
                 </div>
             </div>
-        </ion-content>        <!-- Song Details Modal -->
-        <ion-modal :is-open="isSongModalOpen" @didDismiss="closeSongModal">
-            <song-details-modal
-                v-if="submission?.song"
-                :song="submission.song"
-                :show-edit-buttons="false"
-                @close="closeSongModal"
-            />
-        </ion-modal>        <!-- Playlist Details Modal -->
+        </ion-content>        <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
             <playlist-details-modal
                 v-if="completePlaylistData"
@@ -182,7 +169,7 @@ import {
 } from '@ionic/vue';
 import {
     alertCircle, checkmarkCircle, closeCircle, timerOutline,
-    play, open, refreshOutline, informationCircle
+    play, open, refreshOutline
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNavigation from '@/components/BottomNavigation.vue';
@@ -191,7 +178,6 @@ import { PlaylistService } from '@/services/PlaylistService';
 import { Submission, SubmissionStatus, TransactionStatus, Playlist } from '@/types';
 import { useSubmissionStore } from '@/store';
 import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
-import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
     name: 'ArtistSubmissionDetail',
@@ -199,7 +185,7 @@ export default defineComponent({
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
         IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge,
         IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
-        AppHeader, BottomNavigation, PlaylistDetailsModal, SongDetailsModal
+        AppHeader, BottomNavigation, PlaylistDetailsModal
     },
     setup() {
         const route = useRoute();
@@ -353,7 +339,6 @@ export default defineComponent({
 
         // Modal states
         const isPlaylistModalOpen = ref(false);
-        const isSongModalOpen = ref(false);
         const completePlaylistData = ref<Playlist | null>(null);
         const loadingPlaylist = ref(false);
 
@@ -364,12 +349,6 @@ export default defineComponent({
 
         const closePlaylistModal = () => {
             isPlaylistModalOpen.value = false;
-        };
-
-        const openSongModal = () => {
-            isSongModalOpen.value = true;
-        };        const closeSongModal = () => {
-            isSongModalOpen.value = false;
         };
 
         const listenToSong = () => {
@@ -391,16 +370,13 @@ export default defineComponent({
             formatCurrency,
             resubmitSong,
             isPlaylistModalOpen,
-            isSongModalOpen,            openPlaylistModal,
+            openPlaylistModal,
             closePlaylistModal,
-            openSongModal,
-            closeSongModal,
             listenToSong,
             alertCircleIcon: alertCircle,
             playIcon: play,
             openIcon: open,
             refreshIcon: refreshOutline,
-            informationIcon: informationCircle,
             completePlaylistData,
             loadingPlaylist
         };
