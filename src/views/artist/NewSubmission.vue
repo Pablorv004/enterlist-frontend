@@ -715,9 +715,7 @@ export default defineComponent({
                     const paymentData = await TransactionService.createPayPalPayment(
                         draftSubmission.submission_id,
                         selectedPaymentMethodId.value
-                    );
-
-                    // Store submission data in sessionStorage to retrieve after payment
+                    );                    // Store submission data in sessionStorage to retrieve after payment
                     const submissionData = {
                         submissionId: draftSubmission.submission_id,
                         paymentId: paymentData.paymentId,
@@ -725,8 +723,18 @@ export default defineComponent({
                     };
                     sessionStorage.setItem('enterlist_submission_data', JSON.stringify(submissionData));
 
-                    // Redirect to PayPal for payment approval
-                    if (paymentData.approvalUrl) {
+                    // Check if this is a free submission or paid submission
+                    if (paymentData.isFreeSubmission || paymentData.success) {
+                        // For free submissions, redirect directly to success page
+                        router.push({
+                            path: '/payment/success',
+                            query: {
+                                freeSubmission: 'true',
+                                submissionId: draftSubmission.submission_id
+                            }
+                        });
+                    } else if (paymentData.approvalUrl) {
+                        // For paid submissions, redirect to PayPal for payment approval
                         window.location.href = paymentData.approvalUrl;
                     } else {
                         throw new Error('PayPal payment creation failed - no approval URL received');

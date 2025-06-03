@@ -94,35 +94,18 @@ const submissionDetails = ref<{
 
 onMounted(async () => {
     try {
-        // Get PayPal return parameters
-        const paymentId = route.query.paymentId as string;
-        const payerId = route.query.PayerID as string;
-        const token = route.query.token as string;
+        // Check if this is a free submission
+        const isFreeSubmission = route.query.freeSubmission === 'true';
+        const submissionId = route.query.submissionId as string;
 
-        if (!paymentId || !payerId) {
-            throw new Error('Missing payment information');
-        }        // Get stored submission data from sessionStorage
-        const submissionDataStr = sessionStorage.getItem('enterlist_submission_data');
-        if (!submissionDataStr) {
-            throw new Error('Submission data not found. Please try submitting again.');
-        }
-
-        const submissionData = JSON.parse(submissionDataStr);
-        // Execute PayPal payment
-        const result = await TransactionService.executePayPalPayment(
-            paymentId,
-            payerId
-        );
-
-        // Check if payment was successful based on transaction status
-        if (result.status === 'succeeded') {
-            const submissionResult = await SubmissionService.getSubmission(submissionData.submissionId);
+        if (isFreeSubmission && submissionId) {            // Handle free submission
+            const submissionResult = await SubmissionService.getSubmission(submissionId);
             submissionDetails.value = {
                 songTitle: submissionResult.song?.title || 'Unknown Song',
                 playlistName: submissionResult.playlist?.name || 'Unknown Playlist',
-                amount: ((result.amount_total || 0)).toString(),
-                transactionId: result.transaction_id,
-                submissionId: submissionData.submissionId
+                amount: '0.00',
+                transactionId: submissionResult.transaction?.transaction_id || 'FREE_SUBMISSION',
+                submissionId: submissionId
             };
 
             // Clear stored submission data
@@ -130,14 +113,60 @@ onMounted(async () => {
 
             // Show success toast
             const toast = await toastController.create({
-                message: 'Payment successful! Your submission has been sent for review.',
+                message: 'Submission successful! Your song has been sent for review.',
                 duration: 3000,
                 color: 'success',
                 position: 'top'
             });
             await toast.present();
         } else {
-            throw new Error('Payment execution failed');
+            // Handle paid submission - existing logic
+            const paymentId = route.query.paymentId as string;
+            const payerId = route.query.PayerID as string;
+            const token = route.query.token as string;
+
+            if (!paymentId || !payerId) {
+                throw new Error('Missing payment information');
+            }
+
+            // Get stored submission data from sessionStorage
+            const submissionDataStr = sessionStorage.getItem('enterlist_submission_data');
+            if (!submissionDataStr) {
+                throw new Error('Submission data not found. Please try submitting again.');
+            }
+
+            const submissionData = JSON.parse(submissionDataStr);
+            // Execute PayPal payment
+            const result = await TransactionService.executePayPalPayment(
+                paymentId,
+                payerId
+            );
+
+            // Check if payment was successful based on transaction status
+            if (result.status === 'succeeded') {
+                const submissionResult = await SubmissionService.getSubmission(submissionData.submissionId);
+                submissionDetails.value = {
+                    songTitle: submissionResult.song?.title || 'Unknown Song',
+                    playlistName: submissionResult.playlist?.name || 'Unknown Playlist',
+                    amount: ((result.amount_total || 0)).toString(),
+                    transactionId: result.transaction_id,
+                    submissionId: submissionData.submissionId
+                };
+
+                // Clear stored submission data
+                sessionStorage.removeItem('enterlist_submission_data');
+
+                // Show success toast
+                const toast = await toastController.create({
+                    message: 'Payment successful! Your submission has been sent for review.',
+                    duration: 3000,
+                    color: 'success',
+                    position: 'top'
+                });
+                await toast.present();
+            } else {
+                throw new Error('Payment execution failed');
+            }
         }
     } catch (err) {
         console.error('Payment processing error:', err);

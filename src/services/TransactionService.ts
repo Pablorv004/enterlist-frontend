@@ -37,9 +37,9 @@ export const TransactionService = {
     status: string,
     payment_provider_transaction_id?: string
   ): Promise<Transaction> => {
-    const response = await apiClient.put(`/transactions/${id}/status`, { 
-      status, 
-      payment_provider_transaction_id 
+    const response = await apiClient.put(`/transactions/${id}/status`, {
+      status,
+      payment_provider_transaction_id
     });
     return response.data;
   },
@@ -84,16 +84,22 @@ export const TransactionService = {
   getArtistTransactions: async (skip = 0, take = 10): Promise<PaginatedResponse<Transaction>> => {
     const response = await apiClient.get(`/transactions/artist/transactions?skip=${skip}&take=${take}`);
     return response.data;
-  },
-  // PayPal payment methods
-  createPayPalPayment: async (submissionId: string, paymentMethodId: string): Promise<{ paymentId: string; approvalUrl: string }> => {
+  },  // PayPal payment methods
+  createPayPalPayment: async (submissionId: string, paymentMethodId: string): Promise<{
+    paymentId?: string;
+    approvalUrl?: string | null;
+    transaction: any;
+    paypalPayment: any;
+    success?: boolean;
+    isFreeSubmission?: boolean;
+  }> => {
     const response = await apiClient.post('/transactions/paypal/create-payment', {
       submissionId,
       paymentMethodId,
     });
     return response.data;
-  },  
-  
+  },
+
   executePayPalPayment: async (paymentId: string, payerId: string): Promise<Transaction> => {
     const response = await apiClient.post('/transactions/paypal/execute-payment', {
       paymentId,
