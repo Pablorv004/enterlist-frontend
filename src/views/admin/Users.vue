@@ -106,11 +106,6 @@
                     </ion-item>
 
                     <ion-item>
-                        <ion-label position="stacked">Balance</ion-label>
-                        <ion-input v-model="selectedUser.balance" type="number" step="0.01" placeholder="Balance"></ion-input>
-                    </ion-item>
-
-                    <ion-item>
                         <ion-checkbox v-model="selectedUser.is_active"></ion-checkbox>
                         <ion-label class="ion-margin-start">Active User</ion-label>
                     </ion-item>
@@ -191,12 +186,6 @@ export default defineComponent({
                 label: 'OAuth Provider',
                 field: 'oauth_provider',
                 sortable: true
-            },
-            {
-                label: 'Balance',
-                field: 'balance',
-                sortable: true,
-                render: (value: number) => `$${value}`
             },
             {
                 label: 'Status',
