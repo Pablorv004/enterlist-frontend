@@ -31,8 +31,7 @@
                 </div>
 
                 <!-- Action Buttons for Curator -->
-                <div v-if="submission.status === 'pending'"
-                    class="curator-actions">
+                <div v-if="submission.status === 'pending'" class="curator-actions">
                     <ion-button color="success" @click="openApproveModal">
                         <ion-icon :icon="checkmarkIcon" slot="start"></ion-icon>
                         Approve Submission
@@ -46,7 +45,7 @@
                 <!-- Song & Artist Info -->
                 <ion-card class="main-info-card">
                     <ion-card-content>
-                        <div class="song-artist-container">                            <!-- Song Info -->
+                        <div class="song-artist-container"> <!-- Song Info -->
                             <div class="song-info">
                                 <h3>Song Details</h3>
                                 <div class="song-details">
@@ -58,7 +57,7 @@
                                         <h4>{{ submission.song?.title }}</h4>
                                         <p>{{ submission.song?.album_name || 'Single' }}</p>
                                         <div class="song-actions">
-                                            <ion-button v-if="submission.song?.url" size="small" fill="clear" 
+                                            <ion-button v-if="submission.song?.url" size="small" fill="clear"
                                                 color="primary" @click="listenToSong">
                                                 <ion-icon :icon="playIcon" slot="start"></ion-icon>
                                                 Listen
@@ -97,11 +96,12 @@
                             <ion-thumbnail class="playlist-thumbnail">
                                 <img :src="completePlaylistData?.cover_image_url || '/assets/default-playlist-cover.png'"
                                     :alt="completePlaylistData?.name" />
-                            </ion-thumbnail>                            <div class="playlist-details">
+                            </ion-thumbnail>
+                            <div class="playlist-details">
                                 <h4>{{ completePlaylistData?.name }}</h4>
                                 <p v-if="completePlaylistData?.genre">{{ completePlaylistData?.genre }}</p>
-                                <ion-button size="small" fill="clear" color="primary" 
-                                    @click="openPlaylistModal" v-if="completePlaylistData">
+                                <ion-button size="small" fill="clear" color="primary" @click="openPlaylistModal"
+                                    v-if="completePlaylistData">
                                     <ion-icon :icon="openIcon" slot="start"></ion-icon>
                                     View Playlist
                                 </ion-button>
@@ -136,12 +136,13 @@
                         <div v-if="submission.transaction" class="detail-item">
                             <ion-label>Submission Fee</ion-label>
                             <p>{{ formatCurrency(submission.transaction.amount_total, submission.transaction.currency)
-                            }}</p>
+                                }}</p>
                         </div>
 
                         <div v-if="submission.transaction" class="detail-item">
                             <ion-label>Your Payout</ion-label>
-                            <p>{{ formatCurrency(calculateCuratorPayout(submission.transaction.amount_total), submission.transaction.currency) }}</p>
+                            <p>{{ formatCurrency(calculateCuratorPayout(submission.transaction.amount_total),
+                                submission.transaction.currency) }}</p>
                         </div>
                     </ion-card-content>
                 </ion-card>
@@ -317,17 +318,12 @@
                     </ion-item>
                 </ion-list>
             </ion-content>
-        </ion-modal>        <!-- Playlist Details Modal -->        <!-- Playlist Details Modal -->
+        </ion-modal> <!-- Playlist Details Modal --> <!-- Playlist Details Modal -->
         <ion-modal :is-open="isPlaylistModalOpen" @didDismiss="closePlaylistModal">
-            <playlist-details-modal
-                v-if="completePlaylistData"
-                :playlist="completePlaylistData"
-                :show-edit-buttons="true"
-                @playlist-updated="onPlaylistUpdated"
-                @view-submissions="onViewSubmissions"
-            />
+            <playlist-details-modal v-if="completePlaylistData" :playlist="completePlaylistData"
+                :show-edit-buttons="true" @playlist-updated="onPlaylistUpdated" @view-submissions="onViewSubmissions" />
         </ion-modal>
-        
+
         <!-- Bottom Navigation -->
         <bottom-navigation active-tab="submissions"></bottom-navigation>
     </ion-page>
@@ -359,10 +355,10 @@ export default defineComponent({
     name: 'PlaylistMakerSubmissionDetail',
     components: {
         IonPage, IonContent, IonSpinner, IonIcon, IonButton, IonCard,
-        IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel,        IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
+        IonCardHeader, IonCardTitle, IonCardContent, IonThumbnail, IonLabel, IonBadge, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons,
         IonItem, IonTextarea, IonNote, IonList,
         AppHeader, BottomNavigation, PlaylistDetailsModal
-    },    setup() {
+    }, setup() {
         const route = useRoute();
         const router = useRouter();
         const { showToast } = useToast();
@@ -398,7 +394,7 @@ export default defineComponent({
             try {
                 loading.value = true;
                 submission.value = await SubmissionService.getSubmission(submissionId.value);
-                
+
                 // Fetch complete playlist data if available
                 if (submission.value?.playlist?.playlist_id) {
                     try {
@@ -481,7 +477,7 @@ export default defineComponent({
                 default:
                     return alertCircle;
             }
-        };        const formatTransactionStatus = (status: TransactionStatus): string => {
+        }; const formatTransactionStatus = (status: TransactionStatus): string => {
             switch (status) {
                 case TransactionStatus.PENDING:
                     return 'Pending';
@@ -542,7 +538,7 @@ export default defineComponent({
         const openPlaylistModal = async () => {
             if (!completePlaylistData.value) return;
             isPlaylistModalOpen.value = true;
-        };        const closePlaylistModal = () => {
+        }; const closePlaylistModal = () => {
             isPlaylistModalOpen.value = false;
         };
 
@@ -550,9 +546,7 @@ export default defineComponent({
             if (submission.value?.song?.url) {
                 window.open(submission.value.song.url, '_blank');
             }
-        };
-
-        const approveSubmission = async () => {
+        }; const approveSubmission = async () => {
             if (!submission.value) return;
 
             try {
@@ -562,15 +556,21 @@ export default defineComponent({
                     approvalFeedback.value
                 );
 
-                submission.value = updatedSubmission;
+                // Merge updated data with existing submission to preserve all fields
+                submission.value = {
+                    ...submission.value,
+                    ...updatedSubmission,
+                    song: submission.value.song ? { ...submission.value.song, ...updatedSubmission.song } : updatedSubmission.song,
+                    playlist: submission.value.playlist ? { ...submission.value.playlist, ...updatedSubmission.playlist } : updatedSubmission.playlist,
+                    artist: submission.value.artist ? { ...submission.value.artist, ...updatedSubmission.artist } : updatedSubmission.artist
+                };
                 approveModalOpen.value = false;
                 showToast('Submission approved successfully', 'success');
             } catch (err) {
                 showToast('Failed to approve submission', 'danger');
                 console.error(err);
             }
-        };
-
+        }; 
         const rejectSubmission = async () => {
             if (!submission.value) return;
 
@@ -586,7 +586,14 @@ export default defineComponent({
                     rejectionFeedback.value
                 );
 
-                submission.value = updatedSubmission;
+                // Merge updated data with existing submission to preserve all fields
+                submission.value = {
+                    ...submission.value,
+                    ...updatedSubmission,
+                    song: submission.value.song ? { ...submission.value.song, ...updatedSubmission.song } : updatedSubmission.song,
+                    playlist: submission.value.playlist ? { ...submission.value.playlist, ...updatedSubmission.playlist } : updatedSubmission.playlist,
+                    artist: submission.value.artist ? { ...submission.value.artist, ...updatedSubmission.artist } : updatedSubmission.artist
+                };
                 rejectModalOpen.value = false;
                 showFeedbackError.value = false;
                 showToast('Submission declined', 'success');
@@ -594,9 +601,7 @@ export default defineComponent({
                 showToast('Failed to decline submission', 'danger');
                 console.error(err);
             }
-        };
-
-        const updateFeedback = async () => {
+        }; const updateFeedback = async () => {
             if (!submission.value) return;
 
             try {
@@ -607,18 +612,25 @@ export default defineComponent({
                     editedFeedback.value
                 );
 
-                submission.value = updatedSubmission;
+                // Merge updated data with existing submission to preserve all fields
+                submission.value = {
+                    ...submission.value,
+                    ...updatedSubmission,
+                    song: submission.value.song ? { ...submission.value.song, ...updatedSubmission.song } : updatedSubmission.song,
+                    playlist: submission.value.playlist ? { ...submission.value.playlist, ...updatedSubmission.playlist } : updatedSubmission.playlist,
+                    artist: submission.value.artist ? { ...submission.value.artist, ...updatedSubmission.artist } : updatedSubmission.artist
+                };
                 editFeedbackModalOpen.value = false;
                 showToast('Feedback updated successfully', 'success');
             } catch (err) {
                 showToast('Failed to update feedback', 'danger');
                 console.error(err);
             }
-        };        const showArtistHistory = async () => {
+        }; const showArtistHistory = async () => {
             if (!submission.value?.artist?.user_id || !user?.user_id) return;
 
             artistHistoryModalOpen.value = true;
-            loadingHistory.value = true;            try {
+            loadingHistory.value = true; try {
                 // Only fetch submissions for this artist on the current curator's playlists
                 // This prevents seeing submissions to other curators' playlists
                 const response = await SubmissionService.getSubmissionsByCreator(
@@ -671,13 +683,13 @@ export default defineComponent({
             // Form data
             approvalFeedback,
             rejectionFeedback,
-            editedFeedback,            showFeedbackError,
+            editedFeedback, showFeedbackError,
             // Artist history
             artistHistory,
             loadingHistory,
             // Complete playlist data
             completePlaylistData,
-            loadingPlaylist,            openApproveModal,
+            loadingPlaylist, openApproveModal,
             openRejectModal,
             openEditFeedbackModal,
             openPlaylistModal,
