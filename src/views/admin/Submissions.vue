@@ -90,9 +90,9 @@
       </ion-header>      <ion-content class="ion-padding">
         <form @submit.prevent="saveSubmission" v-if="selectedSubmission">
           <ion-item>
-            <ion-label position="stacked">Status *</ion-label>
-            <ion-select v-model="selectedSubmission.status" interface="popover">
+            <ion-label position="stacked">Status *</ion-label>            <ion-select v-model="selectedSubmission.status" interface="popover">
               <ion-select-option value="pending">Pending</ion-select-option>
+              <ion-select-option value="processing">Processing</ion-select-option>
               <ion-select-option value="approved">Approved</ion-select-option>
               <ion-select-option value="rejected">Rejected</ion-select-option>
             </ion-select>
@@ -396,11 +396,10 @@ export default defineComponent({
 
     const refreshSubmissions = () => {
       loadSubmissions();
-    };
-
-    const getStatusColor = (status: string) => {
+    };    const getStatusColor = (status: string) => {
       switch (status) {
         case 'pending': return 'warning';
+        case 'processing': return 'secondary';
         case 'approved': return 'success';
         case 'rejected': return 'danger';
         case 'removed': return 'medium';
