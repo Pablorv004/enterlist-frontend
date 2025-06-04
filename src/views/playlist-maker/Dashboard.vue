@@ -35,7 +35,7 @@
                                     </div>
                                     <div class="stats-info">
                                         <div class="stats-value">{{ playlistsCount }}</div>
-                                        <div class="stats-label">Active Playlists</div>
+                                        <div class="stats-label">Playlists</div>
                                     </div>
                                 </ion-card-content>
                             </ion-card>

@@ -87,16 +87,7 @@ export const PlaylistService = {
     const response = await apiClient.put(`/playlists/${id}/genre`, { genre: genre });
     return response.data;
   },
-  
-  // Method to get active playlists (ones marked as visible)
-  getActivePlaylists: async (skip = 0, take = 10): Promise<PaginatedResponse<Playlist>> => {
-    try {
-      const response = await apiClient.get(`/playlists/active?skip=${skip}&take=${take}`);
-      return response.data;
-    } catch (error: unknown) {
-      return handleNotFoundPaginated<Playlist>(error);
-    }
-  },
+
   // Method to get tracks for a specific playlist
   getPlaylistTracks: async (playlistId: string): Promise<TrackResponse> => {
     const response = await apiClient.get(`/playlists/${playlistId}/tracks`);

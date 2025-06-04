@@ -177,22 +177,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
       loading.value = false;
     }
   };
-  
-  const getActivePlaylists = async (skip = 0, take = 10): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const response = await PlaylistService.getActivePlaylists(skip, take);
-      playlists.value = response.data;
-      totalCount.value = response.total;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch active playlists';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };  return {
+  return {
     playlists,
     currentPlaylist,
     loading,
@@ -207,6 +192,5 @@ export const usePlaylistStore = defineStore('playlist', () => {
     updatePlaylist,
     deletePlaylist,
     updateSubmissionFee,
-    getActivePlaylists
   };
 });
