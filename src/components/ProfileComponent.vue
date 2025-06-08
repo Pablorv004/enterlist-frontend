@@ -227,6 +227,12 @@ export default defineComponent({
             }
         }, { immediate: false });
 
+        // Helper function to truncate long names
+        const truncateName = (name: string, maxLength: number = 30): string => {
+            if (!name) return '';
+            return name.length > maxLength ? name.substring(0, maxLength - 3) + '...' : name;
+        };
+
         // Chart data computed properties
         const timeChartData = computed(() => {
             if (!statistics.value) return null;
@@ -237,14 +243,22 @@ export default defineComponent({
                 
             if (!data || data.length === 0) return null;
             
+            // Filter out entries with zero values
+            const filteredData = data.filter((item: any) => {
+                const value = user.value?.role === 'artist' ? item.total_spent : item.total_earned;
+                return value && value > 0;
+            });
+            
+            if (filteredData.length === 0) return null;
+            
             return {
-                labels: data.map((item: any) => {
+                labels: filteredData.map((item: any) => {
                     const date = new Date(item.month);
                     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
                 }),
                 datasets: [{
                     label: user.value?.role === 'artist' ? 'Spending ($)' : 'Earnings ($)',
-                    data: data.map((item: any) => 
+                    data: filteredData.map((item: any) => 
                         user.value?.role === 'artist' ? item.total_spent || 0 : item.total_earned || 0
                     ),
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
@@ -276,11 +290,18 @@ export default defineComponent({
         const genreChartData = computed(() => {
             if (user.value?.role !== 'artist' || !statistics.value?.genreSpending) return null;
             
+            // Filter out genres with zero spending
+            const filteredData = statistics.value.genreSpending.filter((item: any) => 
+                item.total_spent && item.total_spent > 0
+            );
+            
+            if (filteredData.length === 0) return null;
+            
             return {
-                labels: statistics.value.genreSpending.map((item: any) => item.genre),
+                labels: filteredData.map((item: any) => truncateName(item.genre)),
                 datasets: [{
                     label: 'Spending by Genre ($)',
-                    data: statistics.value.genreSpending.map((item: any) => item.total_spent || 0),
+                    data: filteredData.map((item: any) => item.total_spent || 0),
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
@@ -291,11 +312,18 @@ export default defineComponent({
         const playlistChartData = computed(() => {
             if (user.value?.role !== 'playlist_maker' || !statistics.value?.submissionsByPlaylist) return null;
             
+            // Filter out playlists with zero submissions
+            const filteredData = statistics.value.submissionsByPlaylist.filter((item: any) => 
+                item.submissionCount && item.submissionCount > 0
+            );
+            
+            if (filteredData.length === 0) return null;
+            
             return {
-                labels: statistics.value.submissionsByPlaylist.map((item: any) => item.name),
+                labels: filteredData.map((item: any) => truncateName(item.name)),
                 datasets: [{
                     label: 'Submissions per Playlist',
-                    data: statistics.value.submissionsByPlaylist.map((item: any) => item.submissionCount),
+                    data: filteredData.map((item: any) => item.submissionCount),
                     backgroundColor: 'rgba(153, 102, 255, 0.2)',
                     borderColor: 'rgba(153, 102, 255, 1)',
                     borderWidth: 1
@@ -571,7 +599,8 @@ export default defineComponent({
             warningOutline,
             personCircleOutline,
             errors,
-            resetValidation
+            resetValidation,
+            truncateName
         };
     }
 });
