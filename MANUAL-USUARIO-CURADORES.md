@@ -83,7 +83,7 @@ Después del registro, es **esencial** vincular tus cuentas musicales:
 
 ### Configurar Método de Pago
 
-Para recebir payments e iniciar proceses de withdrawals:
+Para recebir payments e iniciar procesos de withdrawals:
 
 1. **Ve a "Payment Methods (En tu perfil)"**
    ![picture profile](https://i.imgur.com/Sy4kdWZ.png)  
@@ -177,7 +177,7 @@ Para cada playlist puedes:
 
 ### Ver Submissions Pendientes
 1. **Desde el Dashboard:** Haz clic en "Review Submissions"
-   ![picture 12](https://i.imgur.com/L9mw3sL.png)
+   ![picture dashboard](https://i.imgur.com/L9mw3sL.png)
 2. **Desde el Menú:** Ve a "Submissions"
  
 
@@ -212,7 +212,7 @@ Para cada playlist puedes:
 1. Haz clic en **"Approve Submission"**
 2. Opcional: Agrega **feedback positivo**
 3. Confirma la aprobación
-4. El artista recibe notificación automática
+4. El artista recibe notificación automática (por email)
 
 **Rechazar Submission:**
  ![picture rechazar](https://i.imgur.com/DNiY8A6.png)  
@@ -227,16 +227,15 @@ Para cada playlist puedes:
 - Ve submissions previas del mismo artista
 - Ayuda a tomar decisiones informadas
 
----
 
 ## Gestión de Ganancias
 
 ### Ver Ganancias
 
 1. Ve a **"Balance"** desde el menú
-![picture 18](https://i.imgur.com/hV5QMwy.png)  
+![picture balance](https://i.imgur.com/hV5QMwy.png)  
 2. Ve **historial completo** de transacciones
-![picture 19](https://i.imgur.com/B9aYqID.png)  
+![picture historial](https://i.imgur.com/B9aYqID.png)  
 
 ### Procesamiento de Pagos
 
