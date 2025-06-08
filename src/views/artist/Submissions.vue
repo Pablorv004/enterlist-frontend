@@ -3,8 +3,7 @@
         <app-header title="My Submissions" :back-button="true" back-url="/artist/dashboard"></app-header>
 
         <ion-content :fullscreen="true" class="submissions-content">
-            <div class="submissions-container">
-                <!-- Actions Header -->
+            <div class="submissions-container">                <!-- Actions Header -->
                 <div class="actions-header">
                     <ion-segment v-model="selectedFilter" @ionChange="handleFilterChange" class="filter-segment">
                         <ion-segment-button value="all">All</ion-segment-button>
@@ -19,6 +18,16 @@
                     </ion-button>
                 </div>
 
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <ion-searchbar 
+                        v-model="searchQuery"
+                        @ionInput="handleSearch"
+                        placeholder="Search by song title, album, or playlist..."
+                        class="submission-search">
+                    </ion-searchbar>
+                </div>
+
                 <!-- Content -->
                 <div v-if="loading" class="loading-container">
                     <ion-spinner name="crescent"></ion-spinner>
@@ -27,7 +36,7 @@
                     v-else-if="filteredSubmissions.length === 0"
                     :icon="documentTextIcon"
                     title="No submissions found"
-                    :message="selectedFilter === 'all' ? 'You haven\'t submitted any songs yet' : `No submissions with status: ${formatFilter(selectedFilter)}`"
+                    :message="getEmptyStateMessage()"
                     resource-type="submissions">
                     <template #actions>
                         <ion-button router-link="/artist/submissions/new" color="primary">
@@ -112,7 +121,8 @@ import {
     IonThumbnail,
     IonBadge,
     IonSpinner,
-    IonLabel
+    IonLabel,
+    IonSearchbar
 } from '@ionic/vue';
 import {
     add as addIcon,
@@ -149,29 +159,42 @@ export default defineComponent({
         IonThumbnail,
         IonBadge,
         IonSpinner,
-        IonLabel
+        IonLabel,
+        IonSearchbar
     },
     setup() {
         const authStore = useAuthStore();
-        const submissionStore = useSubmissionStore();
-
-        const loading = ref(true);
+        const submissionStore = useSubmissionStore();        const loading = ref(true);
         const selectedFilter = ref('all');
+        const searchQuery = ref('');
         const totalSubmissions = ref(0);
 
         // Pagination
         const { currentPage, itemsPerPage, totalPages, skip, changePage, prevPage, nextPage } = usePagination(totalSubmissions, 10);
 
         // Get current user
-        const user = computed(() => authStore.user);
-
-        // Filtered submissions
+        const user = computed(() => authStore.user);        // Filtered submissions
         const filteredSubmissions = computed(() => {
-            if (selectedFilter.value === 'all') {
-                return submissionStore.submissions;
-            } else {
-                return submissionStore.submissions.filter((s: { status: string; }) => s.status === selectedFilter.value);
+            let result = submissionStore.submissions;
+            
+            // Apply status filter
+            if (selectedFilter.value !== 'all') {
+                result = result.filter((s: { status: string; }) => s.status === selectedFilter.value);
             }
+            
+            // Apply search filter
+            if (searchQuery.value) {
+                const query = searchQuery.value.toLowerCase();
+                result = result.filter((submission: any) => {
+                    return (
+                        submission.song?.title?.toLowerCase().includes(query) ||
+                        submission.song?.album_name?.toLowerCase().includes(query) ||
+                        submission.playlist?.name?.toLowerCase().includes(query)
+                    );
+                });
+            }
+            
+            return result;
         });
 
         // Format date to a readable format
@@ -201,18 +224,32 @@ export default defineComponent({
         // Format status for display
         const formatStatus = (status: SubmissionStatus) => {
             return status.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase());
-        };
-
-        // Format filter label
+        };        // Format filter label
         const formatFilter = (filter: string) => {
             return filter.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase());
         };
 
-        // Handle filter change
+        // Get empty state message based on current filters
+        const getEmptyStateMessage = (): string => {
+            if (searchQuery.value) {
+                return `No submissions found matching "${searchQuery.value}"`;
+            }
+            
+            if (selectedFilter.value === 'all') {
+                return 'You haven\'t submitted any songs yet';
+            } else {
+                return `No submissions with status: ${formatFilter(selectedFilter.value)}`;
+            }
+        };// Handle filter change
         const handleFilterChange = () => {
             // Reset pagination when filter changes
             changePage(1);
             loadSubmissions();
+        };
+
+        // Handle search input
+        const handleSearch = (event: CustomEvent) => {
+            searchQuery.value = event.detail.value || '';
         };
 
         // Load submissions data
@@ -241,19 +278,19 @@ export default defineComponent({
         onUnmounted(() => {
             // Cancel any pending requests when component is unmounted
             submissionStore.cancelAllRequests();
-        });
-
-        return {
+        });        return {
             loading,
             selectedFilter,
+            searchQuery,
             filteredSubmissions,
             currentPage,
-            totalPages,
-            formatDate,
+            totalPages,            formatDate,
             getStatusColor,
             formatStatus,
             formatFilter,
+            getEmptyStateMessage,
             handleFilterChange,
+            handleSearch,
             prevPage,
             nextPage,
             // Icons
@@ -303,6 +340,17 @@ export default defineComponent({
     --background: var(--ion-color-primary);
     --border-radius: 8px;
     font-weight: 500;
+}
+
+.search-container {
+    margin-bottom: 16px;
+}
+
+.submission-search {
+    --background: white;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --border-radius: 8px;
+    margin: 0;
 }
 
 .loading-container {

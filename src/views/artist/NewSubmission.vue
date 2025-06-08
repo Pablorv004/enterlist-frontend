@@ -39,9 +39,7 @@
                     <div v-else>
                         <!-- Song Search -->
                         <ion-searchbar v-model="songSearchQuery" placeholder="Search your songs..."
-                            @ionInput="searchSongs" class="song-search"></ion-searchbar>
-
-                        <!-- Song List -->
+                            @ionInput="searchSongs" class="song-search"></ion-searchbar>                        <!-- Song List -->
                         <ion-list class="song-list">
                             <ion-radio-group v-model="selectedSongId">
                                 <ion-item v-for="song in filteredSongs" :key="song.song_id" class="song-item"
@@ -66,6 +64,19 @@
                                 </ion-item>
                             </ion-radio-group>
                         </ion-list>
+
+                        <!-- Songs Pagination -->
+                        <div v-if="songsTotalPages > 1" class="pagination">
+                            <ion-button fill="clear" :disabled="songsCurrentPage === 1" @click="prevSongsPage">
+                                <ion-icon :icon="chevronBackIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
+
+                            <span class="page-info">Page {{ songsCurrentPage }} of {{ songsTotalPages }}</span>
+
+                            <ion-button fill="clear" :disabled="songsCurrentPage === songsTotalPages" @click="nextSongsPage">
+                                <ion-icon :icon="chevronForwardIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </div>
                     </div>
 
                     <div class="step-buttons">
@@ -147,9 +158,21 @@
                                         <ion-badge color="primary">
                                             ${{ Number(playlist.submission_fee || 0).toFixed(2) }} submission fee
                                         </ion-badge>
-                                    </div>
-                                </ion-card-content>
+                                    </div>                                </ion-card-content>
                             </ion-card>
+                        </div>
+
+                        <!-- Playlists Pagination -->
+                        <div v-if="playlistsTotalPages > 1" class="pagination">
+                            <ion-button fill="clear" :disabled="playlistsCurrentPage === 1" @click="prevPlaylistsPage">
+                                <ion-icon :icon="chevronBackIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
+
+                            <span class="page-info">Page {{ playlistsCurrentPage }} of {{ playlistsTotalPages }}</span>
+
+                            <ion-button fill="clear" :disabled="playlistsCurrentPage === playlistsTotalPages" @click="nextPlaylistsPage">
+                                <ion-icon :icon="chevronForwardIcon" slot="icon-only"></ion-icon>
+                            </ion-button>
                         </div>
                     </div>
 
@@ -391,7 +414,7 @@ import {
 import {
     checkmark, arrowForward, arrowBack, musicalNote, musicalNotes, play, add,
     checkmarkCircle, person, informationCircle, timer, people, cash, open,
-    albumsOutline
+    albumsOutline, chevronBack, chevronForward
 } from 'ionicons/icons';
 import AppHeader from '@/components/AppHeader.vue';
 import { SongService } from '@/services/SongService';
@@ -403,6 +426,7 @@ import PlaylistDetailsModal from '@/components/PlaylistDetailsModal.vue';
 import { PaymentMethodService } from '@/services/PaymentMethodService';
 import { Song, Playlist, PaymentMethod, Submission } from '@/types';
 import { useAuthStore } from '@/store';
+import { usePagination } from '@/composables';
 import SongDetailsModal from '@/components/SongDetailsModal.vue';
 
 export default defineComponent({
@@ -421,24 +445,47 @@ export default defineComponent({
 
         // Step Management
         const steps = ['Select Song', 'Choose Playlist', 'Review & Pay'];
-        const currentStep = ref(0);
-
-        // Song Selection - Step 1
+        const currentStep = ref(0);        // Song Selection - Step 1
         const songs = ref<Song[]>([]);
         const filteredSongs = ref<Song[]>([]);
         const loadingSongs = ref(true);
         const selectedSongId = ref<string | null>(null);
         const songSearchQuery = ref('');
+        const totalSongs = ref(0);
+
+        // Song pagination
+        const { 
+            currentPage: songsCurrentPage, 
+            itemsPerPage: songsItemsPerPage, 
+            totalPages: songsTotalPages, 
+            skip: songsSkip, 
+            changePage: changeSongsPage, 
+            prevPage: prevSongsPage, 
+            nextPage: nextSongsPage 
+        } = usePagination(totalSongs, 10);
 
         // Playlist Selection - Step 2
         const playlists = ref<Playlist[]>([]);
         const filteredPlaylists = ref<Playlist[]>([]);
         const loadingPlaylists = ref(true);
-        const selectedPlaylistId = ref<string | null>(null);        const playlistSearchQuery = ref('');
+        const selectedPlaylistId = ref<string | null>(null);
+        const playlistSearchQuery = ref('');
         const selectedGenre = ref('');
         const playlistSort = ref('name_asc');
         const showPlaylistModal = ref(false);
         const selectedModalPlaylist = ref<Playlist | null>(null);
+        const totalPlaylists = ref(0);
+
+        // Playlist pagination
+        const { 
+            currentPage: playlistsCurrentPage, 
+            itemsPerPage: playlistsItemsPerPage, 
+            totalPages: playlistsTotalPages, 
+            skip: playlistsSkip, 
+            changePage: changePlaylistsPage, 
+            prevPage: prevPlaylistsPage, 
+            nextPage: nextPlaylistsPage 
+        } = usePagination(totalPlaylists, 12);
 
         // Review & Payment - Step 3
         const loadingDetails = ref(false);
@@ -482,6 +529,19 @@ export default defineComponent({
                 await loadPlaylists();
                 // Reset selected playlist since the list changed
                 selectedPlaylistId.value = null;
+            }        });
+
+        // Watch for songs pagination changes
+        watch(() => songsCurrentPage.value, async (newPage) => {
+            if (newPage) {
+                await loadSongs(newPage);
+            }
+        });
+
+        // Watch for playlists pagination changes
+        watch(() => playlistsCurrentPage.value, async (newPage) => {
+            if (newPage) {
+                await loadPlaylists(newPage);
             }
         });
 
@@ -509,10 +569,8 @@ export default defineComponent({
                 selectedPaymentMethodId.value &&
                 !isSubmitting.value
             );
-        });
-
-        // Load songs from API
-        const loadSongs = async () => {
+        });        // Load songs from API with pagination
+        const loadSongs = async (page = 1) => {
             try {
                 loadingSongs.value = true;
 
@@ -520,8 +578,21 @@ export default defineComponent({
                     throw new Error('User not authenticated');
                 }
 
-                const response = await SongService.getSongsByArtist(authStore.user.user_id);
-                songs.value = response.data;
+                const skip = (page - 1) * songsItemsPerPage.value;
+                const response = await SongService.getSongsByArtist(
+                    authStore.user.user_id, 
+                    skip, 
+                    songsItemsPerPage.value
+                );
+                
+                // If this is the first page, replace the array, otherwise append
+                if (page === 1) {
+                    songs.value = response.data;
+                } else {
+                    songs.value = [...songs.value, ...response.data];
+                }
+                
+                totalSongs.value = response.total;
                 filteredSongs.value = [...songs.value];
 
                 // Select the first song if none is selected and songs are available
@@ -554,21 +625,36 @@ export default defineComponent({
         // Preview song
         const previewSong = (url: string) => {
             window.open(url, '_blank');
-        };        // Load playlists from API
-        const loadPlaylists = async () => {
+        };        // Load playlists from API with pagination
+        const loadPlaylists = async (page = 1) => {
             try {
                 loadingPlaylists.value = true;
 
                 let response;
+                const skip = (page - 1) * playlistsItemsPerPage.value;
                 
                 // If a song is selected, filter playlists by platform
                 if (selectedSong.value?.platform_id) {
-                    response = await PlaylistService.getPlaylistsByPlatform(selectedSong.value.platform_id);
+                    response = await PlaylistService.getPlaylistsByPlatform(
+                        selectedSong.value.platform_id,
+                        skip,
+                        playlistsItemsPerPage.value
+                    );
                 } else {
-                    response = await PlaylistService.getPlaylists();
+                    response = await PlaylistService.getPlaylists(
+                        skip,
+                        playlistsItemsPerPage.value
+                    );
                 }
                 
-                playlists.value = response.data;
+                // If this is the first page, replace the array, otherwise append
+                if (page === 1) {
+                    playlists.value = response.data;
+                } else {
+                    playlists.value = [...playlists.value, ...response.data];
+                }
+                
+                totalPlaylists.value = response.total;
 
                 sortPlaylists();
             } catch (err) {
@@ -860,8 +946,16 @@ export default defineComponent({
             loadingSongs,
             selectedSongId,
             songSearchQuery,
-            selectedSong,
-            searchSongs,
+            selectedSong,            searchSongs,
+
+            // Song pagination
+            totalSongs,
+            songsCurrentPage,
+            songsTotalPages,
+            songsSkip,
+            changeSongsPage,
+            prevSongsPage,
+            nextSongsPage,
 
             // Playlist selection
             playlists,
@@ -873,8 +967,16 @@ export default defineComponent({
             playlistSort,
             availableGenres,
             selectedPlaylist,
-            showPlaylistModal,
-            selectedModalPlaylist,
+            showPlaylistModal,            selectedModalPlaylist,
+
+            // Playlist pagination
+            totalPlaylists,
+            playlistsCurrentPage,
+            playlistsTotalPages,
+            playlistsSkip,
+            changePlaylistsPage,
+            prevPlaylistsPage,
+            nextPlaylistsPage,
 
             // Review & Payment
             loadingDetails,
@@ -922,10 +1024,11 @@ export default defineComponent({
             personIcon: person,
             informationIcon: informationCircle,
             timerIcon: timer,
-            peopleIcon: people,
-            cashIcon: cash,
+            peopleIcon: people,            cashIcon: cash,
             openIcon: open,
-            albumsOutline
+            albumsOutline,
+            chevronBackIcon: chevronBack,
+            chevronForwardIcon: chevronForward
         };
     }
 });
