@@ -27,17 +27,19 @@
                                     <ion-thumbnail slot="start" class="platform-icon">
                                         <img src="@/assets/spotify.png" alt="Spotify" />
                                     </ion-thumbnail>
-                                    <ion-label>
+                                    <ion-label class="platform-label">
                                         <h2 class="platform-name">Spotify</h2>
-                                        <p v-if="getLinkedAccount('spotify')">
+                                        <p v-if="getLinkedAccount('spotify')" class="connection-status">
                                             {{ `Connected as ${getLinkedAccount('spotify')?.external_user_id}` }}
                                         </p>
-                                        <p v-else>Not connected</p>
+                                        <p v-else class="connection-status">Not connected</p>
                                     </ion-label>
                                     <ion-button 
                                         v-if="getLinkedAccount('spotify')" 
                                         color="danger" 
                                         fill="outline" 
+                                        size="small"
+                                        class="action-button"
                                         @click="confirmDisconnect('spotify')"
                                     >
                                         Disconnect
@@ -45,6 +47,8 @@
                                     <ion-button 
                                         v-else 
                                         color="primary"
+                                        size="small"
+                                        class="action-button"
                                         @click="connectPlatform('spotify')"
                                     >
                                         Connect
@@ -56,17 +60,19 @@
                                     <ion-thumbnail slot="start" class="platform-icon">
                                         <img src="@/assets/youtube.png" alt="YouTube" />
                                     </ion-thumbnail>
-                                    <ion-label>
+                                    <ion-label class="platform-label">
                                         <h2 class="platform-name">YouTube</h2>
-                                        <p v-if="getLinkedAccount('youtube')">
+                                        <p v-if="getLinkedAccount('youtube')" class="connection-status">
                                             {{ `Connected as ${getLinkedAccount('youtube')?.external_user_id}`}}
                                         </p>
-                                        <p v-else>Not connected</p>
+                                        <p v-else class="connection-status">Not connected</p>
                                     </ion-label>
                                     <ion-button 
                                         v-if="getLinkedAccount('youtube')" 
                                         color="danger" 
                                         fill="outline" 
+                                        size="small"
+                                        class="action-button"
                                         @click="confirmDisconnect('youtube')"
                                     >
                                         Disconnect
@@ -74,6 +80,8 @@
                                     <ion-button 
                                         v-else 
                                         color="primary"
+                                        size="small"
+                                        class="action-button"
                                         @click="connectPlatform('youtube')"
                                     >
                                         Connect
@@ -432,17 +440,54 @@ export default defineComponent({
     --inner-padding-end: 0;
     --padding-top: 0.75rem;
     --padding-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.platform-label {
+    flex: 1;
+    min-width: 0; /* Allow text to shrink */
+    margin-right: 0.5rem;
 }
 
 .platform-name {
     font-weight: bold;
     text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 0 0.25rem 0;
 }
 
-.platform-icon {
-    width: 40px;
-    height: 40px;
-    --border-radius: 8px;
+.connection-status {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.action-button {
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    min-width: 80px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+    .platform-label {
+        max-width: calc(100vw - 180px); /* Account for icon + button + padding */
+    }
+    
+    .action-button {
+        min-width: 70px;
+        font-size: 0.8rem;
+    }
+    
+    .connection-status {
+        font-size: 0.8rem;
+    }
 }
 
 .permission-item {
