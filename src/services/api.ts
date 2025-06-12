@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { Capacitor } from '@capacitor/core';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: 'https://enterlist-api-hydbi.ondigitalocean.app/api',
@@ -35,10 +36,42 @@ export const cancelRequests = (key: string) => {
   }
 };
 
+// Helper function to get token from appropriate storage
+const getStoredToken = async (): Promise<string | null> => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value } = await Preferences.get({ key: 'enterlist_token' });
+      return value;
+    } catch (error) {
+      console.error('Failed to get token from Capacitor Preferences:', error);
+      return null;
+    }
+  } else {
+    return localStorage.getItem('enterlist_token');
+  }
+};
+
+// Helper function to remove token from appropriate storage
+const removeStoredToken = async (): Promise<void> => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.remove({ key: 'enterlist_token' });
+      await Preferences.remove({ key: 'enterlist_user' });
+    } catch (error) {
+      console.error('Failed to remove token from Capacitor Preferences:', error);
+    }
+  } else {
+    localStorage.removeItem('enterlist_token');
+    localStorage.removeItem('enterlist_user');
+  }
+};
+
 // Request interceptor to add bearer token to requests
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('enterlist_token');
+  async (config) => {
+    const token = await getStoredToken();
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -66,15 +99,14 @@ apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
       console.warn('Request was cancelled:', error.message);
       return Promise.reject(error);
     }
     
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('enterlist_token');
-      localStorage.removeItem('enterlist_user');
+      await removeStoredToken();
       
       if (!window.location.href.includes('/login')) {
         window.location.href = '/login';
