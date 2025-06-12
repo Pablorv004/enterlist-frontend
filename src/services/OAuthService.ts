@@ -3,11 +3,12 @@ import { Capacitor } from '@capacitor/core';
 import { Router } from 'vue-router';
 
 export interface OAuthCallbackData {
-  access_token: string;
-  user: string;
-  isNewUser: boolean;
-  needsRoleSelection: boolean;
+  access_token?: string;
+  user?: string;
+  isNewUser?: boolean;
+  needsRoleSelection?: boolean;
   provider: string;
+  linkedAccount?: boolean;
 }
 
 export interface OAuthErrorData {
@@ -29,7 +30,6 @@ export class OAuthService {
     }
     return this._authStore;
   }
-
   /**
    * Unified OAuth callback handler for both mobile and web platforms
    */
@@ -42,7 +42,46 @@ export class OAuthService {
       const userData = params.get('user');
       const isNewUser = params.get('isNewUser') === 'true';
       const needsRoleSelection = params.get('needsRoleSelection') === 'true';
-      const provider = params.get('provider') || '';
+      const linkedAccount = params.get('linkedAccount') === 'true';
+      const provider = params.get('provider') || '';      // Check if this is account linking flow (no access_token but linkedAccount=true)
+      if (linkedAccount && !accessToken) {
+        // This is an account linking success - redirect to appropriate linked accounts page
+        await this.router.isReady();
+        
+        // Get current user role to determine which linked accounts page to redirect to
+        const userRole = this.authStore.user?.role;
+        
+        if (userRole === 'artist') {
+          this.router.push({
+            name: 'ArtistLinkedAccounts',
+            query: { 
+              success: `${provider}-connected`,
+              provider: provider
+            },
+            replace: true
+          });
+        } else if (userRole === 'playlist_maker') {
+          this.router.push({
+            name: 'PlaylistMakerLinkedAccounts',
+            query: { 
+              success: `${provider}-connected`,
+              provider: provider
+            },
+            replace: true
+          });
+        } else {
+          // Fallback to profile page
+          this.router.push({
+            name: 'Profile',
+            query: { 
+              success: `${provider}-connected`,
+              provider: provider
+            },
+            replace: true
+          });
+        }
+        return;
+      }
 
       if (!accessToken || !userData) {
         throw new Error('Missing required OAuth parameters');
@@ -53,10 +92,54 @@ export class OAuthService {
         user: userData,
         isNewUser,
         needsRoleSelection,
-        provider
+        provider,
+        linkedAccount
       };
     } else {
       callbackData = params;
+        // Handle account linking in direct call format too
+      if (callbackData.linkedAccount && !callbackData.access_token) {
+        await this.router.isReady();
+        
+        // Get current user role to determine which linked accounts page to redirect to
+        const userRole = this.authStore.user?.role;
+        
+        if (userRole === 'artist') {
+          this.router.push({
+            name: 'ArtistLinkedAccounts',
+            query: { 
+              success: `${callbackData.provider}-connected`,
+              provider: callbackData.provider
+            },
+            replace: true
+          });
+        } else if (userRole === 'playlist_maker') {
+          this.router.push({
+            name: 'PlaylistMakerLinkedAccounts',
+            query: { 
+              success: `${callbackData.provider}-connected`,
+              provider: callbackData.provider
+            },
+            replace: true
+          });
+        } else {
+          // Fallback to profile page
+          this.router.push({
+            name: 'Profile',
+            query: { 
+              success: `${callbackData.provider}-connected`,
+              provider: callbackData.provider
+            },
+            replace: true
+          });
+        }
+        return;
+      }
+    }
+
+    // Only proceed with authentication if we have tokens (login/registration flow)
+    if (!callbackData.access_token || !callbackData.user) {
+      throw new Error('Missing authentication data');
     }
 
     // Parse user data
