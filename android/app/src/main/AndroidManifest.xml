@@ -30,6 +30,22 @@
                 <data android:scheme="com.enterlist.app" android:host="oauth" />
             </intent-filter>
 
+            <!-- Deep link intent filter for payment callbacks -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.enterlist.app" android:host="payment" />
+            </intent-filter>
+
+            <!-- Deep link intent filter for artist callbacks -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.enterlist.app" android:host="artist" />
+            </intent-filter>
+
         </activity>
 
         <provider

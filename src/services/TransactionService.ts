@@ -1,5 +1,6 @@
 import apiClient from './api';
 import { Transaction, PaginatedResponse } from '@/types';
+import { Capacitor } from '@capacitor/core';
 
 export const TransactionService = {
   getTransactions: async (skip = 0, take = 10): Promise<PaginatedResponse<Transaction>> => {
@@ -93,7 +94,10 @@ export const TransactionService = {
     success?: boolean;
     isFreeSubmission?: boolean;
   }> => {
-    const response = await apiClient.post('/transactions/paypal/create-payment', {
+    const isMobile = Capacitor.isNativePlatform();
+    const mobileParam = isMobile ? '?mobile=true' : '';
+    
+    const response = await apiClient.post(`/transactions/paypal/create-payment${mobileParam}`, {
       submissionId,
       paymentMethodId,
     });

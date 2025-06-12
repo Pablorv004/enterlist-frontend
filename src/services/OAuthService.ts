@@ -48,12 +48,31 @@ export class OAuthService {
       
       if (linkedAccount && !accessToken) {
         
-        // This is an account linking success - redirect to appropriate linked accounts page
+        // This is an account linking success - redirect to appropriate page
         await this.router.isReady();
         
         // Get current user role to determine which linked accounts page to redirect to
         const userRole = this.authStore.user?.role;
         
+        // Special handling for PayPal account linking (for payment methods)
+        if (provider === 'paypal') {
+          // Redirect to payment methods page and reload the window
+          this.router.push({
+            name: 'PaymentMethods',
+            query: { 
+              success: 'paypal-connected',
+              provider: provider,
+              timestamp: Date.now().toString() // Force query param change for reload
+            },
+            replace: true
+          }).then(() => {
+            // Reload window to refresh payment methods data
+            window.location.reload();
+          });
+          return;
+        }
+        
+        // For non-PayPal account linking (like Spotify, YouTube), use existing logic
         if (userRole === 'artist') {
           this.router.push({
             name: 'ArtistLinkedAccounts',
@@ -62,6 +81,9 @@ export class OAuthService {
               provider: provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         } else if (userRole === 'playlist_maker') {
           this.router.push({
@@ -71,6 +93,9 @@ export class OAuthService {
               provider: provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         } else {
           this.router.push({
@@ -80,6 +105,9 @@ export class OAuthService {
               provider: provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         }
         return;
@@ -98,9 +126,27 @@ export class OAuthService {
       };
     } else {
       callbackData = params;
-        // Handle account linking in direct call format too
+      // Handle account linking in direct call format too
       if (callbackData.linkedAccount && !callbackData.access_token) {
         await this.router.isReady();
+        
+        // Special handling for PayPal account linking (payment methods)
+        if (callbackData.provider === 'paypal') {
+          // Redirect to payment methods page and reload the window
+          this.router.push({
+            name: 'PaymentMethods',
+            query: { 
+              success: 'paypal-connected',
+              provider: callbackData.provider,
+              timestamp: Date.now().toString() // Force query param change for reload
+            },
+            replace: true
+          }).then(() => {
+            // Reload window to refresh payment methods data
+            window.location.reload();
+          });
+          return;
+        }
         
         // Get current user role to determine which linked accounts page to redirect to
         const userRole = this.authStore.user?.role;
@@ -113,6 +159,9 @@ export class OAuthService {
               provider: callbackData.provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         } else if (userRole === 'playlist_maker') {
           this.router.push({
@@ -122,6 +171,9 @@ export class OAuthService {
               provider: callbackData.provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         } else {
           // Fallback to profile page
@@ -132,6 +184,9 @@ export class OAuthService {
               provider: callbackData.provider
             },
             replace: true
+          }).then(() => {
+            // Reload window to refresh linked accounts data
+            window.location.reload();
           });
         }
         return;

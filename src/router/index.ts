@@ -170,7 +170,7 @@ const routes: Array<RouteRecordRaw> = [{
     name: 'PlaylistMakerLinkedAccounts',
     component: PlaylistMakerLinkedAccounts,
     meta: { requiresAuth: true, role: 'playlist_maker' }
-},    
+},
 // Admin routes
 {
     path: '/admin/dashboard',
@@ -296,40 +296,46 @@ function getOAuthService(): OAuthService {
     return globalOAuthService;
 }
 
-// Helper function to show toast notifications for debugging
-async function showRouterToast(message: string, color: string = 'primary', duration: number = 3000): Promise<void> {
-  const toast = await toastController.create({
-    message,
-    duration,
-    position: 'bottom',
-    color,
-    buttons: [{
-      text: 'OK',
-      role: 'cancel'
-    }]
-  });
-  await toast.present();
-}
-
 // Initialize OAuth service early to ensure deep link handlers are registered
 // This is especially important for mobile OAuth callbacks
 if (Capacitor.isNativePlatform()) {
     // Initialize OAuth service immediately
     const oauthService = getOAuthService();
-    
+
     // Set up mobile deep links for OAuth callbacks
     import('@capacitor/app').then(({ App: CapacitorApp }) => {
         // Show toast instead of console log
-        showRouterToast('Setting up OAuth deep link handler');
         CapacitorApp.addListener('appUrlOpen', async (event) => {
             try {
                 const url = event.url.toLowerCase();
-                
+
                 if (url.includes('oauth/callback') || url.includes('oauth/error')) {
                     await oauthService.handleMobileCallback(event.url);
+                }                else if (url.includes('payment/success')) {
+                    // Extract PayPal parameters from the URL
+                    const urlParts = url.split('?');
+                    const params = urlParts.length > 1 ? new URLSearchParams(urlParts[1]) : new URLSearchParams();
+                    const paymentId = params.get('paymentId');
+                    const payerId = params.get('PayerID');
+
+                    // Navigate to payment success view with the same parameters
+                    router.push({
+                        path: '/payment/success',
+                        query: {
+                            paymentId,
+                            PayerID: payerId
+                        }
+                    });
+                }                else if (url.includes('payment/cancel')) {
+                    // Navigate back to the submission page
+                    router.push('/artist/submissions/new');
+                }
+                else if (url.includes('artist/submissions/new')) {
+                    // Handle direct deep link to new submission page (e.g., from payment cancellation)
+                    router.push('/artist/submissions/new');
                 }
             } catch (error) {
-                await oauthService.handleOAuthError('OAuth deep link processing failed');
+                console.error('Deep link handling error:', error);
             }
         });
     });
@@ -371,7 +377,8 @@ router.beforeEach(async (to, from, next) => {
         next({ name: 'Login', query: { redirect: to.fullPath } });
     } else if (guestOnly && authStore.isAuthenticated) {
         // Redirect to dashboard if user is authenticated and tries to access guest-only pages
-        next({ name: 'Dashboard' });    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation && to.name !== 'EmailConfirmationHandler') {
+        next({ name: 'Dashboard' });
+    } else if (requiresAuth && authStore.isAuthenticated && !authStore.isEmailConfirmed && !skipEmailConfirmation && to.name !== 'EmailConfirmationHandler') {
         // Redirect to email confirmation if user is authenticated but email is not confirmed
         // This takes priority over role selection
         // BUT allow access to EmailConfirmationHandler route so users can actually confirm their email
@@ -397,7 +404,8 @@ router.beforeEach(async (to, from, next) => {
             } else {
                 // Fallback to home if role is unknown
                 next({ name: 'Home' });
-            }        }
+            }
+        }
     } else if (to.path === '/dashboard' && authStore.isAuthenticated) {
         // Redirect to appropriate dashboard based on user role
         const userRole = authStore.user?.role?.toLowerCase();
