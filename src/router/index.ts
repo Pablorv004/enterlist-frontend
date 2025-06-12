@@ -3,6 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/store';
 import { OAuthService } from '@/services/OAuthService';
 import { Capacitor } from '@capacitor/core';
+import { toastController } from '@ionic/vue';
 
 const Home = () => import('@/views/Home.vue');
 const Login = () => import('@/views/Login.vue');
@@ -291,23 +292,47 @@ let globalOAuthService: OAuthService | null = null;
 function getOAuthService(): OAuthService {
     if (!globalOAuthService) {
         globalOAuthService = new OAuthService(router);
-
-        // Set up mobile deep links if on native platform
-        if (Capacitor.isNativePlatform()) {
-            // Use dynamic import to avoid immediate initialization
-            import('@capacitor/app').then(({ App: CapacitorApp }) => {
-                CapacitorApp.addListener('appUrlOpen', async (event) => {
-                    try {
-                        await globalOAuthService!.handleMobileCallback(event.url);
-                    } catch (error) {
-                        console.error('Mobile OAuth callback failed:', error);
-                        await globalOAuthService!.handleOAuthError('OAuth authentication failed');
-                    }
-                });
-            });
-        }
     }
     return globalOAuthService;
+}
+
+// Helper function to show toast notifications for debugging
+async function showRouterToast(message: string, color: string = 'primary', duration: number = 3000): Promise<void> {
+  const toast = await toastController.create({
+    message,
+    duration,
+    position: 'bottom',
+    color,
+    buttons: [{
+      text: 'OK',
+      role: 'cancel'
+    }]
+  });
+  await toast.present();
+}
+
+// Initialize OAuth service early to ensure deep link handlers are registered
+// This is especially important for mobile OAuth callbacks
+if (Capacitor.isNativePlatform()) {
+    // Initialize OAuth service immediately
+    const oauthService = getOAuthService();
+    
+    // Set up mobile deep links for OAuth callbacks
+    import('@capacitor/app').then(({ App: CapacitorApp }) => {
+        // Show toast instead of console log
+        showRouterToast('Setting up OAuth deep link handler');
+        CapacitorApp.addListener('appUrlOpen', async (event) => {
+            try {
+                const url = event.url.toLowerCase();
+                
+                if (url.includes('oauth/callback') || url.includes('oauth/error')) {
+                    await oauthService.handleMobileCallback(event.url);
+                }
+            } catch (error) {
+                await oauthService.handleOAuthError('OAuth deep link processing failed');
+            }
+        });
+    });
 }
 
 // Navigation guards

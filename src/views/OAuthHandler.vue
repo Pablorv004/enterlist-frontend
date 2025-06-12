@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonSpinner } from '@ionic/vue';
+import { IonPage, IonContent, IonSpinner, toastController } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { OAuthService } from '@/services/OAuthService';
@@ -21,6 +21,15 @@ const route = useRoute();
 const router = useRouter();
 const loadingMessage = ref('Processing authentication...');
 
+async function showHandlerToast(message: string) {
+    const toast = await toastController.create({
+        message,
+        duration: 3000,
+        position: 'bottom',
+    });
+    await toast.present();
+}
+
 onMounted(async () => {
     try {
         const oauthService = new OAuthService(router);
@@ -28,16 +37,16 @@ onMounted(async () => {
         // Check for error in query params
         if (route.query.error) {
             loadingMessage.value = 'Authentication failed...';
+            await showHandlerToast(`Error: ${route.query.error}`);
             await oauthService.handleOAuthError(route.query.error as string);
             return;
         }
 
         // Handle OAuth callback
         loadingMessage.value = 'Processing authentication...';
-        console.log('Calling handleOAuthCallback...');
         await oauthService.handleOAuthCallback(new URLSearchParams(window.location.search));
     } catch (error) {
-        console.error('OAuth Handler Error:', error);
+        await showHandlerToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         loadingMessage.value = 'Authentication failed...';
         const oauthService = new OAuthService(router);
         await oauthService.handleOAuthError('Authentication process failed');

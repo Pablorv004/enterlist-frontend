@@ -29,22 +29,25 @@ export class OAuthService {
       this._authStore = useAuthStore();
     }
     return this._authStore;
-  }
-  /**
+  }  /**
    * Unified OAuth callback handler for both mobile and web platforms
    */
   async handleOAuthCallback(params: URLSearchParams | OAuthCallbackData): Promise<void> {
+    
     let callbackData: OAuthCallbackData;
 
     // Parse parameters based on input type
     if (params instanceof URLSearchParams) {
+
       const accessToken = params.get('access_token');
       const userData = params.get('user');
       const isNewUser = params.get('isNewUser') === 'true';
       const needsRoleSelection = params.get('needsRoleSelection') === 'true';
       const linkedAccount = params.get('linkedAccount') === 'true';
-      const provider = params.get('provider') || '';      // Check if this is account linking flow (no access_token but linkedAccount=true)
+      const provider = params.get('provider') || '';
+      
       if (linkedAccount && !accessToken) {
+        
         // This is an account linking success - redirect to appropriate linked accounts page
         await this.router.isReady();
         
@@ -70,7 +73,6 @@ export class OAuthService {
             replace: true
           });
         } else {
-          // Fallback to profile page
           this.router.push({
             name: 'Profile',
             query: { 
@@ -81,10 +83,9 @@ export class OAuthService {
           });
         }
         return;
-      }
-
-      if (!accessToken || !userData) {
-        throw new Error('Missing required OAuth parameters');
+      }      if (!accessToken || !userData) {
+        const errorMsg = `Missing required OAuth parameters: ${!accessToken ? 'access_token' : ''} ${!userData ? 'user' : ''}`;
+        throw new Error(errorMsg);
       }
 
       callbackData = {
@@ -176,31 +177,55 @@ export class OAuthService {
       });
     }
   }
-
   /**
    * Unified OAuth error handler for both mobile and web platforms
    */
   async handleOAuthError(error: string): Promise<void> {
+    
     await this.router.isReady();
     this.router.push({
       name: 'Login',
       query: { error: encodeURIComponent(error || 'OAuth authentication failed') },
       replace: true
     });
-  }
-
-  /**
+  }  /**
    * Handle mobile deep link OAuth callback
    */
   async handleMobileCallback(url: string): Promise<void> {
-    const urlObj = new URL(url);
-    const params = new URLSearchParams(urlObj.search);
+    
+    try {
 
-    if (urlObj.pathname === '/oauth/callback') {
-      await this.handleOAuthCallback(params);
-    } else if (urlObj.pathname === '/oauth/error') {
-      const error = params.get('error') || 'OAuth authentication failed';
-      await this.handleOAuthError(error);
+      // Simpler approach: First, check if this is an OAuth URL
+      const isOAuthCallback = url.includes('oauth/callback');
+      const isOAuthError = url.includes('oauth/error');
+      
+      
+      if (!isOAuthCallback && !isOAuthError) {
+        return;
+      }
+      
+      // Extract parameters from the URL
+      let queryString = '';
+      
+      // Look for query string after '?'
+      const questionMarkIndex = url.indexOf('?');
+      if (questionMarkIndex !== -1) {
+        queryString = url.substring(questionMarkIndex + 1);
+      } else {
+        return;
+      }
+      
+      // Create a URLSearchParams object from the query string
+      const params = new URLSearchParams(queryString);
+      
+      if (isOAuthCallback) {
+        await this.handleOAuthCallback(params);
+      } else if (isOAuthError) {
+        const error = params.get('error') || 'OAuth authentication failed';
+        await this.handleOAuthError(error);
+      }
+    } catch (error) {
+      throw error; // Re-throw to be caught by the caller
     }
   }
 
