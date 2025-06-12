@@ -3,25 +3,25 @@
         <ion-toolbar>
             <div class="bottom-nav">
                 <!-- Dashboard -->
-                <ion-button fill="clear" :router-link="dashboardRoute" :class="getNavButtonClass('dashboard')">
+                <ion-button fill="clear" @click="navigateTo('dashboard')" :class="getNavButtonClass('dashboard')">
                     <ion-icon :icon="homeIcon" slot="top"></ion-icon>
                     <ion-label>Dashboard</ion-label>
                 </ion-button>
 
                 <!-- Songs/Playlists -->
-                <ion-button fill="clear" :router-link="contentRoute" :class="getNavButtonClass('content')">
+                <ion-button fill="clear" @click="navigateTo('content')" :class="getNavButtonClass('content')">
                     <ion-icon :icon="contentIcon" slot="top"></ion-icon>
                     <ion-label>{{ contentLabel }}</ion-label>
                 </ion-button>
 
                 <!-- Submissions -->
-                <ion-button fill="clear" :router-link="submissionsRoute" :class="getNavButtonClass('submissions')">
+                <ion-button fill="clear" @click="navigateTo('submissions')" :class="getNavButtonClass('submissions')">
                     <ion-icon :icon="documentTextIcon" slot="top"></ion-icon>
                     <ion-label>Submissions</ion-label>
                 </ion-button>
 
                 <!-- Profile -->
-                <ion-button fill="clear" :router-link="profileRoute" :class="getNavButtonClass('profile')">
+                <ion-button fill="clear" @click="navigateTo('profile')" :class="getNavButtonClass('profile')">
                     <ion-icon :icon="personIcon" slot="top"></ion-icon>
                     <ion-label>Profile</ion-label>
                 </ion-button>
@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, PropType } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { IonFooter, IonToolbar, IonButton, IonIcon, IonLabel } from '@ionic/vue';
 import {
     home as homeIcon,
@@ -67,6 +67,7 @@ export default defineComponent({
     },
     setup(props) {
         const route = useRoute();
+        const router = useRouter();
         const authStore = useAuthStore();
 
         // Determine user type from prop or auth store
@@ -127,6 +128,41 @@ export default defineComponent({
             return activeTab.value === tab ? `${baseClass} active` : baseClass;
         };
 
+        // Navigation handler with page refresh
+        const navigateTo = async (tab: ActiveTab) => {
+            let targetRoute: string;
+            
+            switch (tab) {
+                case 'dashboard':
+                    targetRoute = dashboardRoute.value;
+                    break;
+                case 'content':
+                    targetRoute = contentRoute.value;
+                    break;
+                case 'submissions':
+                    targetRoute = submissionsRoute.value;
+                    break;
+                case 'profile':
+                    targetRoute = profileRoute.value;
+                    break;
+                default:
+                    targetRoute = dashboardRoute.value;
+            }
+
+            // If we're already on the target route, just refresh
+            if (route.path === targetRoute) {
+                window.location.reload();
+                return;
+            }
+
+            // Navigate to the route and then refresh
+            await router.push(targetRoute);
+            // Small delay to ensure navigation completes before refresh
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        };
+
         return {
             dashboardRoute,
             contentRoute,
@@ -135,6 +171,7 @@ export default defineComponent({
             contentLabel,
             contentIcon,
             getNavButtonClass,
+            navigateTo,
             // Icons
             homeIcon,
             documentTextIcon,
