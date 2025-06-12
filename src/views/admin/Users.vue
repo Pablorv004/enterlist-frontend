@@ -71,7 +71,7 @@
                 </ion-toolbar>
             </ion-header>
             <ion-content class="ion-padding">                <form @submit.prevent="saveUser" v-if="selectedUser">
-                    <ion-item hidden>
+                    <ion-item>
                         <ion-label position="stacked">User ID</ion-label>
                         <ion-input :value="selectedUser.user_id" readonly></ion-input>
                     </ion-item>
@@ -93,16 +93,6 @@
                             <ion-select-option value="playlist_maker">Playlist Maker</ion-select-option>
                             <ion-select-option value="admin">Admin</ion-select-option>
                         </ion-select>
-                    </ion-item>
-
-                    <ion-item hidden>
-                        <ion-label position="stacked">OAuth Provider</ion-label>
-                        <ion-input v-model="selectedUser.oauth_provider" placeholder="OAuth provider"></ion-input>
-                    </ion-item>
-
-                    <ion-item hidden>
-                        <ion-label position="stacked">OAuth ID</ion-label>
-                        <ion-input v-model="selectedUser.oauth_id" placeholder="OAuth ID"></ion-input>
                     </ion-item>
 
                     <ion-item>
