@@ -110,5 +110,16 @@ export const TransactionService = {
       payerId,
     });
     return response.data;
+  },
+
+  completeMobilePayPalPayment: async (submissionId: string): Promise<{
+    success: boolean;
+    transaction: Transaction;
+    message: string;
+  }> => {
+    const response = await apiClient.post('/transactions/paypal/complete-mobile-payment', {
+      submissionId,
+    });
+    return response.data;
   }
 };
